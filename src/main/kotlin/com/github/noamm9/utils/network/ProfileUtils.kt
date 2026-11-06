@@ -105,13 +105,13 @@ object ProfileUtils {
     // but this one seems to behave exactly like /locraw.
     // meaning it does not affect the message spam cooldown
     suspend fun getSecretsCMD(): Result<Long> {
-        if (! LocationUtils.inSkyblock) return Result.failure(Exception("Not in Skyblock"))
+        if (! LocationUtils.inSkyblock) return Result.failure(Exception("Not in SkyBlock"))
         _totalSecrets = null
         chatListener.register()
         ChatUtils.sendCommand("/secretcount")
         ThreadUtils.setTimeout(5000) { chatListener.unregister() }
         while (chatListener.isActive) delay(50)
-        val secrets = _totalSecrets ?: return Result.failure(Exception("Secrets count command timed out"))
+        val secrets = _totalSecrets ?: return Result.failure(Exception("Secret count command timed out"))
         SecretCache.addToCache(mc.user.name.lowercase(), secrets)
         return Result.success(secrets)
     }

@@ -19,20 +19,20 @@ import net.minecraft.world.entity.decoration.ArmorStand
 import net.minecraft.world.item.ItemStack
 import java.util.*
 
-object RenderOptimizer: Feature("Optimize Rendering by hiding useless stuff.") {
-    private val hideStar by ToggleSetting("Hide Star Mobs's Nametag").withDescription("Should probably be used with &b${StarMobESP.name}")
-    private val hideNonStar by ToggleSetting("Hide Non Star Mob's Nametag")
+object RenderOptimizer: Feature("Optimizes rendering by hiding unnecessary effects and entities.") {
+    private val hideStar by ToggleSetting("Hide Starred Mob Nametags").jsonName("Hide Star Mobs's Nametag").withDescription("Should probably be used with &b${StarMobESP.name}")
+    private val hideNonStar by ToggleSetting("Hide Non-Starred Mob Nametags").jsonName("Hide Non Star Mob's Nametag")
     private val hideFallingBlocks by ToggleSetting("Hide Falling Blocks")
     private val hideLightning by ToggleSetting("Hide Lightning Bolts")
-    private val hideSoulWeaver by ToggleSetting("Hide Soul Weaver").withDescription("Hides the flying Heads from the Soul Weaver gloves")
-    private val hideHealerFairy by ToggleSetting("Hide Healer Fairy").withDescription("Hides healer fairy")
-    private val hideHealerOrbs by ToggleSetting("Hide Healer Orbs").withDescription("Hides healer support orbs in dungeons. excludes the Damage orb")
-    private val hide0HealthNames by ToggleSetting("Hide 0 Health").withDescription("Hide 0 Health nametags")
-    private val hideDeadMobs by ToggleSetting("Hide Dead Mobs").withDescription("Hides the mobs death animation.")
+    private val hideSoulWeaver by ToggleSetting("Hide Soul Weaver").withDescription("Hides the flying heads from the Soulweaver Gloves")
+    private val hideHealerFairy by ToggleSetting("Hide Healer Fairy").withDescription("Hides the healer fairy")
+    private val hideHealerOrbs by ToggleSetting("Hide Healer Orbs").withDescription("Hides healer support orbs in dungeons, except the Damage orb")
+    private val hide0HealthNames by ToggleSetting("Hide 0 Health").withDescription("Hides nametags with 0 health")
+    private val hideDeadMobs by ToggleSetting("Hide Dead Mobs").withDescription("Hides mob death animations.")
     private val hideXpOrbs by ToggleSetting("Hide XP Orbs")
     private val hideTalismanCoins by ToggleSetting("Hide Talisman Coins").withDescription("Hides coins dropped by the Talisman of Coins and its upgrades.")
-    private val removeTentacles by ToggleSetting("Hide P5 Tentacles").withDescription("Hides the Wither King Tentacles")
-    private val hideP5p by ToggleSetting("Hide P5 Particles").withDescription("Hide all Particles in M7 P5 except the relevant ones")
+    private val removeTentacles by ToggleSetting("Hide P5 Tentacles").withDescription("Hides the Wither King's tentacles")
+    private val hideP5p by ToggleSetting("Hide P5 Particles").withDescription("Hides all particles in M7 P5 except the relevant ones")
     @JvmStatic val hideFireOnEntities by ToggleSetting("Hide Fire On Entities").withDescription("Hides the fire texture on burning mobs")
 
     private val health0Regex = Regex("""\[Lv\d+] .+ 0/.+❤""")

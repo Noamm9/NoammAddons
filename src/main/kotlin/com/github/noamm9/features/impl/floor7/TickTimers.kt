@@ -10,7 +10,7 @@ import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.RenderHelper.width
 
-object TickTimers: Feature("Shows various types of server tick timers for F7 boss fight.") {
+object TickTimers: Feature("Shows various server tick timers for the F7 boss fight.") {
     private val showPrefix by ToggleSetting("Prefix", true).section("Settings")
     private val showSuffix by ToggleSetting("Suffix", true)
     private val format by DropdownSetting("Format", 0, listOf("Seconds", "Ticks"))

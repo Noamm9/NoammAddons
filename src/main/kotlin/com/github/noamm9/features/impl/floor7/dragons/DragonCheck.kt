@@ -22,7 +22,7 @@ object DragonCheck {
     private val colorRegex = Regex("§.")
 
     fun isAliveOnScoreboard(dragon: WitherDragonEnum) = ScoreboardUtils.getLines().any {
-        val line = it.unformattedText.remove(colorRegex) // why tf it still have colors???
+        val line = it.unformattedText.remove(colorRegex) // Why the fuck does it still have colors???
         line.contains(dragon.displayName, ignoreCase = true).also {
             if (it) ChatUtils.debug("dragon", "tab line for ${dragon.name}: $line")
         } && healthRegex.find(line)?.value != "0"

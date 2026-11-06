@@ -11,7 +11,7 @@ import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.RenderHelper.width
 
-object PartyHUD: Feature("Displays your current party members, their roles and online state on screen.") {
+object PartyHUD: Feature("Displays your party members, their roles, and their online status on screen.") {
     private val showInvites by ToggleSetting("Show Pending Invites", true).onChange { updatePartyLines() }
 
     private data class Row(val icon: String, val iconX: Int, val text: String, val textX: Int)

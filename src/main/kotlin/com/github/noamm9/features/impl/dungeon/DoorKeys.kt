@@ -20,7 +20,7 @@ import java.awt.Color
 //!import com.github.noamm9.utils.render.LegitEntityVisibility
 //#endif
 
-object DoorKeys: Feature("ESP box & Tracer for wither and blood doors.") {
+object DoorKeys: Feature("ESP boxes and tracers for Wither and Blood Keys.") {
     private val highlightWither by ToggleSetting("Wither Key").section("Keys")
     private val highlightBlood by ToggleSetting("Blood Key")
     private val witherColor by ColorSetting("Wither Key Color", Color.BLACK.withAlpha(60)).showIf { highlightWither.value }.section("Colors")

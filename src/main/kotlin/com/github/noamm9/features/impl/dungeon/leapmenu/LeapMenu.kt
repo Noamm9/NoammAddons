@@ -40,19 +40,19 @@ import net.minecraft.world.item.Items
 
 object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
     private val customLeapMenu by ToggleSetting("Leap Menu", false).section("Custom Menu")
-    private val renderMode by DropdownSetting("Render Mode", 0, listOf("Default", "Map", "Wheel")).withDescription("&nDefault&r is the standard 2x2 grid leap menu.\n&nMap&r lets you click a teammate's head on the dungeon map to leap to them.\n&nWheel&r is a proof of concept menu that on paper should be better than the usual 2x2, it shows all 5 players including yourself, so the order stays the same when you change class.").showIf { customLeapMenu.value }
+    private val renderMode by DropdownSetting("Render Mode", 0, listOf("Default", "Map", "Wheel")).withDescription("&nDefault&r is the standard 2x2 grid leap menu.\n&nMap&r lets you click a teammate's head on the dungeon map to leap to them.\n&nWheel&r is an experimental menu. It shows all five players, including you, so the order stays the same when you change class.").showIf { customLeapMenu.value }
     val sorting by DropdownSetting("Leap Order", 0, arrayListOf("A-Z Class", "A-Z Name", "Odin Sorting", "Custom sorting", "No Sorting")).withDescription("How to sort the leap menu. /na leaporder to configure custom sorting.")
     private val customLeapOrderSetting by ListSetting<String>("Custom Leap Order").hidden()
     private val customLeapTypeSetting by TextInputSetting("Custom Leap Type", "name").hidden()
-    private val leftClickOnly by ToggleSetting("Left Click Only").withDescription("Prevents leaping unless clicked with left mouse button")
+    private val leftClickOnly by ToggleSetting("Left Click Only").withDescription("Only allows leaping with the left mouse button")
 
     val scale by SliderSetting("Menu Scale", 50f, 30, 100, 1).showIf { customLeapMenu.value }.section("Default")
     val showLastDoorOpener by ToggleSetting("Show Last Door Opener", false).showIf { customLeapMenu.value }
     val tintDeadPlayers by ToggleSetting("Tint Dead Players", true).showIf { customLeapMenu.value }
-    val highlightInCore by ToggleSetting("Highlight Players in core", true).withDescription("Hightlights teammates in green if they are inside core in F7/M7 S3").showIf { customLeapMenu.value }
+    val highlightInCore by ToggleSetting("Highlight Players in core", true).withDescription("Highlights teammates in green if they are inside the Core in F7/M7 S3").showIf { customLeapMenu.value }
 
     val mapLeapScale by SliderSetting("Map Leap Scale", 1.5f, 0.5f, 3f, 0.1f).showIf { customLeapMenu.value && renderMode.value == 1 }.section("Map")
-    private val mapLeapAfterBlood by ToggleSetting("After Blood Only", false).withDescription("Use the Default leap menu until the Blood opens, then switch to Map.").showIf { customLeapMenu.value && renderMode.value == 1 }
+    private val mapLeapAfterBlood by ToggleSetting("After Blood Only", false).withDescription("Uses the default leap menu until the Blood Door opens, then switches to the map.").showIf { customLeapMenu.value && renderMode.value == 1 }
 
     private val leapKeybinds by ToggleSetting("Leap Keybinds").showIf { customLeapMenu.value }.section("Leap Keybinds")
     private val keybindMode by DropdownSetting("Mode", 0, listOf("Corners", "Class")).showIf { leapKeybinds.value }
@@ -60,7 +60,7 @@ object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
     private val classesKeys = DungeonClass.entries.dropLast(1).map { KeybindSetting(it.name.lowercase().uppercaseFirst(), InputConstants.UNKNOWN.value).showIf { leapKeybinds.value && keybindMode.value == 1 }.apply(configSettings::add) }
 
     private val announceSpiritLeaps by ToggleSetting("Announce Leap", true).section("Extras")
-    private val leapMsg by TextInputSetting("Leap Message", "Leaping to {name}").withDescription("replaces {name} with the player name").showIf { announceSpiritLeaps.value }
+    private val leapMsg by TextInputSetting("Leap Message", "Leaping to {name}").withDescription("Replaces {name} with the player's name").showIf { announceSpiritLeaps.value }
     private val hideAfterLeap by ToggleSetting("Hide Players").withDescription("Hides players for a certain amount of time after you leap")
     private val hideTime by SliderSetting("Hide Time", 3.5, 0.5, 5.0, 0.1).showIf { hideAfterLeap.value }
 

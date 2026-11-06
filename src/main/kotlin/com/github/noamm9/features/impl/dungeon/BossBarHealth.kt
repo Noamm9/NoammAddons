@@ -11,11 +11,11 @@ import net.minecraft.network.chat.Component
 import java.util.*
 import kotlin.math.roundToInt
 
-object BossBarHealth: Feature(name = "Bossbar Health", description = "Shows the health number of the bossbar boss.") {
+object BossBarHealth: Feature(name = "Bossbar Health", description = "Shows the boss's health as a number on the boss bar.") {
     private val theWatcher by ToggleSetting("The Watcher", true)
     private val f4Thorn by ToggleSetting("Thorn", true)
     private val f7Withers by ToggleSetting("F7 Withers", true)
-    @JvmStatic val hideBossBar by ToggleSetting("Hide BossBar").withDescription("hides only the healthbar")
+    @JvmStatic val hideBossBar by ToggleSetting("Hide BossBar").withDescription("Hides only the health bar")
 
     @JvmStatic
     fun onRender(instance: LerpingBossEvent, original: Operation<Component>): Component? {

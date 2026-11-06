@@ -10,7 +10,7 @@ import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.location.LocationUtils.inSkyblock
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
 
-object SBKick: Feature("Shows a timer on screen for when you can rejoin Skyblock.") {
+object SBKick: Feature("Shows a timer on screen for when you can rejoin SkyBlock.") {
     private val sendMsg by ToggleSetting("Send Party Message")
 
     private var showTime = false

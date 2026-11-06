@@ -25,9 +25,9 @@ object MageBeam: Feature("Renders a fully custom, animated beam whenever a mage 
     private val color by ColorSetting("Primary Color", Color.WHITE, false).withDescription("The color of the beam line")
     private val lineWidth by SliderSetting("Line Width", 2, 1, 6, 1, "px").withDescription("Thickness of the line.")
     private val duration by SliderSetting("Duration", 40, 5, 100, 1, " ticks").withDescription("How long the beam shows.")
-    private val beamCancel by ToggleSetting("Cancel Mage Beam").withDescription("cancel only mage beam particles")
+    private val beamCancel by ToggleSetting("Cancel Mage Beam").withDescription("Cancels only the mage beam particles")
     private val fade by ToggleSetting("Fade").withDescription("Animates the beam slowly disappearing")
-    private val hideSheep by ToggleSetting("Hide Sheep", true).withDescription("Prevents the Sheep from spawning.")
+    private val hideSheep by ToggleSetting("Hide Sheep", true).withDescription("Prevents the sheep from spawning.")
     private val rainbow by ToggleSetting("&dI am Skizo!!!!")
 
     private val beams = linkedSetOf<Beam>()
@@ -79,10 +79,10 @@ object MageBeam: Feature("Renders a fully custom, animated beam whenever a mage 
         }
 
         companion object {
-            const val pointSpace = 0.5 // avg distance between 2 particals
+            const val pointSpace = 0.5 // Average distance between two particles
 
             fun onPoint(point: Vec3, tick: Long, beam: Beam?) {
-                if (beams.any { point in it.points }) return // hypixel sends the same beam twise, thx hypixel
+                if (beams.any { point in it.points }) return // Hypixel sends the same beam twice. Thanks, Hypixel.
 
                 if (beam != null && tick - beam.updateTick <= 1 && beam.inLine(point)) {
                     beam.points.add(point)

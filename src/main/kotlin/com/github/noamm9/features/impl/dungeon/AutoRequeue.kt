@@ -11,10 +11,10 @@ import com.github.noamm9.utils.location.LocationUtils
 
 object AutoRequeue: Feature() {
     private val requeueCmd by DropdownSetting("Requeue Command", 0, listOf("/joininstance", "/instancerequeue"))
-    private val checkParty by ToggleSetting("Check Party", true).withDescription("Should the auto check the party state before running the command.")
-    private val minPartySize by SliderSetting("Minimum Party Size", 5, 1, 5, 1).withDescription("Minimum Party Size that the $name will run")
-    private val delay by SliderSetting("Delay", 5L, 1L, 10L, 1L).withDescription("Delay in Seconds.")
-    private val feedback by ToggleSetting("Feedback", true).withDescription("Print feedback messages from auto in chat.")
+    private val checkParty by ToggleSetting("Check Party", true).withDescription("Checks the party state before running the requeue command.")
+    private val minPartySize by SliderSetting("Minimum Party Size", 5, 1, 5, 1).withDescription("The minimum party size required for $name to run")
+    private val delay by SliderSetting("Delay", 5L, 1L, 10L, 1L).withDescription("Delay in seconds.")
+    private val feedback by ToggleSetting("Feedback", true).withDescription("Prints feedback from the requeue process in chat.")
 
     private const val prefix = "&bAutoRequeue &f>"
     private val masterMode get() = if (LocationUtils.isMasterMode) "MASTER_" else ""
@@ -29,10 +29,10 @@ object AutoRequeue: Feature() {
         register<DungeonEvent.RunEndedEvent>(priority = EventPriority.HIGHEST) {
             if (checkParty.value) {
                 if (! PartyUtils.isInParty) return@register feedBackMessage("Not in a party!")
-                if (! PartyUtils.isLeader()) return@register feedBackMessage("You are not leader.")
-                if (PartyUtils.partySize < minPartySize.value) return@register feedBackMessage("Not enough players in party! (${PartyUtils.partySize}/${minPartySize.value})")
+                if (! PartyUtils.isLeader()) return@register feedBackMessage("You are not the party leader.")
+                if (PartyUtils.partySize < minPartySize.value) return@register feedBackMessage("Not enough players in the party! (${PartyUtils.partySize}/${minPartySize.value})")
             }
-            if (PartyHelper.downtimeList.isNotEmpty()) return@register feedBackMessage("There are players in downtime!")
+            if (PartyHelper.downtimeList.isNotEmpty()) return@register feedBackMessage("Some players have requested downtime!")
 
             ThreadUtils.scheduledTask(delay.value * 20) {
                 if (checkParty.value && ! PartyUtils.isLeader()) return@scheduledTask feedBackMessage("You are not the party leader!")

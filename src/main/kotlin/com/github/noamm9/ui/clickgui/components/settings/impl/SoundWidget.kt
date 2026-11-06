@@ -78,7 +78,7 @@ class SoundWidget(config: SoundSetting): Widget<SoundEvent>(config) {
             searchHandler.width = searchW
             searchHandler.height = searchH
 
-            if (searchQuery.isEmpty()) ctx.drawString("§8Search sound...", x + 12f, searchY + 5f)
+            if (searchQuery.isEmpty()) ctx.drawString("§8Search sounds...", x + 12f, searchY + 5f)
             else searchHandler.draw(ctx, mouseX.toFloat(), mouseY.toFloat())
 
             val listY = searchY + searchHeight

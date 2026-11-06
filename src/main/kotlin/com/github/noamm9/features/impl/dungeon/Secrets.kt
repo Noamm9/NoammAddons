@@ -43,12 +43,12 @@ object Secrets: Feature(), IFeatureWindow {
     private val hudPrefix by TextInputSetting("HUD Prefix", "Secrets:").withDescription("The text before the secret count of the room")
 
     //#if CHEAT
-    private val lever by ToggleSetting("Lever").withDescription("Expand block Lever hitbox.").section("Secret Hitboxes")
+    private val lever by ToggleSetting("Lever").withDescription("Expands the lever hitbox.").section("Secret Hitboxes")
     private val leverSize by SliderSetting("Lever Hitbox Size", 1.0, 8.0 / 16.0, 1.0, 0.01).showIf { lever.value }
-    @JvmStatic val button by ToggleSetting("Button").withDescription("Expand button hitbox.")
+    @JvmStatic val button by ToggleSetting("Button").withDescription("Expands the button hitbox.")
     private val buttonSize by SliderSetting("Button Hitbox Size", 1.0, 6.0 / 16.0, 1.0, 0.01).showIf { button.value }
-    @JvmStatic val skull by ToggleSetting("Skulls").withDescription("Full block Skull hitbox.")
-    @JvmStatic val mushroom by ToggleSetting("Mushroom").withDescription("Full block Mushroom hitbox.")
+    @JvmStatic val skull by ToggleSetting("Skulls").withDescription("Expands skull hitboxes to a full block.")
+    @JvmStatic val mushroom by ToggleSetting("Mushroom").withDescription("Expands mushroom hitboxes to a full block.")
 
     private val secretsTb by ToggleSetting("Secrets Triggerbot").section("Triggerbot")
     private val closeChest by ToggleSetting("Close Chest").withDescription("Automatically closes the secret chest for you.")

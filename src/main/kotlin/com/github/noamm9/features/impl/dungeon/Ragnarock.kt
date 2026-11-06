@@ -14,8 +14,8 @@ import net.minecraft.sounds.SoundEvents
 import kotlin.math.roundToInt
 
 object Ragnarock: Feature("Ragnarock alerts") {
-    private val alertCancelled by ToggleSetting("Alert Cancelled", true).withDescription("plays a sound when the Ragnarock is cancelled")
-    private val strengthGainedMessage by ToggleSetting("Strength Gained", true).withDescription("Prints in chat how much strength you gained from the Ragnarock")
+    private val alertCancelled by ToggleSetting("Alert Cancelled", true).withDescription("Plays a sound when the Ragnarock ability is cancelled")
+    private val strengthGainedMessage by ToggleSetting("Strength Gained", true).withDescription("Reports in chat how much Strength you gained from the Ragnarock ability")
 
     private val cancelRegex = Regex("Ragnarock was cancelled due to (?:being hit|taking damage)!")
     private val strengthRegex = Regex("Strength: \\+(\\d+)")

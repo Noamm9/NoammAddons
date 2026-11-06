@@ -15,8 +15,8 @@ import net.minecraft.network.protocol.game.ServerboundUseItemPacket
 import net.minecraft.sounds.SoundEvents
 import com.mojang.blaze3d.platform.InputConstants
 
-object DebuffHelper: Feature(description = "Automatically pulls and fires bows based on Server Ticks (Lag Proof).") {
-    private val semiAuto by ToggleSetting("Semi-Auto", true).withDescription("Automatically releases and re-draws the bow.").section("Options")
+object DebuffHelper: Feature(description = "Automatically draws and fires bows based on server ticks to account for lag.") {
+    private val semiAuto by ToggleSetting("Semi-Auto", true).withDescription("Automatically releases and redraws the bow.").section("Options")
     private val soundEnabled by ToggleSetting("Play Sound", true).withDescription("Plays a sound when fully charged.")
     private val sound = createSoundSettings("Sound", SoundEvents.EXPERIENCE_ORB_PICKUP) { soundEnabled.value }
 
@@ -38,7 +38,7 @@ object DebuffHelper: Feature(description = "Automatically pulls and fires bows b
     override fun init() {
         configSettings.filterIsInstance<SliderSetting<Int>>().forEach {
             if (it.min == 0 && it.max == 20 && it.step == 1 && it.defaultValue == 8) {
-                it.withDescription("How many ticks should the bow be charged before it shoots. &e(Set to 0 to disable)")
+                it.withDescription("How many ticks to charge the bow before firing. &e(Set to 0 to disable)")
             }
         }
 

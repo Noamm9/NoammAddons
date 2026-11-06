@@ -6,7 +6,7 @@ import com.github.noamm9.config.types.SliderSetting
 import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.features.Feature
 
-object Animations: Feature("Allows you to modify your hand view-model") {
+object Animations: Feature("Allows you to modify your hand view model") {
     @JvmStatic val mainHandItemScale by SliderSetting("Item Scale", 0.0, - 1.5f, 1.5f, 0.05f).withDescription("0 is normal size. -0.5 is half size. 1 is double size.")
 
     @JvmStatic val mainHandX by SliderSetting("X", .0, - 2.0, 2.0, 0.01)
@@ -24,10 +24,10 @@ object Animations: Feature("Allows you to modify your hand view-model") {
     @JvmStatic val disableHandMove by ToggleSetting("Disable hand movement").withDescription("Stops the held item from moving when you look around.")
     @JvmStatic val disableEquip by ToggleSetting("Disable equip animation").withDescription("Disables the equip animation when your held item changes.")
     @JvmStatic val disableSwingAnimation by ToggleSetting("Disable swing animation").withDescription("Disables the held item swing animation.")
-    @JvmStatic val terminatorOnly by ToggleSetting("Terminator Only").withDescription("Disables the swing animation only for terminator.").showIf { disableSwingAnimation.value }
+    @JvmStatic val terminatorOnly by ToggleSetting("Terminator Only").withDescription("Disables the swing animation only for the Terminator.").showIf { disableSwingAnimation.value }
 
     @JvmStatic val swingSpeed by SliderSetting("Swing Speed", .0, - 2f, 1f, 0.05).hideIf { disableSwingAnimation.value && ! terminatorOnly.value }
-    @JvmStatic val ignoreHaste by ToggleSetting("Ignore Haste").withDescription("Ignores the haste speed boost.").hideIf { disableSwingAnimation.value && ! terminatorOnly.value }
+    @JvmStatic val ignoreHaste by ToggleSetting("Ignore Haste").withDescription("Ignores the Haste speed boost.").hideIf { disableSwingAnimation.value && ! terminatorOnly.value }
 
     private val reset by ButtonSetting("Reset") {
         configSettings.forEach(ConfigHolder<*>::reset)

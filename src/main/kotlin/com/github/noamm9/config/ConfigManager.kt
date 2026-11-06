@@ -42,7 +42,7 @@ object ConfigManager: ISelfInit {
             if (file.parentFile != configsDir.canonicalFile) return@run null
             return@run file
         } ?: run {
-            ChatUtils.modMessage("&cInvalid config name \"$configName\". Use 1-32 characters: A-Z, 0-9, _ or -.")
+            ChatUtils.modMessage("&cInvalid config name \"$configName\". Use 1-32 characters: A-Z, a-z, 0-9, _ or -.")
             return false
         }
 

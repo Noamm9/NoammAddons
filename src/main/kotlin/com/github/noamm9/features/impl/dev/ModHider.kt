@@ -20,7 +20,7 @@ import net.minecraft.server.packs.resources.MultiPackResourceManager
 import java.util.*
 import kotlin.jvm.optionals.getOrNull
 
-object ModHider: Feature("stops the exploit that allows servers to send a translation key inside a Sign or Anvil to gets the mods you are using. mods without language keys are safe from this", toggled = true) {
+object ModHider: Feature("Blocks an exploit that lets servers identify your mods by sending translation keys through signs or anvils. Mods without translation keys are unaffected", toggled = true) {
     override fun toggle() = Unit
     private val serverLanguages = IdentityHashMap<ClientPacketListener?, Language?>()
     private val language = ILanguage.invokeLoadDefault()

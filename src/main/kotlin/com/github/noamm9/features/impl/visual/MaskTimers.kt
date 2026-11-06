@@ -18,10 +18,10 @@ import net.minecraft.world.entity.EquipmentSlot
 import kotlin.math.roundToInt
 
 object MaskTimers: Feature("Mask Cooldown Timers, Invulnerability Timers, and more") {
-    private val onlyInDungeon by ToggleSetting("Dungeons Only").withDescription("enables this feature only while in a dungeon")
+    private val onlyInDungeon by ToggleSetting("Dungeons Only").withDescription("Enables this feature only while in a dungeon")
     private val maskTimerStyle by DropdownSetting("Style", 0, listOf("NoammAddons", "Zyryon"))
 
-    private val invulnerabilityTimers by ToggleSetting("Invulnerability Timers").withDescription("Shows the invulnerability time of the mask")
+    private val invulnerabilityTimers by ToggleSetting("Invulnerability Timers").withDescription("Shows how long the mask grants invulnerability")
     private val procNotification by ToggleSetting("Proc Notification").withDescription("Shows a title on screen when a mask has been used")
     private val readyNotification by ToggleSetting("Ready Notification").withDescription("Shows a title on screen when a mask cooldown is over")
     private val partyChatOnPop by ToggleSetting("Proc Message").withDescription("Sends a party message when a mask procs")
@@ -76,7 +76,7 @@ object MaskTimers: Feature("Mask Cooldown Timers, Invulnerability Timers, and mo
                 else if (! mask.notifiedReady) {
                     mask.notifiedReady = true
                     if (readyNotification.value && (! onlyInDungeon.value || inDungeon)) {
-                        ChatUtils.showTitle("${mask.color}${mask.displayName} is Ready!")
+                        ChatUtils.showTitle("${mask.color}${mask.displayName} is ready!")
                     }
                 }
             }

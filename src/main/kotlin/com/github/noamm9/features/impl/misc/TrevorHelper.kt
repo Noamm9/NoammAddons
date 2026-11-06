@@ -33,8 +33,8 @@ import net.minecraft.world.entity.animal.sheep.Sheep
 import java.awt.Color
 
 /**
- * Based off Nebulune by Starred
- * under BSD-3 Clause license https://github.com/skies-starred/Nebulune/blob/master/LICENSE
+ * Based on Nebulune by Starred
+ * under the BSD 3-Clause License https://github.com/skies-starred/Nebulune/blob/master/LICENSE
  * @link https://github.com/skies-starred/Nebulune/blob/master/src/main/kotlin/foo/starred/nebulune/modules/impl/general/TrevorHelper.kt
  * Modified
  */

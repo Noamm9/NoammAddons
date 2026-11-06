@@ -22,14 +22,14 @@ import net.minecraft.client.multiplayer.chat.GuiMessage
 import net.minecraft.network.chat.*
 import net.minecraft.network.protocol.common.ServerboundCustomClickActionPacket
 
-object ChatFeatures: Feature(jsonName = "Chat", description = "Useful tweaks for the chat such as Ctrl + Click to copy messages."), ICommandProvider {
-    private val ctrlClickToCopy by ToggleSetting("Ctrl Click to Copy", true).withDescription("Ctrl + Left Click a message to copy it to your clipboard.")
+object ChatFeatures: Feature(jsonName = "Chat", description = "Chat tweaks, including Ctrl + Click to copy messages."), ICommandProvider {
+    private val ctrlClickToCopy by ToggleSetting("Ctrl Click to Copy", true).withDescription("Hold Ctrl and left-click a message to copy it to your clipboard.")
     private val removeUselessMessages by ToggleSetting("Remove useless messages", true).withDescription("Removes a lot of useless messages from the chat.")
     private val explosiveShotDamage by ToggleSetting("Explosive Shot Damage", true).withDescription("Shows the damage per enemy dealt by your Explosive Shot.")
     private val chatEmoji by ToggleSetting("Chat Emoji", true).withDescription("Lets you use [MVP++] emojis in chat")
 
     //#if CHEAT
-    private val autoDialogue by ToggleSetting("Auto dialogue").withDescription("Automatically continues dialogues with NPCs.")
+    private val autoDialogue by ToggleSetting("Auto dialogue").withDescription("Automatically continues NPC dialogue.")
     //#endif
 
     private val uselessMessages by lazy { DataDownloader.loadJson<List<String>>("uselessMessages.json").map(::Regex) }
@@ -42,7 +42,7 @@ object ChatFeatures: Feature(jsonName = "Chat", description = "Useful tweaks for
         setName(*NaCommand.names)
         literal("chathider") {
             description("Manages the custom chat hider regexes")
-            requires("Enable the $name Feature to use /na chathider.") { enabled }
+            requires("Enable the $name feature to use /na chathider.") { enabled }
             runs { ChatUtils.modMessage("&bUsage: /na chathider <add|remove|list>") }
 
             literal("add") {
@@ -50,11 +50,11 @@ object ChatFeatures: Feature(jsonName = "Chat", description = "Useful tweaks for
                     runs {
                         val str = StringArgumentType.getString(it, "regex")
                         val list = customHiders.get().map(Regex::pattern)
-                        if (str in list) return@runs ChatUtils.modMessage("&cRegex is Already in the list!")
-                        val regex = catch { Regex(str) } ?: return@runs ChatUtils.modMessage("&cInvalid Regex syntax!")
+                        if (str in list) return@runs ChatUtils.modMessage("&cThat regex is already in the list!")
+                        val regex = catch { Regex(str) } ?: return@runs ChatUtils.modMessage("&cInvalid regex syntax!")
                         customHiders.get().add(regex)
                         customHiders.save()
-                        ChatUtils.modMessage("&aSaved new Regex.")
+                        ChatUtils.modMessage("&aSaved a new regex.")
                     }
                 }
             }
@@ -65,7 +65,7 @@ object ChatFeatures: Feature(jsonName = "Chat", description = "Useful tweaks for
                     runs {
                         val str = StringArgumentType.getString(it, "regex")
                         val removed = customHiders.get().removeIf { it.pattern == str }
-                        ChatUtils.modMessage(if (removed) "&aRemoved Regex." else "&cNo matching regex found.")
+                        ChatUtils.modMessage(if (removed) "&aRemoved regex." else "&cNo matching regex found.")
                         customHiders.save()
                     }
                 }
@@ -100,7 +100,7 @@ object ChatFeatures: Feature(jsonName = "Chat", description = "Useful tweaks for
             val hits = sHits.toIntOrNull() ?: return@register
             val totalDamage = fDamage.replace(",", "").toDoubleOrNull() ?: return@register
             val damagePerEntity = if (hits > 0) totalDamage / hits else totalDamage
-            ChatUtils.modMessage("&aExplosive shot did &e${NumbersUtils.format(damagePerEntity.toLong())}&a damage per enemy.")
+            ChatUtils.modMessage("&aExplosive Shot dealt &e${NumbersUtils.format(damagePerEntity.toLong())}&a damage per enemy.")
         }
 
         register<MessageSentEvent> {

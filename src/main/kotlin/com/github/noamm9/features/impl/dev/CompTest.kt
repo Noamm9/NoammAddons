@@ -42,7 +42,7 @@ object CompTest: Feature("A test feature used to test every UI component.") {
 
     val resetButton by ButtonSetting("copy feature list") {
         mc.keyboardHandler.clipboard = FeatureManager.createFeatureList()
-    }.withDescription("Reverts all settings in the Component Test feature back to their original factory defaults.")
+    }.withDescription("Copies the feature list to the clipboard.")
 
     val testHud = hudElement("testHud") { context, _ ->
         val str = "testHud: FPS=${mc.fps}"

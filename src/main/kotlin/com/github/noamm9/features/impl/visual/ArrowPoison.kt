@@ -13,7 +13,7 @@ import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 import java.awt.Color
 
-object ArrowPoison: Feature("Shows on screen the amount of poison arrows you have in inventory") {
+object ArrowPoison: Feature("Displays the amount of Arrow Poison in your inventory") {
     override fun init() {
         hudElement(name, shouldDraw = { PoisonArrow.entries.any { it.count > 0 } }) { ctx, e ->
             val arrows = if (e) PoisonArrow.entries else PoisonArrow.entries.filter { it.count > 0 }

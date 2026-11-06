@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(LevelRenderer.class)
 public class MixinLevelRenderer {
-    // 26.3 skips the always on top phase unless vanilla has its own gizmos queued that frame
+    // 26.3 skips the always-on-top phase unless vanilla has its own gizmos queued that frame.
     @Inject(method = "frameHasAlwaysOnTopGizmos", at = @At("HEAD"), cancellable = true)
     private void forceAlwaysOnTopPass(CallbackInfoReturnable<Boolean> cir) {
         if (RenderBatcher.hasAlwaysOnTop) cir.setReturnValue(true);

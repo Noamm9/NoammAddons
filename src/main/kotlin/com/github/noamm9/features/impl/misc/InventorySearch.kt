@@ -22,7 +22,7 @@ import net.minecraft.world.item.ItemStack
 import com.mojang.blaze3d.platform.InputConstants
 import java.awt.Color
 
-object InventorySearch: Feature("Lets you search in inventory and support math") {
+object InventorySearch: Feature("Lets you search your inventory and evaluate math expressions") {
     private val ignoreCaps by ToggleSetting("Ignore Caps", true)
     private val searchLore by ToggleSetting("Search Lore", true)
     val highlightColor by ColorSetting("Highlight Color", Color.RED)

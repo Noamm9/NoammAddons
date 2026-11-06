@@ -23,7 +23,7 @@ import kotlin.jvm.optionals.getOrNull
 object ItemTooltip: Feature("Adds item information and controls to item tooltips") {
     private val showPrices by ToggleSetting("Item Prices").section("Item Information").withDescription("Shows Bazaar and Lowest BIN prices")
     private val showNpcSellPrice by ToggleSetting("NPC Sell Price").withDescription("Shows the price an item sells for to NPCs").showIf { showPrices.value }
-    private val showItemQuality by ToggleSetting("Item Quality").withDescription("Shows the base stats boost of dungeon items and their floor")
+    private val showItemQuality by ToggleSetting("Item Quality").withDescription("Shows the base stat boost and floor of dungeon items")
 
     private val scrollableTooltips by ToggleSetting("Scrollable Tooltips").section("Scrollable Tooltips").withDescription("Allows item tooltips to be moved and scaled with the scroll wheel")
     @JvmStatic val tooltipScale by SliderSetting("Tooltip Scale", 100, 30, 150, 1).withDescription("The size of the tooltip").showIf { scrollableTooltips.value }

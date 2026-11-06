@@ -136,13 +136,13 @@ object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while look
     override fun CommandBuilder.command() {
         setName("ndw")
         description("Manage custom dungeon waypoints")
-        requires("Enable the $name Feature to use /ndw.") { enabled }
+        requires("Enable the $name feature to use /ndw.") { enabled }
         runs { ChatUtils.modMessage("&bUsage: /ndw <add|edit|remove|clear>") }
 
         literal("add") {
             runs {
                 val info = getRoomData() ?: return@runs
-                val currentWaypoints = info.waypoints() ?: return@runs ChatUtils.modMessage("§cRoom rotation not scanned yet, try again in a moment.")
+                val currentWaypoints = info.waypoints() ?: return@runs ChatUtils.modMessage("§cRoom rotation has not been scanned yet. Try again in a moment.")
                 val lookingAt = PlayerUtils.getSelectionBlock() ?: return@runs ChatUtils.modMessage("§cYou must be looking at a block!")
                 if (currentWaypoints.any { it.pos == lookingAt }) return@runs ChatUtils.modMessage("§cA waypoint already exists here. Use /ndw edit.")
 
@@ -154,7 +154,7 @@ object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while look
         literal("edit") {
             runs {
                 val info = getRoomData() ?: return@runs
-                val currentWaypoints = info.waypoints() ?: return@runs ChatUtils.modMessage("§cRoom rotation not scanned yet, try again in a moment.")
+                val currentWaypoints = info.waypoints() ?: return@runs ChatUtils.modMessage("§cRoom rotation has not been scanned yet. Try again in a moment.")
                 val lookingAt = PlayerUtils.getSelectionBlock() ?: return@runs ChatUtils.modMessage("§cYou must be looking at a block!")
                 val existing = currentWaypoints.find { it.pos == lookingAt } ?: return@runs ChatUtils.modMessage("§cNo waypoint found at that block.")
 
@@ -166,7 +166,7 @@ object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while look
         literal("remove") {
             runs {
                 val info = getRoomData() ?: return@runs
-                val currentWaypoints = info.waypoints() ?: return@runs ChatUtils.modMessage("§cRoom rotation not scanned yet, try again in a moment.")
+                val currentWaypoints = info.waypoints() ?: return@runs ChatUtils.modMessage("§cRoom rotation has not been scanned yet. Try again in a moment.")
                 val lookingAt = PlayerUtils.getSelectionBlock() ?: return@runs ChatUtils.modMessage("§cYou must be looking at a block!")
                 val waypoints = storage.get()
 
@@ -186,7 +186,7 @@ object DungeonWaypoints: Feature("Add a custom waypoint with /ndw add while look
         literal("clear") {
             runs {
                 val info = getRoomData() ?: return@runs
-                val currentWaypoints = info.waypoints() ?: return@runs ChatUtils.modMessage("§cRoom rotation not scanned yet, try again in a moment.")
+                val currentWaypoints = info.waypoints() ?: return@runs ChatUtils.modMessage("§cRoom rotation has not been scanned yet. Try again in a moment.")
                 if (currentWaypoints.isEmpty()) return@runs ChatUtils.modMessage("§cNo waypoints set for this room.")
                 storage.get().remove(info.name)
                 currentWaypoints.clear()

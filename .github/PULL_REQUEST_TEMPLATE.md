@@ -8,7 +8,7 @@
 - [ ] Performance improvement
 - [ ] Other (please describe):
 
-### How Has This Been Tested?
+### How has this been tested?
 
 - [ ] Test A
 - [ ] Test B

@@ -12,7 +12,7 @@ import net.minecraft.sounds.SoundEvent
 import java.util.*
 import kotlin.math.roundToInt
 
-object SoundManager: Feature("Adjust volumes for every sound in the game"), IFeatureScreen {
+object SoundManager: Feature("Adjusts the volume of every sound in the game"), IFeatureScreen {
     private val volumes = PogObject("noammaddons_sounds", mutableMapOf<String, Float>())
     private val recentSounds = Collections.synchronizedSet<Identifier>(mutableSetOf())
     @Volatile var recentSoundsVersion = 0L

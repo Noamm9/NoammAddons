@@ -102,7 +102,7 @@ class DungeonWaypointScreen(
         }
 
         val noStyleSelected = ! filled && ! outline
-        if (noStyleSelected) graphics.drawCenteredString("§cBoth Filled and Outline cannot be false", x + PANEL_WIDTH / 2, y + 258)
+        if (noStyleSelected) graphics.drawCenteredString("§cEnable Filled or Outline", x + PANEL_WIDTH / 2, y + 258)
 
         drawActionButton(graphics, saveButton, x + 30, y + BUTTONS_START, mX, mY, enabled = ! noStyleSelected)
         drawActionButton(graphics, cancelButton, x + PANEL_WIDTH - 30 - BUTTON_WIDTH, y + BUTTONS_START, mX, mY)
@@ -202,7 +202,7 @@ class DungeonWaypointScreen(
         if (mx >= x + 30 && mx <= x + 30 + BUTTON_WIDTH && my >= y + BUTTONS_START && my <= y + BUTTONS_START + BUTTON_HEIGHT) {
             if (filled || outline) save()
             else {
-                ChatUtils.modMessage("§cBoth Filled and Outline cannot be false")
+                ChatUtils.modMessage("§cEnable Filled or Outline")
                 Style.playClickSound(0.7f)
             }
             return true

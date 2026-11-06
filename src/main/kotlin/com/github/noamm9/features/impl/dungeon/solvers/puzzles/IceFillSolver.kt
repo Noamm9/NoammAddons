@@ -97,7 +97,7 @@ object IceFillSolver: PuzzleSolver {
             val puzzle = IceFillPuzzle(spaces, start, end).solve()
 
             if (puzzle.path.isNotEmpty()) puzzles.add(puzzle)
-            else ChatUtils.modMessage("§cIceFill: Failed to find path for Puzzle $i.")
+            else ChatUtils.modMessage("§cIce Fill: Failed to find a path for puzzle $i.")
         }
     }
 

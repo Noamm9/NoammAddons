@@ -4,9 +4,9 @@
   "version": "${version}",
   "name": "NoammAddons",
   //#if CHEAT
-  "description": "@MINECRAFT_VERSION@ port of the greatest skyblock mod ever made! Version: Cheat",
+  "description": "@MINECRAFT_VERSION@ port of the greatest SkyBlock mod ever made! Version: Cheat",
   //#else
-  //!"description": "@MINECRAFT_VERSION@ port of the greatest skyblock mod ever made! Version: Legit",
+  //!"description": "@MINECRAFT_VERSION@ port of the greatest SkyBlock mod ever made! Version: Legit",
   //#endif
   "authors": [
     "Noamm"

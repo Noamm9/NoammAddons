@@ -6,7 +6,7 @@ import net.minecraft.world.entity.Entity
 
 object NameTagTweaks: Feature(name = "Nametag Tweaks") {
     private val showOwnNametag by ToggleSetting("Show Own Nametag").withDescription("Renders your own nametag above your head.")
-    @JvmStatic val disableNametagBackground by ToggleSetting("Hide Nametag Background").withDescription("Disable Nametag's black background.")
+    @JvmStatic val disableNametagBackground by ToggleSetting("Hide Nametag Background").withDescription("Disables the black nametag background.")
     @JvmStatic val addNameTagTextShadow by ToggleSetting("Shadowed Nametag").withDescription("Adds a text shadow to the nametag label.")
     private val hideDinnerboneNametag by ToggleSetting("Hide Dinnerbone Nametag").withDescription("Hides the nametag of any entity named \"Dinnerbone\".")
 

@@ -4,7 +4,7 @@ object PersonalBest {
     private val pbData = PogObject("personal_bests", mutableMapOf<String, Number>())
 
     /**
-     * @return true if this was a new Personal Best, false otherwise.
+     * @return true if this was a new personal best, false otherwise.
      */
     fun checkAndSetPB(key: String, value: Number, lowerIsBetter: Boolean = true): Boolean {
         val pbData = pbData.get()

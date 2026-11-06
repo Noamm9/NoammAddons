@@ -12,11 +12,11 @@ import net.minecraft.world.item.ItemStack
  * @see com.github.noamm9.mixin.MixinGuiGraphicsExtractor
  * @see com.github.noamm9.mixin.MixinPathCreation
  */
-object Tweaks: Feature("Small quality of life tweaks.") {
+object Tweaks: Feature("Small quality-of-life tweaks.") {
     @JvmStatic val hideRecipeBook by ToggleSetting("Hide Recipe Book").withDescription("Hides the recipe book button in inventory GUIs.")
     @JvmStatic val closeRecipeBook by ToggleSetting("Close Recipe Book").withDescription("Also closes the recipe book screen.").showIf { hideRecipeBook.value }
     @JvmStatic val hideItemCooldowns by ToggleSetting("Hide Item Cooldowns").withDescription("Hides the hotbar cooldown overlay for items.")
-    @JvmStatic val hideHotbarTooltips by ToggleSetting("Hide Hotbar Tooltips").withDescription("Hides the item tooltip when switching items in hotbar.")
+    @JvmStatic val hideHotbarTooltips by ToggleSetting("Hide Hotbar Tooltips").withDescription("Hides the item tooltip when switching items in the hotbar.")
     @JvmStatic val noAotvPaths by ToggleSetting("No AOTV Paths").withDescription("Prevents the Aspect of the Void from creating ghost paths and playing shovel sounds.")
 
     @JvmStatic fun shouldHideItemCooldownOverlay() = enabled && hideItemCooldowns.value && LocationUtils.inSkyblock

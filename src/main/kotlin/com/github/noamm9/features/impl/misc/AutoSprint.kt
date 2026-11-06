@@ -4,7 +4,7 @@ import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.features.Feature
 
-object AutoSprint: Feature("Automatically sprint for you.") {
+object AutoSprint: Feature("Automatically sprints for you.") {
     private val disableInWater by ToggleSetting("Disable In Water").withDescription("Stops sprinting while you are in water.")
 
     override fun init() {

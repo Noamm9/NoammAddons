@@ -14,9 +14,9 @@ import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils
 import java.util.*
 
-object TermAutoClicker: Feature(name = "Term AC", description = "Automatically uses Salvation ability when holding right click.") {
+object TermAutoClicker: Feature(name = "Term AC", description = "Automatically uses the Salvation ability while you hold the right mouse button.") {
     private val cps by SliderSetting("Clicks Per Second", 5.0, 5.0, 10.0, 1.0).withDescription("How many times per second the autoclicker should click.")
-    private val rendTerm by ToggleSetting("Disable With Rend", true).withDescription("Disables the AutoClicker if the Terminator has any level of Rend ultimate enchant")
+    private val rendTerm by ToggleSetting("Disable With Rend", true).withDescription("Disables the autoclicker if the Terminator has any level of the Rend ultimate enchantment")
 
     private var baseCpsDrift = cps.value
     private var lastDriftTime = 0L

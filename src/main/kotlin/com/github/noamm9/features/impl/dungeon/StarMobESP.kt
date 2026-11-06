@@ -27,9 +27,9 @@ object StarMobESP: Feature(
     //#endif
     jsonName = "Star Mob ESP"
 ) {
-    private val espBats by ToggleSetting("Highlight Bats", true).withDescription("Highlights Bats in Dungeons.")
+    private val espBats by ToggleSetting("Highlight Bats", true).withDescription("Highlights bats in dungeons.")
 
-    private val starMobColor by ColorSetting("Star Mob Color", Color.YELLOW, false).section("General Colors").withDescription("Default color for all Starred mobs.")
+    private val starMobColor by ColorSetting("Star Mob Color", Color.YELLOW, false).section("General Colors").withDescription("Default color for all starred mobs.")
     private val felColor by ColorSetting("Fel Color", Color.PINK, false).withDescription("The color used for fels.")
     private val batColor by ColorSetting("Bat Color", Color.GREEN, false).withDescription("The color used for highlighted bats.").showIf { espBats.value }
 
@@ -88,7 +88,7 @@ object StarMobESP: Feature(
     private fun checkStarMob(armorStand: Entity, name: String) {
         if (! checked.add(armorStand.id)) return
         val name = name.removeFormatting().uppercase()
-        // withermancers are always -3 to real entity the -1 and -2 are the wither skulls that they shoot
+        // For Withermancers, the mob ID is three below the armor stand ID. The other two IDs belong to Wither Skulls.
         val offset = if (name.contains("WITHERMANCER")) 3 else 1
         val id = armorStand.id - offset
 

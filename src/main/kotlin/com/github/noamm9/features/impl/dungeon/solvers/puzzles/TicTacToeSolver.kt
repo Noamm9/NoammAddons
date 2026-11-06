@@ -224,8 +224,8 @@ object TicTacToeSolver: PuzzleSolver {
     }
 
     /**
-     * Minimax algorithm for Tic-tac-toe
-     * based off https://gnoht.com/til/ttt-with-minimax/
+     * Minimax algorithm for tic-tac-toe
+     * based on https://gnoht.com/til/ttt-with-minimax/
      * Player = 'O' (Maximizer), AI = 'X' (Minimizer)
      */
     private object TicTacToeUtils {

@@ -16,10 +16,10 @@ import net.minecraft.network.protocol.game.ClientboundSoundPacket
 import net.minecraft.network.protocol.game.ServerboundUseItemPacket
 import net.minecraft.sounds.SoundEvents
 
-object TacTimer: Feature("Shows a 3 seconds timer when you use the Tactical Insertion ability") {
-    private val reverseTimer by ToggleSetting("Reverse Timer").withDescription("Flips the Timer to count up instead of down").section("Timer")
-    private val prefix by ToggleSetting("Tac Prefix", true).withDescription("Adds \"Tac:\" prefix to the timer")
-    private val suffix by ToggleSetting("Timer Suffix").withDescription("Adds \"s\" suffix to the timer")
+object TacTimer: Feature("Shows a 3-second timer when you use the Tactical Insertion ability") {
+    private val reverseTimer by ToggleSetting("Reverse Timer").withDescription("Flips the timer to count up instead of down").section("Timer")
+    private val prefix by ToggleSetting("Tac Prefix", true).withDescription("Adds the \"Tac:\" prefix to the timer")
+    private val suffix by ToggleSetting("Timer Suffix").withDescription("Adds the \"s\" suffix to the timer")
 
     private val markBlock by ToggleSetting("Start Waypoint").withDescription("Shows a waypoint at the start block of the Tactical Insertion ability").section("Waypoint")
     private val mode by DropdownSetting("Mode", 2, listOf("Outline", "Fill", "Filled Outline")).showIf { markBlock.value }

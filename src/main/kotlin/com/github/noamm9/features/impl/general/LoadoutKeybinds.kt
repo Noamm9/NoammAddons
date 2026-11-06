@@ -12,13 +12,13 @@ import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper
 import net.minecraft.network.protocol.game.*
 import net.minecraft.world.inventory.Slot
 
-object LoadoutKeybinds: Feature("Allows you to bind loadout slots to your keyboard/mouse.") {
+object LoadoutKeybinds: Feature("Allows you to bind loadout slots to keyboard keys or mouse buttons.") {
     private val blockBarrierClick by ToggleSetting("Block Barrier Click")
 
     //#if CHEAT
     private val closeAfterUse by ToggleSetting("Auto Close On Use")
     private val keepOpenSlots by MultiCheckboxSetting("Keep Open On", (1 .. 12).associate { "Slot $it" to false }.toMutableMap())
-        .withDescription("Loadout slots that won't auto close the menu").showIf { closeAfterUse.value }
+        .withDescription("Loadout slots that keep the menu open after use").showIf { closeAfterUse.value }
     //#endif
 
     private val useHotbarBinds by ToggleSetting("Use Hotbar Binds")

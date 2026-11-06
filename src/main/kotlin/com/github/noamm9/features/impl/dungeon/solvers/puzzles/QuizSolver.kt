@@ -103,7 +103,7 @@ object QuizSolver: PuzzleSolver {
                 }
 
                 ThreadUtils.scheduledTaskServer(2) {
-                    ChatUtils.modMessage("&dQuizSolver &f> &aCorrect answer is: &b${"$optionChar $matchedAnswer"}")
+                    ChatUtils.modMessage("&dQuizSolver &f> &aThe correct answer is: &b${"$optionChar $matchedAnswer"}")
                 }
             }
             return

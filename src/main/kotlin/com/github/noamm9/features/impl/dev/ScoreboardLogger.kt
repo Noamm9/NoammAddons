@@ -26,8 +26,8 @@ import java.time.format.DateTimeFormatter
 
 object ScoreboardLogger: Feature("Logs every scoreboard text update to a file.") {
     private val onlyDungeons by ToggleSetting("Only In Dungeons", true).withDescription("Only logs while inside a dungeon.")
-    private val withFormatting by ToggleSetting("With formatting").withDescription("With Color code formatting.")
-    private val logMode by DropdownSetting("Log Mode", 0, listOf("Changed Lines", "Full Snapshot")).withDescription("Changed Lines only logs lines that update, Full Snapshot logs the whole scoreboard on every change.")
+    private val withFormatting by ToggleSetting("With formatting").withDescription("Includes color code formatting.")
+    private val logMode by DropdownSetting("Log Mode", 0, listOf("Changed Lines", "Full Snapshot")).withDescription("Changed Lines logs only updated lines. Full Snapshot logs the whole scoreboard on every change.")
     private val openFolder by ButtonSetting("Open Logs Folder") {
         logDir.mkdirs()
         openUri(logDir.toURI())
