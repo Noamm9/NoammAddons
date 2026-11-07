@@ -1,6 +1,7 @@
 package com.github.noamm9.features.impl.dev
 
 import com.github.noamm9.commands.CommandBuilder
+import com.github.noamm9.commands.NaCommand
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
@@ -15,11 +16,13 @@ object Timer: Feature(), ICommandProvider {
     private var ticks = 0
 
     override fun CommandBuilder.command() {
-        setName("timer")
-        requires("enable Timer feature first") { enabled }
-        runs { ChatUtils.chat("Timer ticks: $ticks") }
-        literal("start") { runs { start("cmd") } }
-        literal("stop") { runs { end() } }
+        setName(*NaCommand.names)
+        literal("timer") {
+            requires("enable Timer feature first") { enabled }
+            runs { ChatUtils.chat("Timer ticks: $ticks") }
+            literal("start") { runs { start("cmd") } }
+            literal("stop") { runs { end() } }
+        }
     }
 
     override fun init() {
