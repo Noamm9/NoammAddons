@@ -1,9 +1,6 @@
 package com.github.noamm9.features.impl.misc
 
-import com.github.noamm9.config.types.ColorSetting
-import com.github.noamm9.config.types.DropdownSetting
-import com.github.noamm9.config.types.SliderSetting
-import com.github.noamm9.config.types.ToggleSetting
+import com.github.noamm9.config.types.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.Utils
@@ -11,7 +8,7 @@ import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.items.EtherwarpHelper
 import com.github.noamm9.utils.render.world.Render3D.renderBlock
 import com.github.noamm9.utils.render.world.RenderContext
-import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents
+import net.minecraft.client.renderer.state.level.BlockOutlineRenderState
 
 object BlockOverlay: Feature() {
     private val mode by DropdownSetting("Mode", 2, listOf("Outline", "Fill", "Filled Outline"))
@@ -21,24 +18,20 @@ object BlockOverlay: Feature() {
     private val phase by ToggleSetting("Phase")
     private val hideDuringEtherwarp by ToggleSetting("Hide with Etherwarp")
 
-    override fun init() {
-        LevelRenderEvents.BEFORE_BLOCK_OUTLINE.register { context, blockOutlineContext ->
-            if (! enabled) return@register true
-            if (mc.gui.hud.isHidden) return@register true
-            if (hideDuringEtherwarp.value && shouldHide()) return@register false
+    @JvmStatic
+    fun renderOverlay(ctx: RenderContext, state: BlockOutlineRenderState) {
+        if (mc.gui.hud.isHidden) return
+        if (hideDuringEtherwarp.value && shouldHide()) return
 
-            RenderContext(context).renderBlock(
-                blockOutlineContext.pos,
-                outlineColor.value,
-                fillColor.value,
-                mode.value.equalsOneOf(0, 2),
-                mode.value.equalsOneOf(1, 2),
-                phase = phase.value,
-                lineWidth.value
-            )
-
-            false
-        }
+        ctx.renderBlock(
+            state.pos,
+            outlineColor.value,
+            fillColor.value,
+            mode.value.equalsOneOf(0, 2),
+            mode.value.equalsOneOf(1, 2),
+            phase = phase.value,
+            lineWidth.value
+        )
     }
 
     private fun shouldHide() = player.isCrouching && EtherwarpHelper.getEtherwarpDistance(player.mainHandItem) != null
