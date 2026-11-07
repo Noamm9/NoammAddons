@@ -20,7 +20,7 @@ object ClickGui: Feature("A feature used to change the ClickGui configuration.",
 
     val editGuiButton by ButtonSetting("Open HUD Editor") {
         GuiUtils.setScreen(HudEditorScreen())
-    }.withDescription("Opens the HUD Editor Screen where you can change you HUD elements size and position.")
+    }.withDescription("Opens the HUD editor, where you can change the size and position of your HUD elements.")
 
     val resetButton by ButtonSetting("Reset Settings") {
         accentColor.reset()

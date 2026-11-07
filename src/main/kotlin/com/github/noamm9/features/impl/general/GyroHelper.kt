@@ -16,9 +16,9 @@ import com.github.noamm9.utils.render.world.Render3D.renderBox
 import com.github.noamm9.utils.render.world.Render3D.renderCircle
 import net.minecraft.tags.BlockTags
 
-object GyroHelper: Feature("Renders a circle where your gyro will be located.", "Gyro Helper") {
-    private val drawBox by ToggleSetting("Draw Box", true).withDescription("Draws a box in the middle of the Gyrokinetic Wand sucking range").section("Render")
-    private val drawRing by ToggleSetting("Draw Sucking Range", true).withDescription("Draws the sucking range of the Gyrokinetic Wand")
+object GyroHelper: Feature("Draws the pull radius of your Gyrokinetic Wand.", "Gyro Helper") {
+    private val drawBox by ToggleSetting("Draw Box", true).withDescription("Draws a box at the center of the Gyrokinetic Wand's pull radius").section("Render")
+    private val drawRing by ToggleSetting("Draw Pull Radius", true).jsonName("Draw Sucking Range").withDescription("Draws the Gyrokinetic Wand's pull radius")
     private val lineWidth by SliderSetting("Ring Width", 2, 1, 10, 1).withDescription("Controls the thickness of the ring")
 
     private val boxColor by ColorSetting("Box Color", Utils.favoriteColor.withAlpha(0.3f)).section("Color")

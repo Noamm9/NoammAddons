@@ -30,14 +30,14 @@ import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 import kotlin.jvm.optionals.getOrDefault
 
-object ProtectItem: Feature("Prevents dropping or selling important items via /protectitem or keybind."), ICommandProvider {
+object ProtectItem: Feature("Prevents dropping or selling important items via /protectitem or a keybind."), ICommandProvider {
     private var data = PogObject("item_protection", object {
         val uuids = mutableSetOf<String>()
         val ids = mutableSetOf<String>()
     })
 
-    private val protectNotification by ToggleSetting("Protect Notification", true).withDescription("Shows a notification on the bottom right side of the screen when the feature saved your item")
-    private val protectBind by KeybindSetting("Protect Key", InputConstants.KEY_L).section("Keybind").withDescription("Press while hovering an item in an inventory to protect/unprotect it via UUID.")
+    private val protectNotification by ToggleSetting("Protect Notification", true).withDescription("Shows a notification in the bottom right corner when the feature protects your item")
+    private val protectBind by KeybindSetting("Protect Key", InputConstants.KEY_L).section("Keybind").withDescription("Press while hovering over an item in an inventory to toggle protection by UUID.")
     private val showProtected by ToggleSetting("Show Protected Items").withDescription("Shows protected items in container GUIs with a small indicator.")
     private val protectUUID by ToggleSetting("Protect UUID", true)
     private val protectID by ToggleSetting("Protect Skyblock ID", true)

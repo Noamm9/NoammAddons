@@ -33,7 +33,7 @@ object PuzzleSolvers: Feature(), IFeatureWindow {
     val answerColor by ColorSetting("Answer Color", Color.CYAN.withAlpha(128)).showIf { quiz.value }
     val quizTimer by ToggleSetting("Quiz Timer", true).showIf { quiz.value }
     val quizBlockWrongClicks by ToggleSetting("Block Wrong Clicks", true)
-        .withDescription("Prevents clicking a wrong Quiz answer. &eSneak to override.")
+        .withDescription("Prevents clicking an incorrect quiz answer. &eSneak to override.")
         .showIf { quiz.value }
 
     val tpmaze by ToggleSetting("Enabled    ").section("Teleport Maze")
@@ -46,7 +46,7 @@ object PuzzleSolvers: Feature(), IFeatureWindow {
     val colorWrong by ColorSetting("Wrong Chest Color", Color.RED).showIf { weirdos.value }
 
     val ttt by ToggleSetting("Enabled      ").section("TicTacToe")
-    val preventMissClick by ToggleSetting("Prevent Miss Click", true).showIf { ttt.value }
+    val preventMissClick by ToggleSetting("Prevent Misclicks", true).jsonName("Prevent Miss Click").showIf { ttt.value }
     val color by ColorSetting("Highlight Color", Color.GREEN).showIf { ttt.value }
     val prediction by ToggleSetting("Prediction").showIf { ttt.value }
     val predictionColor by ColorSetting("Prediction Color", Color.ORANGE).showIf { ttt.value && prediction.value }

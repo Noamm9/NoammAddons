@@ -19,11 +19,11 @@ import java.util.concurrent.*
 import kotlin.time.Instant
 
 object UpdateChecker: Feature(
-    "Checks GitHub for new releases or Action builds of the mod.\n&c&lDOES NOT AUTO UPDATE",
+    "Checks GitHub for new releases or GitHub Actions builds of the mod.\n&c&lDOES NOT AUTO UPDATE",
     toggled = true,
 ) {
     val checkOnStartup by ToggleSetting("Check On Startup", true).withDescription("Automatically checks for updates a few seconds after the game starts.")
-    val source by DropdownSetting("Update Source", 0, listOf("Releases", "Action Builds")).withDescription("Releases checks the latest published GitHub release. Action Builds checks the latest successful CI build.")
+    val source by DropdownSetting("Update Source", 0, listOf("Releases", "Action Builds")).withDescription("Releases checks the latest published GitHub release. Action Builds checks for the latest successful CI build.")
     val check by ButtonSetting("Check For Updates") { ThreadUtils.async { runCheck(true) } }.withDescription("Manually checks using the source selected above.")
     val openPage by ButtonSetting("Open Latest Build/Release") { openPage() }.withDescription("Opens the latest release or Actions run page in your browser.")
 
@@ -54,7 +54,7 @@ object UpdateChecker: Feature(
 
     }.onFailure {
         logger.error("UpdateChecker: failed to check for updates", it)
-        if (manual) NotificationManager.push(title, "Failed to check for updates, see logs.")
+        if (manual) NotificationManager.push(title, "Failed to check for updates. See the logs.")
     }
 
     private suspend fun checkReleases(manual: Boolean) {
@@ -68,7 +68,7 @@ object UpdateChecker: Feature(
                 val suffix = if (BuildInfo.isCiBuild) " (old action build)" else ""
                 NotificationManager.push(
                     title,
-                    "NoammAddons $remoteVersion is out, you're on $MOD_VERSION.$suffix",
+                    "NoammAddons $remoteVersion is out. You're on $MOD_VERSION.$suffix",
                     6000L
                 )
             }
@@ -82,8 +82,8 @@ object UpdateChecker: Feature(
         val latestMillis = Instant.parse(latest.created_at).toEpochMilliseconds()
         page = latest.html_url
 
-        if (latestMillis > BuildInfo.builtAt) NotificationManager.push(title, "A new Action build (${latest.head_sha.take(7)}).", 6000L)
-        else if (manual) NotificationManager.push(title, "You're already running the latest Action build.")
+        if (latestMillis > BuildInfo.builtAt) NotificationManager.push(title, "A new GitHub Actions build is available (${latest.head_sha.take(7)}).", 6000L)
+        else if (manual) NotificationManager.push(title, "You're already running the latest GitHub Actions build.")
     }
 
 

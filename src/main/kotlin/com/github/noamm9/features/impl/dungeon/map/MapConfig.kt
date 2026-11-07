@@ -47,11 +47,11 @@ object MapConfig: SettingProvider {
     //#endif
 
     val playerNames by DropdownSetting("Show Player Names", 0, listOf("Off", "Holding Leap", "Always")).section("Players")
-    val playerHeadScale by SliderSetting("Player Heads Scale", 1f, 0.3f, 1.5f, 0.1f)
+    val playerHeadScale by SliderSetting("Player Head Scale", 1f, 0.3f, 1.5f, 0.1f).jsonName("Player Heads Scale")
     val playerNameScale by SliderSetting("Player Name Scale", 0.5f, 0.3f, 1.5f, 0.1f)
     val mapPlayerHeadColor by ColorSetting("Head Border", Color(0, 0, 0), true)
-    val mapPlayerHeadColorClassBased by ToggleSetting("Head Border Class Base", false)
-    val mapPlayerNameClassColorBased by ToggleSetting("Player Names Class Base", false)
+    val mapPlayerHeadColorClassBased by ToggleSetting("Head Border by Class", false).jsonName("Head Border Class Base")
+    val mapPlayerNameClassColorBased by ToggleSetting("Player Names by Class", false).jsonName("Player Names Class Base")
     val mapVanillaMarker by ToggleSetting("Vanilla Head Marker", false)
     val mapVanillaMarkerColor by ColorSetting("Vanilla Head Marker", Color(0, 255, 0), true).jsonName("Vanilla Head Marker Color")
 

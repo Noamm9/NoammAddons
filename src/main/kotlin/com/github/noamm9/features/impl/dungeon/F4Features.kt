@@ -23,7 +23,7 @@ object F4Features: Feature(name = "F4 Features", description = "Spirit bear spaw
     private val espThorn by ToggleSetting("ESP Thorn", true).section("Toggles")
     private val espSpiritBow by ToggleSetting("ESP Spirit Bow", true).withDescription("Highlights the Spirit Bow")
     private val espSpiritBear by ToggleSetting("ESP Spirit Bear", true).withDescription("Highlights the Spirit Bear")
-    private val spiritBearHud by ToggleSetting("Spirit Bear HUD", true).withDescription("Shows the required mobs to spawn the Spirit Bear and a spawn timer for when he's about to spawn.")
+    private val spiritBearHud by ToggleSetting("Spirit Bear HUD", true).withDescription("Shows the number of mobs needed to spawn the Spirit Bear and a timer until it spawns.")
 
     private val espThornColor by ColorSetting("Thorn Color", Color(255, 0, 0, 50)).section("Colors")
     private val espSpiritBearColor by ColorSetting("Bear Color", Color(255, 0, 255, 50))

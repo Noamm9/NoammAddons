@@ -19,7 +19,7 @@ import net.minecraft.network.protocol.game.ClientboundSetSubtitleTextPacket
 import net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket
 import net.minecraft.sounds.SoundEvents
 
-object F7Titles: Feature(name = "F7 Titles", description = "Custom Titles for F7 boss fight.") {
+object F7Titles: Feature(name = "F7 Titles", description = "Custom titles for the F7 boss fight.") {
     private val crystalTitles by ToggleSetting("Crystal Titles")
     private val witherTitles by ToggleSetting("Wither Titles")
     private val lightningTimer by ToggleSetting("Lightning Timer")
@@ -27,7 +27,7 @@ object F7Titles: Feature(name = "F7 Titles", description = "Custom Titles for F7
     private val terminalTitles by ToggleSetting("Terminal Titles").withDescription("Reformats terminal, device, lever, and gate subtitles during phase 3").section("Terminals")
     private val terminalTitleDuration by SliderSetting("Duration", 2.5, 0.5, 6, 0.5).withDescription("Duration of the terminal title in seconds").showIf { terminalTitles.value }
     private val terminalTitleFormat by TextInputSetting("Format", "{name} {type} &f({progress}&f)").withDescription("Replaces {name}, {class}, {type}, and {progress} with the player name, dungeon class, terminal type, and phase progress. &bSupports color codes").showIf { terminalTitles.value }
-    private val terminalPhaseDone by ToggleSetting("Phase Done").withDescription("Renders Phase Done instead of the completed progress").showIf { terminalTitles.value }
+    private val terminalPhaseDone by ToggleSetting("Phase Done").withDescription("Shows Phase Done instead of the progress count when the phase is complete").showIf { terminalTitles.value }
     private val terminalGateTitles by ToggleSetting("Gate Titles").withDescription("Also reformats gate-related subtitles").showIf { terminalTitles.value }
 
     private val crystalRegex = Regex("^(\\d)/(\\d) Energy Crystals are now active!$")

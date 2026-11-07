@@ -39,7 +39,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
     private val _simbtn by ButtonSetting("Terminal Simulator") {
         mc.execute { mc.gui.screen()?.onClose() }
         GuiUtils.setScreen(TerminalSimSelectorScreen())
-    }.withDescription("Opens the Terminal Simulator. can also be open via /na termsim")
+    }.withDescription("Opens the terminal simulator. You can also open it with /na termsim")
     val simAutoNext by ToggleSetting("Simulator Auto Next").hidden()
 
     private val soundsEnabled by ToggleSetting("Terminal Sounds", true).section("Sounds")
@@ -49,12 +49,12 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
     private val slotGap by SliderSetting("Slot Gap", 0f, 0f, 8f, 0.5f, "px")
     private val padding by SliderSetting("Padding", 2f, 0f, 12f, 0.5f, "px")
     private val slotStyle by DropdownSetting("Slot Style", 0, listOf("Rect", "Bordered-Rect", "Button"))
-    val fcDelay by SliderSetting("First Click delay", 7, 0, 8, 1, "t").withDescription("The delay in &nServer Ticks&r for how long a terminal will block clicks when you open it")
-    val breakTimeout by SliderSetting("Break Timeout", 500, 300, 800, 50, "ms").withDescription("How long should the solver wait for a click to be confirmed by hypixel")
-    private val maxCps by SliderSetting("Max CPS", 15, 1, 20, 1, " CPS").withDescription("How many drop button presses should register in a second")
+    val fcDelay by SliderSetting("First Click delay", 7, 0, 8, 1, "t").withDescription("How long a terminal blocks clicks after opening, in &nserver ticks&r")
+    val breakTimeout by SliderSetting("Break Timeout", 500, 300, 800, 50, "ms").withDescription("How long the solver waits for Hypixel to confirm a click")
+    private val maxCps by SliderSetting("Max CPS", 15, 1, 20, 1, " CPS").withDescription("The maximum number of drop key presses to register per second")
     private val backgroundColor by ColorSetting("Background Color", Color(0, 0, 0, 100))
     private val borderColor by ColorSetting("Border Color", Color(255, 255, 255))
-    private val rainbowBorder by ToggleSetting("Rainbow Border").withDescription("Animate a rainbow gradient around the terminal menu. Opacity follows Border Color.")
+    private val rainbowBorder by ToggleSetting("Rainbow Border").withDescription("Animates a rainbow gradient around the terminal menu using the opacity of Border Color.")
     private val rainbowBorderSpeed by SliderSetting("Rainbow Border Speed", 1.0, 0.1, 3.0, 0.1).showIf { rainbowBorder.value }
     private val titleColor by ColorSetting("Title Text Color", Color.WHITE)
     private val overlayTextColor by ColorSetting("Overlay Text Color", Color.WHITE)
@@ -257,7 +257,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
     override fun isActive() = TerminalListener.inTerm
     override fun CommandBuilder.command() {
         setName(*NaCommand.names)
-        requires("enable $name feature first") { enabled }
+        requires("Enable the $name feature first") { enabled }
         literal("termsim") {
             description("Opens the terminal simulator")
             runs { GuiUtils.setScreen(TerminalSimSelectorScreen()) }

@@ -16,7 +16,7 @@ object Timer: Feature(), ICommandProvider {
 
     override fun CommandBuilder.command() {
         setName("timer")
-        requires("enable Timer feature first") { enabled }
+        requires("Enable the Timer feature first") { enabled }
         runs { ChatUtils.chat("Timer ticks: $ticks") }
         literal("start") { runs { start("cmd") } }
         literal("stop") { runs { end() } }

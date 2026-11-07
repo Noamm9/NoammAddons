@@ -26,7 +26,7 @@ object DoorESP: Feature(
     //!name = "Door Highlight",
     //#endif
     jsonName = "Door ESP",
-    description = "Highlights every door in the dungeon run during clear."
+    description = "Highlights every door during the dungeon clear."
 ) {
     private val brDoors by ToggleSetting("Blood rush doors")
     private val highlightAllDoors by ToggleSetting("Highlight All Doors")
@@ -37,12 +37,12 @@ object DoorESP: Feature(
     private val normalDoorColor by ColorSetting("Normal Door", Color.WHITE.withAlpha(50)).showIf { normalDoors.value }.section("Colors")
     private val doorNoKeyColor by ColorSetting("No Key Color ", Color.RED.withAlpha(50)).showIf { brDoors.value }
     private val doorKeyColor by ColorSetting("Has Key Color ", Color.GREEN.withAlpha(50)).showIf { brDoors.value }
-    private val roomName by ToggleSetting("Room Name").withDescription("shows the name of the room the door leads to").section("Extra")
-    private val roomSecrets by ToggleSetting("Room Secrets").withDescription("shows the secrets of room the doors leads to")
+    private val roomName by ToggleSetting("Room Name").withDescription("Shows the name of the room the door leads to").section("Extra")
+    private val roomSecrets by ToggleSetting("Room Secrets").withDescription("Shows the secrets in the room the door leads to")
 
     private val mode by DropdownSetting("Mode", 0, listOf("Outline", "Fill", "Filled Outline")).section("Options")
     private val lineWidth by SliderSetting("Line Width", 2.5, 1, 10, 0.1).hideIf { mode.value == 1 }
-    private val phase by ToggleSetting("Phase", true).withDescription("Toggles phase for ${roomName.name}, ${roomSecrets.name} aswell")
+    private val phase by ToggleSetting("Phase", true).withDescription("Also toggles rendering through walls for ${roomName.name} and ${roomSecrets.name}")
 
     private const val MAX_TEXT_WIDTH = 2.8f // width in blocks
     private const val TEXT_REF = 0.025f

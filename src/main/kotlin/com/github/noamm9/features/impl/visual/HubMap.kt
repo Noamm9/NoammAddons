@@ -35,12 +35,12 @@ import kotlin.math.roundToInt
  * @see com.github.noamm9.mixin.MixinMapRenderer
  * @see com.github.noamm9.utils.GifDecoder
  *
- * Mem leaking of Shrek movie GIF was not fun xd
+ * Memory leaks from the Shrek movie GIF were not fun xd
  */
 object HubMap: Feature("Replaces the SkyBlock Hub world map with a custom image.") {
     private val image by DropdownSetting("Image", 0, listOf("Default", "URL"))
     private val fitMode by DropdownSetting("Image Fit Mode", 0, listOf("Crop", "Fit"))
-    private val imageUrl by TextInputSetting("Image URL", "").withDescription("Direct link to an image/gif. Preferred resolution: ${COLUMNS * TILE_SIZE}x${ROWS * TILE_SIZE} (${COLUMNS}:${ROWS} aspect ratio).").showIf { image.value == 1 }
+    private val imageUrl by TextInputSetting("Image URL", "").withDescription("Direct link to an image or GIF. Preferred resolution: ${COLUMNS * TILE_SIZE}x${ROWS * TILE_SIZE} (${COLUMNS}:${ROWS} aspect ratio).").showIf { image.value == 1 }
     private val reloadImage by ButtonSetting("Reload Image") { reload(force = true) }
 
     private val cacheDir by lazy { FabricLoader.getInstance().configDir.resolve(NoammAddons.MOD_NAME).resolve("hub-map") }
@@ -101,7 +101,7 @@ object HubMap: Feature("Replaces the SkyBlock Hub world map with a custom image.
 
         val contentType = response.headers["Content-Type"]
         if (contentType != null && ! contentType.startsWith("image/") && contentType != "application/octet-stream") return msg(
-            "URL didn't return an image (got '$contentType'). Discord/Tenor embed links often point to video. use the direct file link instead."
+            "URL didn't return an image (got '$contentType'). Discord/Tenor embed links often point to a video. Use the direct file link instead."
         )
 
         val bytes = response.readRawBytes()
@@ -217,7 +217,7 @@ object HubMap: Feature("Replaces the SkyBlock Hub world map with a custom image.
     private const val TILE_COUNT = COLUMNS * ROWS
     private const val TILE_SIZE = MapItem.IMAGE_WIDTH
 
-    private val mapIds = intArrayOf( // hub mapids never change. sorted in the grid order
+    private val mapIds = intArrayOf( // Hub map IDs never change. Sorted in grid order.
         30662, 30655, 30648, 30641, 30634, 30627, 30620, 30613, 30606, 30599, 30592, 30585, 30578,
         30661, 30654, 30647, 30640, 30633, 30626, 30619, 30612, 30605, 30598, 30591, 30584, 30577,
         30660, 30653, 30646, 30639, 30632, 30625, 30618, 30611, 30604, 30597, 30590, 30583, 30576,

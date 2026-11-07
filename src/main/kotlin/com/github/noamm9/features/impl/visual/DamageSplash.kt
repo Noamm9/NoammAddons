@@ -15,11 +15,11 @@ import net.minecraft.world.entity.decoration.ArmorStand
 import java.util.*
 import kotlin.jvm.optionals.getOrNull
 
-object DamageSplash: Feature("Reformat Skyblock's Damage Indicators.") {
+object DamageSplash: Feature("Reformats SkyBlock's damage indicators.") {
     private val hideDamage by ToggleSetting("Hide Damage Nametag").withDescription("Hides all damage indicators.")
     private val uppercase by ToggleSetting("Uppercase Formatting").withDescription("Changes the damage number to uppercase.").hideIf { hideDamage.value }
-    private val disableinClear by ToggleSetting("Hide in Clear").withDescription("Hides all damage indicators in dungeon clear.").hideIf { hideDamage.value }
-    private val disableinBoss by ToggleSetting("Hide in Boss").withDescription("Hides all damage indicators in dungeon boss room.").hideIf { hideDamage.value }
+    private val disableinClear by ToggleSetting("Hide in Clear").withDescription("Hides all damage indicators during the dungeon clear.").hideIf { hideDamage.value }
+    private val disableinBoss by ToggleSetting("Hide in Boss").withDescription("Hides all damage indicators in the dungeon boss room.").hideIf { hideDamage.value }
 
     private val damageRegex = Regex("[✧✯]?(\\d{1,3}(?:,\\d{3})*[⚔+✧❤♞☄✷ﬗ✯]*)")
     private val colors = listOf("§6", "§c", "§e", "§f")

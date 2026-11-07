@@ -25,7 +25,7 @@ import java.awt.Color
 import java.util.concurrent.*
 import kotlin.math.sqrt
 
-object WitherDragons: Feature("M7 dragons timers, boxes, priority, health, and alerts") {
+object WitherDragons: Feature("Timers, boxes, priority, health, and alerts for M7 dragons") {
     private val dragonTimer by ToggleSetting("Dragon Timer ", true).section("Dragon Timer")
     private val dragonTimerStyle by DropdownSetting("Timer Style", 0, listOf("Milliseconds", "Seconds", "Ticks")).showIf { dragonTimer.value }
     private val showSymbol by ToggleSetting("Timer Symbol", true).showIf { dragonTimer.value }
@@ -51,7 +51,7 @@ object WitherDragons: Feature("M7 dragons timers, boxes, priority, health, and a
 
     var priorityDragon: WitherDragonEnum? = null
 
-    private const val scoreboardGraceTicks = 40 // how long the dragon needs to be off scoreboard for it to count as dead
+    private const val scoreboardGraceTicks = 40 // How long the dragon must be absent from the scoreboard to count as dead
 
     private val smoothedVelocities = ConcurrentHashMap<Int, Vec3>()
     private val fixedStackPositions = mapOf(

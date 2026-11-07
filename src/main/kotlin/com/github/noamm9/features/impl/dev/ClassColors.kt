@@ -6,7 +6,7 @@ import com.github.noamm9.config.types.ColorCodeSetting
 import com.github.noamm9.features.Feature
 import net.minecraft.ChatFormatting
 
-object ClassColors: Feature("Allows setting custom color for every dungeon class", toggled = true) {
+object ClassColors: Feature("Allows you to set a custom color for each dungeon class", toggled = true) {
     val archCode by ColorCodeSetting("Archer Code", ChatFormatting.DARK_RED).section("Colors")
     val bersCode by ColorCodeSetting("Berserk Code", ChatFormatting.GOLD)
     val healCode by ColorCodeSetting("Healer Code", ChatFormatting.DARK_PURPLE)

@@ -12,18 +12,18 @@ agree to release it under this project's [LICENSE](LICENSE).
 
 - **JDK 25.** JetBrains Runtime (JBR) is recommended for hotswap.
 
-## Building / Running
+## Building and running
 
 - `./gradlew chiseledBuild` builds every Minecraft version.
 - `./gradlew buildActive` builds only the active one.
 - Jars land in `build/libs/`, one legit and one cheat jar per Minecraft version.
-- Run configurations are in the `.run/` folder. (runClient and etc...)
+- Run configurations, such as runClient, are in the `.run/` folder.
 - If you switched the active Stonecutter version, run `./gradlew "Reset active project"` before committing.
 
 ## Where does my change go?
 
-- Version specific code with Stonecutter preprocessing goes into the `compat` package.
-- **Avoid** Stonecutter's slop if or if else if preprocessing comments. use local swaps
+- Version-specific code with Stonecutter preprocessing goes into the `compat` package.
+- **Avoid** Stonecutter's `if` and `if`/`else if` preprocessing comments. Use local swaps.
 - New features go in `features/impl/<category>/`. The category is derived from the package, so placement matters.
 - New events go in the `event/impl` package.
 - **Just follow the existing style** (:
@@ -37,12 +37,12 @@ agree to release it under this project's [LICENSE](LICENSE).
   ```sh
   git config core.hooksPath .githooks
   ```
-- **Comments explain *why*, not *what*.** Keep them self contained and in American English.
+- **Comments explain *why*, not *what*.** Keep them self-contained and in American English.
 
 ## Pull request process
 
-1. Make your change, keep commits focused and conventionally prefixed.
-2. Ensure `./gradlew chiseledBuild` passes and you tested the affected variant (cheat/legit) on the affected Minecraft version(s).
+1. Make your change and keep commits focused and conventionally prefixed.
+2. Ensure `./gradlew chiseledBuild` passes and test the affected variants (cheat/legit) on the affected Minecraft versions.
 3. Open a PR and fill in the template.
 
 Questions? Open an issue.

@@ -19,7 +19,7 @@ import net.minecraft.sounds.SoundEvents
 import net.minecraft.world.entity.EquipmentSlot
 import java.awt.Color
 
-object SpringBoots: Feature("Shows the spring boots charge progress on screen.") {
+object SpringBoots: Feature("Shows the charge progress of Spring Boots on screen.") {
     private val show2DHud by ToggleSetting("Show in HUD", true).section("HUD")
     private val drawMode by DropdownSetting("Draw Mode", 0, listOf("Percentage", "Blocks")).showIf { show2DHud.value }
 

@@ -31,7 +31,7 @@ object SimonSays: Feature("Simon Says Solver") {
     private val progressDisplay by ToggleSetting("Progress Display").withDescription("Displays the current Simon Says stage.").section("HUD")
     private val progressFormat by TextInputSetting("Progress Format", "&7SS: {stage}/&a{maxStage}").withDescription("Replaces {stage} and {maxStage} with the current and maximum Simon Says stage. Supports color codes.").showIf { progressDisplay.value }
 
-    private val ssSkip by ToggleSetting("SS skip Compatibility", true).withDescription("Always assume at the start that you perfectly SS skip").section("Options")
+    private val ssSkip by ToggleSetting("SS skip Compatibility", true).withDescription("Assumes you perform a perfect SS skip at the start").section("Options")
     private val blockWrongClicks by ToggleSetting("Block Wrong Clicks").withDescription("Blocks clicks if you aren't looking at the correct button. &eSneak to override.")
     private val color1 by ColorSetting("First Color", Color.GREEN).withDescription("Color of the first button.")
     private val color2 by ColorSetting("Second Color", Color.YELLOW).withDescription("Color of the second button.")
@@ -50,7 +50,7 @@ object SimonSays: Feature("Simon Says Solver") {
     //#endif
 
     private val alertsEnabled by ToggleSetting("Alerts Enabled", true).section("Alerts")
-    private val sendChat by ToggleSetting("SS Break Alert", true).showIf { alertsEnabled.value }.withDescription("Sends in party chat when the device got reset")
+    private val sendChat by ToggleSetting("SS Break Alert", true).showIf { alertsEnabled.value }.withDescription("Sends a party chat message when the device resets")
     private val sendRestartChat by ToggleSetting("Send Restart Chat", true).showIf { alertsEnabled.value }.withDescription("Sends a message in party chat when you restart the device")
     private val alertSound by ToggleSetting("Alert Sound", true).showIf { alertsEnabled.value }.withDescription("Plays a sound when the device fails")
     private val showTitle by ToggleSetting("Show Title", true).showIf { alertsEnabled.value }.withDescription("Shows a title when the device fails")
@@ -216,7 +216,7 @@ object SimonSays: Feature("Simon Says Solver") {
                 if (position != null && position.distanceToSqr(deviceCenter) <= 25) {
                     resetSolver()
                     val time = (DungeonListener.currentTime - startTick) / 20.0
-                    ChatUtils.modMessage("&bSimon Says Took §e${time.toFixed(2)}s&b to complete!")
+                    ChatUtils.modMessage("&bSimon Says took §e${time.toFixed(2)}s&b to complete!")
                 }
             }
 

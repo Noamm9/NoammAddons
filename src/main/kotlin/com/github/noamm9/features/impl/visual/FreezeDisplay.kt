@@ -10,7 +10,7 @@ import com.github.noamm9.utils.render.RenderHelper.height
 import com.github.noamm9.utils.render.RenderHelper.width
 import java.awt.Color
 
-object FreezeDisplay: Feature("Shows how long the server froze after a chosen threshold.") {
+object FreezeDisplay: Feature("Shows how long the server has been frozen once the chosen threshold is reached.") {
     private val color by ColorSetting("Color", Color(245, 73, 39), false)
     private val threshold by SliderSetting("Threshold", 500, 100, 2000, 100)
     private val dungeonsOnly by ToggleSetting("Only in Dungeons", true)

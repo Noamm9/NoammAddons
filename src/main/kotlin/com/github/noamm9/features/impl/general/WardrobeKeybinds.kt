@@ -15,7 +15,7 @@ import net.minecraft.network.protocol.game.*
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 
-object WardrobeKeybinds: Feature("Make it possible to bind armor slots to your keyboard.") {
+object WardrobeKeybinds: Feature("Allows you to bind armor slots to your keyboard.") {
     //#if CHEAT
     private val closeAfterUse by ToggleSetting("Auto Close On Use")
 

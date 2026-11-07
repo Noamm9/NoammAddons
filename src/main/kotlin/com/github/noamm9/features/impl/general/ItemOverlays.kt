@@ -17,10 +17,10 @@ import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 import kotlin.jvm.optionals.getOrDefault
 
-object ItemOverlays: Feature("Display info about various items.") {
-    private val cakeNumbers by ToggleSetting("Cake Numbers").withDescription("Displays the year of the cake in the New Year Cake Bag.")
-    private val enchantedBookAbbreviation by ToggleSetting("Enchanted Book Abbreviation").withDescription("Shows the abbreviated name of books with only 1 enchantment")
-    private val enchantedBookLevel by ToggleSetting("Enchanted Book Level").withDescription("Shows the tier of books with only 1 enchantment.")
+object ItemOverlays: Feature("Displays information about various items.") {
+    private val cakeNumbers by ToggleSetting("Cake Numbers").withDescription("Displays the year of each cake in the New Year Cake Bag.")
+    private val enchantedBookAbbreviation by ToggleSetting("Enchanted Book Abbreviation").withDescription("Shows abbreviated names for books with only one enchantment")
+    private val enchantedBookLevel by ToggleSetting("Enchanted Book Level").withDescription("Shows the enchantment level on books with only one enchantment.")
 
     override fun init() {
         register<ContainerEvent.Render.Slot.Post> {

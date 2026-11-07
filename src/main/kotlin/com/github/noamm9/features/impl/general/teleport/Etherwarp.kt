@@ -24,7 +24,7 @@ object Etherwarp: Feature("Etherwarp overlay and sound.") {
     private val mode by DropdownSetting("Mode", 0, listOf("Outline", "Fill", "Filled Outline")).showIf { overlay.value }
     private val phase by ToggleSetting("Phase").showIf { overlay.value }
     private val lineWidth by SliderSetting("Line Width", 1.0, 1.0, 10.0, 0.1).showIf { overlay.value && mode.value != 1 }
-    private val showFail by ToggleSetting("Show Fail", true).withDescription("Shows the fail position of the etherwarp").showIf { overlay.value }
+    private val showFail by ToggleSetting("Show Fail", true).withDescription("Shows the position of a failed Etherwarp attempt").showIf { overlay.value }
     private val fullBlock by ToggleSetting("Full Block").withDescription("Draws the overlay as a full block").showIf { overlay.value }
 
     private val fillColor by ColorSetting("Fill Color", Utils.favoriteColor.withAlpha(50)).showIf { overlay.value && mode.value != 0 }.section("Colors")

@@ -29,7 +29,7 @@ object NaCommand: ICommandProvider {
 
     override fun CommandBuilder.command() {
         setName(*names)
-        description("opens the Config GUI")
+        description("Opens the config GUI")
         runs { GuiUtils.setScreen(ClickGuiScreen()) }
 
         literal("help") {
@@ -55,7 +55,7 @@ object NaCommand: ICommandProvider {
         }
 
         literal("update") {
-            description("Checks for an update of the mod")
+            description("Checks for mod updates")
             runs { ThreadUtils.async { UpdateChecker.runCheck(true) } }
         }
 
@@ -67,7 +67,7 @@ object NaCommand: ICommandProvider {
         }
 
         literal("tps") {
-            description("Shows the server's tps in chat")
+            description("Shows the server's TPS in chat")
             runs {
                 ChatUtils.modMessage("§aTPS: §f${ServerUtils.tps}")
             }
@@ -105,7 +105,7 @@ object NaCommand: ICommandProvider {
             }
 
             argument("message", StringArgumentType.greedyString()) {
-                description("Simulate chat message")
+                description("Simulates a chat message")
                 runs { ctx ->
                     val msg = StringArgumentType.getString(ctx, "message").addColor()
                     ChatUtils.modMessage(msg)
@@ -183,7 +183,7 @@ object NaCommand: ICommandProvider {
 
         //#if CHEAT
         literal("swapmask") {
-            description("Equips either Bonzo Mask or Spirit Mask")
+            description("Equips either Bonzo's Mask or a Spirit Mask")
             runs {
                 NoammAddons.scope.launch {
                     PlayerUtils.changeMaskAction()
@@ -201,7 +201,7 @@ object NaCommand: ICommandProvider {
         }
 
         literal("swapto") {
-            runs { ChatUtils.modMessage("missing skyblock id argument. /na swapto <ItemID>") }
+            runs { ChatUtils.modMessage("Missing SkyBlock ID argument. /na swapto <ItemID>") }
             argument("skyblock id", StringArgumentType.word()) {
                 description("Automatically equips the item in the EQ menu")
                 runs {
@@ -221,7 +221,7 @@ object NaCommand: ICommandProvider {
                 description("Automatically leaps to the selected class")
                 runs { ctx ->
                     val clazz = StringArgumentType.getString(ctx, "class")
-                    val player = DungeonListener.dungeonTeammatesNoSelf.find { it.clazz.name == clazz } ?: return@runs ChatUtils.modMessage("leap target not found")
+                    val player = DungeonListener.dungeonTeammatesNoSelf.find { it.clazz.name == clazz } ?: return@runs ChatUtils.modMessage("Leap target not found")
                     NoammAddons.scope.launch { PlayerUtils.leapAction(player) }
                 }
             }
@@ -267,7 +267,7 @@ object NaCommand: ICommandProvider {
         NoammAPI.getRtca(name).onSuccess {
             ChatUtils.modMessage("${it.name} is ${it.runs} M7 runs away from ca50 (${formatClassRuns(it.classes)})")
         }.onFailure {
-            ChatUtils.modMessage("An error occurred meow! (${it.message})")
+            ChatUtils.modMessage("An error occurred, meow! (${it.message})")
         }
     }
 

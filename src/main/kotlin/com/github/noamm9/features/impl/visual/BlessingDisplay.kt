@@ -9,7 +9,7 @@ import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.RenderHelper.width
 import net.minecraft.ChatFormatting
 
-object BlessingDisplay: Feature("Displays the current active blessings in the dungeon.") {
+object BlessingDisplay: Feature("Displays the currently active blessings in the dungeon.") {
     private val power by ToggleSetting("Power Blessing", true).section("Blessings")
     private val time by ToggleSetting("Time Blessing", true)
     private val wisdom by ToggleSetting("Wisdom Blessing", false)

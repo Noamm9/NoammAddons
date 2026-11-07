@@ -119,7 +119,7 @@ public final class GifDecoder {
     static int readAppExt(final GifImage img, final byte[] in, int i) {
         img.appId = new String(in, i + 3, 8); // should be "NETSCAPE"
         img.appAuthCode = new String(in, i + 11, 3); // should be "2.0"
-        i += 14; // Go to sub-block size, it's value should be 3
+        i += 14; // Go to the sub-block size; its value should be 3
         final int subBlockSize = in[i] & 0xFF;
         // The only app extension widely used is NETSCAPE, it's got 3 data bytes
         if (subBlockSize == 3) {
@@ -183,7 +183,7 @@ public final class GifDecoder {
     }
 
     /**
-     * @param fr The GIF frame to whom this image descriptor belongs
+     * @param fr The GIF frame to which this image descriptor belongs
      * @param in Raw data
      * @param i  Index of the first byte of this block, i.e. the minCodeSize
      * @return Byte index
@@ -243,7 +243,7 @@ public final class GifDecoder {
     }
 
     /**
-     * @param fr The GIF frame to whom this image descriptor belongs
+     * @param fr The GIF frame to which this image descriptor belongs
      * @param in Raw data
      * @param i  Index of the image separator, i.e. the first block byte
      * @return Index of the first byte after this block
@@ -339,7 +339,7 @@ public final class GifDecoder {
         private int codeSize; // Current code size, maximum is 12 bits
         private int nextCode; // Next available code for a new entry
         private int nextCodeLimit; // Increase codeSize when nextCode == limit
-        private BitReader bitReader; // Notify when code sizes increases
+        private BitReader bitReader; // Notify when the code size increases
 
         public CodeTable() {
             table = new int[4096][1];
@@ -406,7 +406,7 @@ public final class GifDecoder {
         private int clearCode;
         private int endOfInfoCode;
         private byte[] data; // Holds LZW encoded data
-        private BufferedImage img; // Full drawn image, not just the frame area
+        private BufferedImage img; // Fully drawn image, not just the frame area
     }
 
     public static final class GifImage {
@@ -427,7 +427,7 @@ public final class GifDecoder {
         private int w; // Unsigned 16 Bit, the least significant byte first
         private int h; // Unsigned 16 Bit, the least significant byte first
         private int wh; // Image width * image height
-        private BufferedImage img = null; // Currently, drawn frame
+        private BufferedImage img = null; // Currently drawn frame
         private Graphics2D g;
 
         private int[] decode(final GifFrame fr, final int[] activeColTbl) {

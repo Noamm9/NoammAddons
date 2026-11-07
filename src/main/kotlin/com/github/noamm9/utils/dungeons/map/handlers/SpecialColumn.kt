@@ -11,9 +11,9 @@ import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.location.LocationUtils
 
 /**
- * Based off dtMap by rice.who
+ * Based on dtMap by rice.who
  * Copyright (c) 2026, rice.who
- * under BSD-3 Clause license https://github.com/ricedotwho/dtMap/blob/main/LICENSE.txt
+ * under the BSD 3-Clause License https://github.com/ricedotwho/dtMap/blob/main/LICENSE.txt
  * @link https://github.com/ricedotwho/dtMap/blob/main/src/main/kotlin/com/ricedotwho/dtmap/features/map/SpecialColumn.kt
  * Modified
  */
@@ -101,11 +101,11 @@ object SpecialColumn: ISelfInit {
             else -> listOf(CHAMPION, TRAP)
         }
 
-        // miniboss is generated firstb so if the special column has puzzles + 1 rooms the 1x1 on the map is the miniboss
+        // The miniboss is generated first, so if the special column has puzzles + 1 rooms, the 1x1 room on the map is the miniboss.
         if (columnRooms == puzzleCount + 1) return listOf(CHAMPION)
         if (openedTrap && openedChampion) return listOf(PUZZLE)
 
-        // only 1 unopened 1x1 is left and it cant be a puzzle because the check above didn't return
+        // Only one unopened 1x1 room remains, and it can't be a puzzle because the check above didn't return.
         if (opened1x1s.size == getSpecialRoomCount(puzzleCount) - 1) {
             if (! openedTrap) return listOf(TRAP)
             return listOf(CHAMPION)

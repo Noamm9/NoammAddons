@@ -28,11 +28,11 @@ import kotlin.jvm.optionals.getOrNull
 
 object StorageOverlay: Feature("Shows all storage pages in an overlay when opening storage."), ICustomMenu {
     val scaleSetting by SliderSetting("Scale", 1.0f, 0.5f, 2.0f, 0.05f).withDescription("The scale of the menu")
-    val columnsSetting by SliderSetting("Columns", 3, 1, 10, 1).withDescription("The number of max pages to show on each row")
+    val columnsSetting by SliderSetting("Columns", 3, 1, 10, 1).withDescription("The maximum number of pages to show in each row")
     val maxHeightSetting by SliderSetting("Max Height", 324, 80, 600, 1).withDescription("The maximum height of the entire menu")
     val scrollSpeedSetting by SliderSetting("Scroll Speed", 10, 1, 50, 1).withDescription("How fast you scroll")
     val retainScrollSetting by ToggleSetting("Retain Scroll", true).withDescription("Keeps the scroll offset after closing the menu")
-    val enableTooltipInStorage by ToggleSetting("Tooltip Scroll").withDescription("Enables Item Tooltip Scrolling. (requires ${ItemTooltip.name} to be enabled)")
+    val enableTooltipInStorage by ToggleSetting("Tooltip Scroll").withDescription("Enables item tooltip scrolling (requires ${ItemTooltip.name} to be enabled)")
     val hideNonMatchingPages by ToggleSetting("Hide Non-Matching Pages").withDescription("Hides storage pages without an item matching the current inventory search")
     val alwaysShowCustomNames by ToggleSetting("Always Show Custom Names", true).jsonName("Show Custom Names").withDescription("Shows custom titles on inactive pages. When disabled, only the open page has a title. Default titles are only shown on the open page")
     val storageNames by MapSetting<Int, String>("Custom Names")

@@ -30,7 +30,7 @@ import net.minecraft.world.phys.Vec3
 import java.awt.Color
 import kotlin.math.ceil
 
-object BloodCamp: Feature("Features for Blood Room."), IFeatureWindow {
+object BloodCamp: Feature("Features for the Blood Room."), IFeatureWindow {
     private val bloodCamp by ToggleSetting("Blood Camp Helper", true).section("Blood Camp Helper")
     private val decimalPlaces by SliderSetting("Decimal Places", 1, 0, 2, 1).showIf { bloodCamp.value }.withDescription("The number of decimal places shown on blood mob timers")
     private val timerColor by ColorSetting("Timer Color", Color.WHITE).showIf { bloodCamp.value }
@@ -38,11 +38,11 @@ object BloodCamp: Feature("Features for Blood Room."), IFeatureWindow {
     private val lineColor by ColorSetting("Line Color", Color.CYAN).showIf { bloodCamp.value }
 
     private val killTimer by ToggleSetting("Move Timer").withDescription("Displays a HUD counting down to when the blood mobs are ready to be killed.").section("Alerts")
-    private val killTitle by ToggleSetting("Kill Title").withDescription("Displays a Title when the blood mobs are ready to be killed. &bNOTE: Not always accurate, you will get better move times by learning when to kill the mobs yourself.")
+    private val killTitle by ToggleSetting("Kill Title").withDescription("Displays a title when the blood mobs are ready to be killed. &bNOTE: This is not always accurate. Learning when to kill the mobs yourself can improve move times.")
 
     //#if CHEAT
     private val bloodTb by ToggleSetting("Blood Mobs Triggerbot").withDescription("Automatically clicks when a blood mob's timer reaches 0 while you are looking at its box.").section("Triggerbot").showIf { bloodCamp.value }
-    private val rotate by ToggleSetting("Snap to center").withDescription("Flicks to the center of the bloodcamp box before clicking. &lother &lplayers &lwont &lsee &lthe &lflick&r").showIf { bloodTb.value }
+    private val rotate by ToggleSetting("Snap to center").withDescription("Flicks to the center of the Blood Camp box before clicking. &lOther players won't see the flick&r").showIf { bloodTb.value }
     private val clickType by DropdownSetting("Click Type", 0, listOf("Left Click", "Right Click")).showIf { bloodTb.value }
     private val pingCompensation by ToggleSetting("Ping Compensation").withDescription("Clicks earlier based on your ping so the click reaches the server when the timer ends.").showIf { bloodTb.value }
     //#endif

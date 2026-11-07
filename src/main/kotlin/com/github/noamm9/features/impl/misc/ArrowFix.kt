@@ -9,7 +9,7 @@ import net.minecraft.world.item.Items
 /**
  * @see com.github.noamm9.mixin.MixinPlayer
  */
-object ArrowFix: Feature("Disables Bow Pullback on Shortbows.") {
+object ArrowFix: Feature("Disables the bow pullback animation on shortbows.") {
     private val notBowCache = HashSet<String>()
     private val bowCache = HashSet<String>()
 

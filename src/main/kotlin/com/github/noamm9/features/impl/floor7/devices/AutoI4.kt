@@ -28,13 +28,13 @@ import kotlin.math.abs
 import kotlin.math.min
 
 object AutoI4: Feature("Fully Automated I4") {
-    private val rotationTime by SliderSetting("Rotation Time", 170, 0, 250, 1).withDescription("Time (ms) to interpolate rotations when aiming at dev block targets. &eSet to 0 to disable the auto rotation.").section("Shooting")
+    private val rotationTime by SliderSetting("Rotation Time", 170, 0, 250, 1).withDescription("Time (ms) to interpolate rotations when aiming at dev block targets. &eSet to 0 to disable automatic rotation.").section("Shooting")
     private val predictSetting by ToggleSetting("Predictions", true).withDescription("Enables prediction logic to aim at the next target block.")
 
     private val rodSetting by ToggleSetting("Auto Rod", true).section("Actions")
     private val maskSetting by ToggleSetting("Auto Mask", true)
     private val leapSetting by ToggleSetting("Auto Leap", true)
-    private val leapToMelody by ToggleSetting("Leap To Melody").showIf { leapSetting.value }.withDescription("AutoLeaps to however has melody terminal open. overwrites the 'Leap Priority' option")
+    private val leapToMelody by ToggleSetting("Leap To Melody").showIf { leapSetting.value }.withDescription("Automatically leaps to whoever has the Melody terminal open. Overrides the 'Leap Priority' option")
     private val leapPriorities = listOf(DungeonClass.Tank, DungeonClass.Mage, DungeonClass.Healer, DungeonClass.Archer)
 
     private val swapOrder by DropdownSetting("Swap Order", 0, listOf("Rod First", "Mask First")).showIf { rodSetting.value && maskSetting.value }

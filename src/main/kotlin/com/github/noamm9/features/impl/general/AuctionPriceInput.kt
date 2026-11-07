@@ -30,9 +30,9 @@ import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.entity.SignBlockEntity
 import java.awt.Color
 
-object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox and undercut mode.") {
+object AuctionPriceInput: Feature("Replaces the sign input with a text box and undercut mode.") {
     private val defaultMode by DropdownSetting("Default mode", 0, listOf("Normal", "Undercut")).withDescription("The default input mode that will be used when you open the menu")
-    private val rememberInput by MultiCheckboxSetting("Remember Input", mutableMapOf("Text" to false, "Mode" to false)).withDescription("Toggles for settings on the input menu that should be restored after reopening it")
+    private val rememberInput by MultiCheckboxSetting("Remember Input", mutableMapOf("Text" to false, "Mode" to false)).withDescription("Chooses which input settings to restore when reopening the menu")
 
     private val guiNames = setOf("Create BIN Auction", "Create Auction")
     private val confirmNames = setOf("Confirm BIN Auction", "Confirm Auction")
@@ -52,7 +52,7 @@ object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox
             val lines = Array(4) { i -> sign.frontLine(i) }
 
             if (lines[1] == "^^^^^^^^^^^^^^^" && lines[2] == "Your auction" && lines[3] == "starting bid") mc.execute {
-                // manually setting the screen so the sign gui wont close
+                // Set the screen manually so the sign GUI won't close.
                 (mc.gui as IGui).setScreenDirect(AuctionInputScreen(sign, lines, stack).apply { init(width, height) })
             }
         }

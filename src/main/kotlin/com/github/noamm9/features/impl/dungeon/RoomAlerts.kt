@@ -16,7 +16,7 @@ import com.github.noamm9.utils.render.RenderHelper.width
 import net.minecraft.sounds.SoundEvents
 import kotlin.math.roundToLong
 
-object RoomAlerts: Feature("Alerts when certain stuff happens in your current room") {
+object RoomAlerts: Feature("Shows alerts for events in your current room") {
     private val clear by ToggleSetting("Cleared", true)
     private val secrets by ToggleSetting("Secrets Done", true)
     private val displayTime by SliderSetting("Display Time", 2.0, 0.5, 3.0, 0.1, "s")
