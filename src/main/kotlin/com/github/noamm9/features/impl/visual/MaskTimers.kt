@@ -37,7 +37,7 @@ object MaskTimers: Feature("Mask Cooldown Timers, Invulnerability Timers, and mo
 
             Mask.entries.forEach { mask ->
                 val cd = if (example) mask.cooldownTicks / 2 else mask.cdLeft
-                if (maskTimerStyle.value == 0 && cd <= 0 && ! example) return@forEach
+                if (cd <= 0 && ! example) return@forEach
 
                 val text = if (maskTimerStyle.value == 0) {
                     val time = if (example) mask.cooldownTicks / 40f else cd / 20f
