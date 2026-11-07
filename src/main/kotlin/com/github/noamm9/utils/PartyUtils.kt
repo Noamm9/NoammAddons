@@ -120,7 +120,11 @@ object PartyUtils: ISelfInit {
         }
 
         register<DungeonEvent.RunStartedEvent> {
-            DungeonListener.dungeonTeammates.filterNot { it.isDead }.forEach { upsert(it.name, state = OnlineState.ONLINE) }
+            if (! isInParty) return@register
+            for (t in DungeonListener.dungeonTeammates) {
+                if (t.isDead) continue
+                upsert(t.name, state = OnlineState.ONLINE)
+            }
         }
     }
 
@@ -139,7 +143,7 @@ object PartyUtils: ISelfInit {
 
         if (text in selfLeft || text.startsWith(DISBANDED_PREFIX)) return reset()
 
-        floorEntered.matchEntire(text)?.let { return setLeader(it.groupValues[1]) }
+        if (isInParty) floorEntered.matchEntire(text)?.let { return setLeader(it.groupValues[1]) }
         if (disbanded.matches(text) || kickedSelf.matches(text)) return reset()
 
         joinedSelf.matchEntire(text)?.let {
