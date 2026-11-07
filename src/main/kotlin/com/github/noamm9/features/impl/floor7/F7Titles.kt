@@ -3,6 +3,7 @@ package com.github.noamm9.features.impl.floor7
 import com.github.noamm9.config.types.*
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
+import com.github.noamm9.features.IFeatureWindow
 import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ChatUtils.unformattedText
@@ -17,8 +18,8 @@ import net.minecraft.network.protocol.game.ClientboundSetSubtitleTextPacket
 import net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket
 import net.minecraft.sounds.SoundEvents
 
-object F7Titles: Feature(name = "F7 Titles", description = "Custom Titles for F7 boss fight.") {
-    private val crystalTitles by ToggleSetting("Crystal Titles")
+object F7Titles: Feature(name = "F7 Titles", description = "Custom Titles for F7 boss fight."), IFeatureWindow {
+    private val crystalTitles by ToggleSetting("Crystal Titles").section("Boss")
     private val witherTitles by ToggleSetting("Wither Titles")
     private val lightningTimer by ToggleSetting("Lightning Timer")
 
@@ -32,68 +33,39 @@ object F7Titles: Feature(name = "F7 Titles", description = "Custom Titles for F7
     private val enragedRegex = Regex("^⚠ (\\w+) is enraged! ⚠$")
     private val terminalRegex = Regex("(.+) (?:activated|completed) a (terminal|device|lever)! \\((\\d)/(\\d)\\)")
 
-    private var timerTime = 0L
+    private val terminalTitle = Title()
+    private val title = Title()
+    private var lightningTicks = 0L
     private var maxorDead = false
     private var goldorDead = false
     private var necronDead = false
     private var goldorStart = false
     private var necronStart = false
-    private val crystalTitle = Title()
-    private val witherTitle = Title()
-    private val lightningTitle = Title()
-    private val terminalTitle = Title()
 
     override fun init() {
         hudElement(
-            "Crystal Titles",
-            { crystalTitles.value },
-            { crystalTitle.text.isNotBlank() },
-            centered = { true }
-        ) { ctx, example ->
-            val text = if (example) "&3Crystal&r(${formatProgress(1, 2)})" else crystalTitle.text
-            ctx.drawCenteredString(text, 0, 0)
-            return@hudElement text.width() to 9f
-        } defaults {
-            x = Resolution.width / 2f
-            y = Resolution.height * 0.51f
-            scale = 1.5f
-        }
-
-        hudElement(
-            "Wither Titles",
-            { witherTitles.value },
-            { witherTitle.text.isNotBlank() },
-            centered = { true }
-        ) { ctx, example ->
-            val text = if (example) "&dMaxor Stunned!" else witherTitle.text
-            ctx.drawCenteredString(text, 0, 0)
-            return@hudElement text.width() to 9f
-        } defaults {
-            x = Resolution.width / 2f
-            y = Resolution.height * 0.51f
-            scale = 1.5f
-        }
-
-        hudElement(
-            "Lightning Timer",
-            { lightningTimer.value },
-            { timerTime > 0L || lightningTitle.text.isNotBlank() },
+            "F7 Titles",
+            { crystalTitles.value || witherTitles.value || lightningTimer.value },
+            { title.text.isNotBlank() || lightningTicks > 0L },
             centered = { true }
         ) { ctx, example ->
             val text = when {
-                example -> "&l&c5.4"
-                timerTime > 0L -> "&l&c${((timerTime - DungeonListener.currentTime) / 20.0).toFixed(1)}"
-                else -> lightningTitle.text
+                example -> when {
+                    crystalTitles.value -> "&3Crystal&r(${formatProgress(1, 2)})"
+                    witherTitles.value -> "&dMaxor Stunned!"
+                    else -> "&l&c5.4"
+                }
+
+                title.text.isNotBlank() -> title.text
+                else -> "&l&c${((lightningTicks - DungeonListener.currentTime) / 20.0).toFixed(1)}"
             }
-            val ended = ! example && timerTime == 0L
-            val textScale = if (ended) 0.5f else 1f
-            val yOffset = if (ended) (Resolution.height * 0.51f - (Resolution.height / 2f - Resolution.height / 13f)) / 3f else 0f
-            ctx.drawCenteredString(text, 0, yOffset, scale = textScale)
-            return@hudElement text.width() * textScale to yOffset + 9f * textScale
+
+            ctx.drawCenteredString(text, 0, 0)
+            return@hudElement text.width() to 9f
         } defaults {
             x = Resolution.width / 2f
-            y = Resolution.height / 2f - Resolution.height / 13f
-            scale = 3f
+            y = Resolution.height * 0.51f
+            scale = 1.5f
         }
 
         hudElement(
@@ -105,6 +77,10 @@ object F7Titles: Feature(name = "F7 Titles", description = "Custom Titles for F7
             val str = if (example) formatTerminalTitle(mc.user.name, "terminal", 6, 7) else terminalTitle.text
             ctx.drawCenteredString(str, 0, 0)
             return@hudElement str.width() to 9f
+        } defaults {
+            x = Resolution.width / 2f
+            y = Resolution.height * 0.45f
+            scale = 1.5f
         }
 
         register<WorldChangeEvent> {
@@ -117,11 +93,10 @@ object F7Titles: Feature(name = "F7 Titles", description = "Custom Titles for F7
         }
 
         register<TickEvent.Server> {
-            if (timerTime <= 0L || DungeonListener.currentTime < timerTime) return@register
-            timerTime = 0L
+            if (lightningTicks <= 0L || DungeonListener.currentTime < lightningTicks) return@register
+            lightningTicks = 0L
             if (! lightningTimer.value) return@register
-            lightningTitle.show("&aStorm's Lightning Ended!")
-            SoundUtils.playSound(SoundEvents.NOTE_BLOCK_PLING, 0.25f, 1f)
+            showTitle("&aStorm's Lightning Ended!")
         }
 
         register<ChatMessageEvent> {
@@ -151,7 +126,7 @@ object F7Titles: Feature(name = "F7 Titles", description = "Custom Titles for F7
 
                         crystalRegex.find(text)?.destructured?.let { (min, max) ->
                             val progress = formatProgress(min.toInt(), max.toInt())
-                            crystalTitle.show("&3Crystal&r($progress)")
+                            title.show("&3Crystal&r($progress)")
                             event.isCanceled = true
                             return@register
                         }
@@ -159,11 +134,7 @@ object F7Titles: Feature(name = "F7 Titles", description = "Custom Titles for F7
 
                     if (witherTitles.value) enragedRegex.find(text)?.destructured?.component1()?.let { boss ->
                         val color = when (boss) {
-                            "Storm" -> {
-                                SoundUtils.playSound(SoundEvents.NOTE_BLOCK_PLING, 0.25f, 1f)
-                                "&b"
-                            }
-
+                            "Storm" -> "&b"
                             "Maxor" -> "&5"
                             else -> ""
                         }
@@ -182,9 +153,9 @@ object F7Titles: Feature(name = "F7 Titles", description = "Custom Titles for F7
                     val number = text.toIntOrNull() ?: return@register
                     event.isCanceled = true
 
-                    if (timerTime == 0L && (number == 4 || number == 6)) {
-                        timerTime = DungeonListener.currentTime + (number * 1.35 * 20.0).toLong()
-                        lightningTitle.clear()
+                    if (lightningTicks == 0L && (number == 4 || number == 6)) {
+                        lightningTicks = DungeonListener.currentTime + (number * 1.35 * 20.0).toLong()
+                        title.clear()
                     }
                 }
             }
@@ -218,11 +189,9 @@ object F7Titles: Feature(name = "F7 Titles", description = "Custom Titles for F7
     }
 
     private fun resetTitles() {
-        crystalTitle.clear()
-        witherTitle.clear()
-        lightningTitle.clear()
+        title.clear()
         terminalTitle.clear()
-        timerTime = 0L
+        lightningTicks = 0L
     }
 
     private fun handleTerminalTitle(title: String): Boolean {
@@ -243,9 +212,7 @@ object F7Titles: Feature(name = "F7 Titles", description = "Custom Titles for F7
         return true
     }
 
-    private fun showTerminalTitle(title: String) {
-        terminalTitle.show(title, terminalTitleDuration.value.toDouble() * 20)
-    }
+    private fun showTerminalTitle(text: String) = terminalTitle.show(text, terminalTitleDuration.value.toDouble() * 20)
 
     private fun formatTerminalTitle(name: String, type: String, min: Int, max: Int): String {
         if (terminalPhaseDone.value && min == max) return "&a&lPhase Done!"
@@ -271,7 +238,7 @@ object F7Titles: Feature(name = "F7 Titles", description = "Custom Titles for F7
     }
 
     private fun showTitle(subtitle: String) {
-        witherTitle.show(subtitle)
+        title.show(subtitle)
         SoundUtils.playSound(SoundEvents.NOTE_BLOCK_PLING, 0.25f, 1f)
     }
 
@@ -284,19 +251,17 @@ object F7Titles: Feature(name = "F7 Titles", description = "Custom Titles for F7
         var text = ""
             private set
 
-        private var version = 0
+        private var id = 0
 
         fun show(text: String, ticks: Number = 40) {
             this.text = text
-            val currentVersion = ++ version
-            ThreadUtils.scheduledTask(ticks) {
-                if (version == currentVersion) this.text = ""
-            }
+            val cid = ++ id
+            ThreadUtils.scheduledTask(ticks) { if (id == cid) this.text = "" }
         }
 
         fun clear() {
-            version ++
             text = ""
+            id ++
         }
     }
 }
