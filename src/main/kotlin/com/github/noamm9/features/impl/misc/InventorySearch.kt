@@ -4,6 +4,7 @@ import com.github.noamm9.config.types.ColorSetting
 import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
+import com.github.noamm9.init.ModCompatibility
 import com.github.noamm9.ui.clickgui.components.settings.Style
 import com.github.noamm9.ui.hud.HudElement
 import com.github.noamm9.ui.utils.Resolution
@@ -26,12 +27,27 @@ object InventorySearch: Feature("Lets you search in inventory and support math")
     private val ignoreCaps by ToggleSetting("Ignore Caps", true)
     private val searchLore by ToggleSetting("Search Lore", true)
     val highlightColor by ColorSetting("Highlight Color", Color.RED)
+    private val replaceReiSearch by ToggleSetting("Replace REI Search")
+        .withDescription("Filters the Roughly Enough Items item list with this search bar and hides REI's own search field in inventories.")
+        .showIf { ReiSearch.isLoaded }
+        .onChange { reiSynced = false }
 
     private var searchQuery = ""
+    private var reiSynced = false
     private var expressionResult: Double? = null
     private val searchHandler = TextInputHandler({ searchQuery }) {
         expressionResult = evaluateExpression(it)
         searchQuery = it
+        if (drivesRei) ReiSearch.setText(it)
+    }
+
+    private val drivesRei get() = enabled && replaceReiSearch.value && ReiSearch.isLoaded
+
+    /** Called from MixinReiSearchField: true when REI's main search field should be hidden and inert. */
+    @JvmStatic
+    fun shouldHideReiSearchField(field: Any): Boolean {
+        if (! drivesRei || mc.gui.screen() !is AbstractContainerScreen<*>) return false
+        return field === ReiSearch.field
     }
 
     private lateinit var searchHud: HudElement
@@ -67,6 +83,12 @@ object InventorySearch: Feature("Lets you search in inventory and support math")
 
         register<ScreenEvent.PostRender> {
             if (mc.gui.screen() !is AbstractContainerScreen<*>) return@register
+
+            // REI keeps whatever was typed into its own field, so overwrite it once with our query.
+            if (drivesRei && ! reiSynced) {
+                ReiSearch.setText(searchQuery)
+                reiSynced = true
+            }
 
             Resolution.push(event.context)
             searchHud.renderElement(event.context, false)
@@ -113,9 +135,32 @@ object InventorySearch: Feature("Lets you search in inventory and support math")
     }
 
     override fun onDisable() {
+        // `enabled` is already false here, so check the setting directly.
+        if (replaceReiSearch.value && ReiSearch.isLoaded && searchQuery.isNotEmpty()) ReiSearch.setText("")
+        reiSynced = false
         super.onDisable()
         expressionResult = null
         searchQuery = ""
+    }
+
+    /** Reflection bridge to REI's public API, so REI stays an optional runtime dependency. */
+    private object ReiSearch {
+        val isLoaded by lazy { ModCompatibility.isModLoaded("roughlyenoughitems") }
+
+        private val getInstance by lazy { runCatching { Class.forName("me.shedaniel.rei.api.client.REIRuntime").getMethod("getInstance") }.getOrNull() }
+        private val getSearchTextField by lazy { runCatching { Class.forName("me.shedaniel.rei.api.client.REIRuntime").getMethod("getSearchTextField") }.getOrNull() }
+        private val setTextMethod by lazy { runCatching { Class.forName("me.shedaniel.rei.api.client.gui.widgets.TextField").getMethod("setText", String::class.java) }.getOrNull() }
+
+        val field: Any?
+            get() {
+                if (! isLoaded) return null
+                return runCatching { getSearchTextField?.invoke(getInstance?.invoke(null)) }.getOrNull()
+            }
+
+        fun setText(text: String) {
+            val field = field ?: return
+            runCatching { setTextMethod?.invoke(field, text) }
+        }
     }
 
     val isSearching get() = enabled && searchQuery.isNotBlank()
