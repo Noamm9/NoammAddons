@@ -10,10 +10,9 @@ import com.github.noamm9.features.Feature
 import com.github.noamm9.init.types.ICommandProvider
 import com.github.noamm9.mixin.IAbstractContainerScreen
 import com.github.noamm9.ui.notification.NotificationManager
-import com.github.noamm9.utils.ChatUtils
+import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.ChatUtils.unformattedText
-import com.github.noamm9.utils.PlayerUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.items.ItemUtils.customData
 import com.github.noamm9.utils.items.ItemUtils.itemUUID
@@ -23,8 +22,10 @@ import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D.drawString
 import com.mojang.blaze3d.platform.InputConstants
 import net.minecraft.client.gui.GuiGraphicsExtractor
+import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.network.chat.Component
+import net.minecraft.world.inventory.ChestMenu
 import net.minecraft.world.inventory.ContainerInput
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
@@ -56,6 +57,20 @@ object ProtectItem: Feature("Prevents dropping or selling important items via /p
             }
 
             if (stack.isEmpty) return@register
+
+            if (isSalvageMenu(event.screen, stack)) {
+                val protectedStack = menu.slots.filter { it.index < (menu as ChestMenu).rowCount * 9 }.firstOrNull { slot ->
+                    getProtectType(slot.item).let { it != ProtectType.None && it != ProtectType.HypixelBullshit }
+                }?.item ?: return@register
+
+                event.isCanceled = true
+                if (protectNotification.value) NotificationManager.push(
+                    "Salvage Blocked", "${protectedStack.hoverName.formattedText} §fis protected!", 2500L
+                )
+
+                return@register
+            }
+
             val type = getProtectType(stack).takeUnless { it == ProtectType.None } ?: return@register
 
             val isThrowing = event.clickType == ContainerInput.THROW || event.slotId == - 999
@@ -147,6 +162,13 @@ object ProtectItem: Feature("Prevents dropping or selling important items via /p
         }
     }
 
+    private fun isSalvageMenu(screen: Screen, stack: ItemStack): Boolean {
+        val inGui = screen.title.string.equalsOneOf("Salvage Items", "Draconic Sacrifice")
+        val confirmStack = stack.hoverName.unformattedText.equalsOneOf("Salvage Items", "Confirm Salvage", "Draconic Altar")
+
+        return inGui && confirmStack
+    }
+
     fun onSlotDraw(context: GuiGraphicsExtractor, stack: ItemStack, x: Int, y: Int) {
         if (! enabled || ! showProtected.value || stack.isEmpty) return
         val type = getProtectType(stack)
@@ -166,14 +188,8 @@ object ProtectItem: Feature("Prevents dropping or selling important items via /p
         val data = data.get()
 
         val (list, id) = when {
-            stack.itemUUID.isNotBlank() -> if (protectUUID.value) data.uuids to stack.itemUUID else {
-                NotificationManager.push("&cProtection Disabled", "Enable ${protectUUID.name} to protect this item.")
-                return
-            }
-            stack.skyblockId.isNotBlank() -> if (protectID.value) data.ids to stack.skyblockId else {
-                NotificationManager.push("&cProtection Disabled", "Enable ${protectID.name} to protect this item.")
-                return
-            }
+            stack.itemUUID.isNotBlank() -> if (protectUUID.value) data.uuids to stack.itemUUID else return NotificationManager.push("&cProtection Disabled", "Enable ${protectUUID.name} to protect this item.")
+            stack.skyblockId.isNotBlank() -> if (protectID.value) data.ids to stack.skyblockId else return NotificationManager.push("&cProtection Disabled", "Enable ${protectID.name} to protect this item.")
             else -> return NotificationManager.push("Error", "Item has no protectable ID/UUID.")
         }
 
