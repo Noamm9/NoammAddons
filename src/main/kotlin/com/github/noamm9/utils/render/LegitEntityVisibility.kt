@@ -3,12 +3,18 @@ package com.github.noamm9.utils.render
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.EntityUnloadEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
+import com.github.noamm9.features.Shortcuts
 import com.github.noamm9.init.types.ISelfInit
+import com.github.noamm9.utils.MathUtils.getCorners
+import com.github.noamm9.utils.render.RenderHelper.renderBoundingBox
 import net.minecraft.client.player.LocalPlayer
+import net.minecraft.core.BlockPos
 import net.minecraft.util.Util
 import net.minecraft.world.entity.Entity
+import net.minecraft.world.phys.Vec3
+import kotlin.math.floor
 
-object LegitEntityVisibility: ISelfInit {
+object LegitEntityVisibility: ISelfInit, Shortcuts {
     private const val MAX_DISTANCE = 128.0 * 128.0
     private const val MAX_ENTRIES = 1024
     private const val TTL_MILLIS = 100L
@@ -39,7 +45,7 @@ object LegitEntityVisibility: ISelfInit {
         val cached = cache[entity.id]
         if (cached != null && now - cached.lastCheck < TTL_MILLIS) return cached.visible
 
-        val visible = ! entity.isInvisibleTo(player) && player.hasLineOfSight(entity)
+        val visible = ! entity.isInvisibleTo(player) && hasLineOfSight(entity)
         if (cached != null) {
             cached.visible = visible
             cached.lastCheck = now
@@ -51,4 +57,40 @@ object LegitEntityVisibility: ISelfInit {
 
         return visible
     }
+    private fun hasLineOfSight(target: Entity): Boolean {
+        val source = mc.gameRenderer.mainCamera().position()
+        target.renderBoundingBox.getCorners().forEach { corner ->
+            if(hasClearLineOfSight(source, corner)) return true
+        }
+        return false
+    }
+    private fun hasClearLineOfSight(source: Vec3, target: Vec3): Boolean {
+        val direction = target.subtract(source)
+        val distance = source.distanceToSqr(target)
+
+        val stepCount = (distance * 4).toInt().coerceAtLeast(1)
+        val stepVector = direction.scale(1.0 / stepCount)
+
+        var currentPos = source
+        var lastCheckedBlockPos: BlockPos? = null
+
+        repeat(stepCount) {
+            val blockPos = BlockPos(
+                floor(currentPos.x).toInt(),
+                floor(currentPos.y).toInt(),
+                floor(currentPos.z).toInt()
+            )
+
+            if (blockPos != lastCheckedBlockPos) {
+                val state = level.getBlockState(blockPos)
+
+                if (state.canOcclude()) return false
+
+                lastCheckedBlockPos = blockPos
+            }
+            currentPos = currentPos.add(stepVector)
+        }
+        return true
+    }
+
 }

@@ -95,6 +95,18 @@ object MathUtils {
     fun aabb(x1: Number, y1: Number, z1: Number, x2: Number, y2: Number, z2: Number): AABB {
         return AABB(x1.toDouble(), y1.toDouble(), z1.toDouble(), x2.toDouble(), y2.toDouble(), z2.toDouble())
     }
+    fun AABB.getCorners(): List<Vec3> {
+        return listOf(
+            Vec3(minX,minY,minZ),
+            Vec3(minX,minY,maxZ),
+            Vec3(minX,maxY,minZ),
+            Vec3(minX,maxY,maxZ),
+            Vec3(maxX,minY,minZ),
+            Vec3(maxX,minY,maxZ),
+            Vec3(maxX,maxY,minZ),
+            Vec3(maxX,maxY,maxZ)
+        )
+    }
 
     fun raytrace(player: LocalPlayer, range: Number): BlockPos? {
         val hit = player.pick(range.toDouble(), 1f, false)
