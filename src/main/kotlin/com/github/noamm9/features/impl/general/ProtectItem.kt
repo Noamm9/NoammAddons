@@ -25,7 +25,10 @@ import com.mojang.blaze3d.platform.InputConstants
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.network.chat.Component
+import net.minecraft.world.inventory.AbstractContainerMenu
+import net.minecraft.world.inventory.ChestMenu
 import net.minecraft.world.inventory.ContainerInput
+import net.minecraft.world.inventory.Slot
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 import kotlin.jvm.optionals.getOrDefault
@@ -56,6 +59,19 @@ object ProtectItem: Feature("Prevents dropping or selling important items via /p
             }
 
             if (stack.isEmpty) return@register
+
+            if (isSalvageMenu(event.screen.title.unformattedText) && isSalvageButton(stack)) {
+                val protectedStack = getContainerSlots(menu).map { it.item }.firstOrNull { item ->
+                    getProtectType(item).let { it != ProtectType.None && it != ProtectType.HypixelBullshit }
+                }
+
+                if (protectedStack != null) {
+                    if (protectNotification.value) NotificationManager.push("Salvage Blocked", "${protectedStack.hoverName.formattedText} §fis protected!", 2500L)
+                    event.isCanceled = true
+                }
+                return@register
+            }
+
             val type = getProtectType(stack).takeUnless { it == ProtectType.None } ?: return@register
 
             val isThrowing = event.clickType == ContainerInput.THROW || event.slotId == - 999
@@ -145,6 +161,19 @@ object ProtectItem: Feature("Prevents dropping or selling important items via /p
 
             isHopper || hasBuyback
         }
+    }
+
+    private fun isSalvageMenu(title: String) = title == "Salvage Items" || title == "Draconic Sacrifice"
+
+    private fun isSalvageButton(stack: ItemStack): Boolean {
+        val name = stack.hoverName.unformattedText
+        return name == "Salvage Items" || name == "Confirm Salvage" || name == "Draconic Altar"
+    }
+
+    /** Slots belonging to the opened container itself, excluding the player's inventory. */
+    private fun getContainerSlots(menu: AbstractContainerMenu): List<Slot> {
+        if (menu !is ChestMenu) return emptyList()
+        return menu.slots.filter { it.index < menu.rowCount * 9 }
     }
 
     fun onSlotDraw(context: GuiGraphicsExtractor, stack: ItemStack, x: Int, y: Int) {
