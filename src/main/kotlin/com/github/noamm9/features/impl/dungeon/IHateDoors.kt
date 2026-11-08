@@ -18,7 +18,7 @@ import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.state.BlockState
 
-object IHateDoors: Feature("Visually replaces dungeon doors with glass.") {
+object IHateDoors: Feature("Visually replaces dungeon doors with glass.", cheat = true) {
     private val glassEntrance by ToggleSetting("Glass Entrance Door").section("Doors")
     private val glassWither by ToggleSetting("Glass Wither Door")
     private val glassBlood by ToggleSetting("Glass Blood Door")

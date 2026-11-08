@@ -38,7 +38,7 @@ import java.awt.Color
  * @link https://github.com/skies-starred/Nebulune/blob/master/src/main/kotlin/foo/starred/nebulune/modules/impl/general/TrevorHelper.kt
  * Modified
  */
-object TrevorHelper: Feature("Helper features for Trevor the Trapper on the Farming Islands.") {
+object TrevorHelper: Feature("Helper features for Trevor the Trapper on the Farming Islands.", cheat = true) {
     private val hud by ToggleSetting("Cooldown Timer").section("HUD")
 
     private val mobEsp by ToggleSetting("Animal ESP", true).section("ESP")

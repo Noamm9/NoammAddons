@@ -8,7 +8,7 @@ import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper
 import net.minecraft.client.KeyMapping
 import net.minecraft.world.entity.player.Input
 
-object SnappyTappy: Feature("Prevents standing still when pressing opposing direction keys.") {
+object SnappyTappy: Feature("Prevents standing still when pressing opposing direction keys.", cheat = true) {
     private val pressTimes = mutableMapOf<KeyMapping, Long>()
     private val physicallyDown = mutableSetOf<KeyMapping>()
 

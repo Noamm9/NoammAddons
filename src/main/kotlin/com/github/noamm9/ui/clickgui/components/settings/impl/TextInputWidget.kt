@@ -28,7 +28,7 @@ class TextInputWidget(config: TextInputSetting): Widget<String>(config) {
 
         Style.drawBackground(ctx, x.toFloat(), y.toFloat(), width.toFloat(), height.toFloat())
         Style.drawHoverBar(ctx, x.toFloat(), y.toFloat(), height.toFloat(), hoverAnim.value)
-        Style.drawNudgedText(ctx, name, x + 8f, y + 4f, hoverAnim.value)
+        Style.drawLabel(ctx, this, x + 8f, y + 4f, hoverAnim.value)
 
         val bx = x + 8f
         val by = y + 15f

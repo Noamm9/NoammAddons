@@ -16,8 +16,8 @@ object LoadoutKeybinds: Feature("Allows you to bind loadout slots to your keyboa
     private val blockBarrierClick by ToggleSetting("Block Barrier Click")
 
     //#if CHEAT
-    private val closeAfterUse by ToggleSetting("Auto Close On Use")
-    private val keepOpenSlots by MultiCheckboxSetting("Keep Open On", (1 .. 12).associate { "Slot $it" to false }.toMutableMap())
+    private val closeAfterUse by ToggleSetting("Auto Close On Use").cheat()
+    private val keepOpenSlots by MultiCheckboxSetting("Keep Open On", (1 .. 12).associate { "Slot $it" to false }.toMutableMap()).cheat()
         .withDescription("Loadout slots that won't auto close the menu").showIf { closeAfterUse.value }
     //#endif
 

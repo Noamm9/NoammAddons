@@ -26,7 +26,7 @@ import net.minecraft.world.item.ItemStack
 import net.minecraft.world.phys.Vec3
 import java.util.concurrent.*
 
-object NoRotate: Feature("Prevents the server from snapping back your head when teleporting.") {
+object NoRotate: Feature("Prevents the server from snapping back your head when teleporting.", cheat = true) {
     private val tpItems by MultiCheckboxSetting("Teleport Items", mutableMapOf(Pair("Etherwarp", false), Pair("Instant Transmission", false), Pair("Wither Impact", false)))
     val zeroPingCamera by MultiCheckboxSetting("Zero Ping Camera", mutableMapOf(Pair("Etherwarp", false), Pair("Instant Transmission", false), Pair("Wither Impact", false))).withDescription("Instantly sets your camera at the teleport position.")
     private val resyncTimeout by SliderSetting("Resync Timeout", 500, 300, 1000, 50).showIf { zeroPingCamera.value.values.any { it } }.withDescription("time in milliseconds of how long should it take for the detected teleport to time out")

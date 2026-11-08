@@ -18,7 +18,7 @@ import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.SkullBlock
 import net.minecraft.world.level.block.entity.SkullBlockEntity
 
-object BreakerHelper: Feature("Utilities for Dungeon Breaker") {
+object BreakerHelper: Feature("Utilities for Dungeon Breaker", cheat = true) {
     private val preventMine by ToggleSetting("Prevent Mine").jsonName("Prevent Secret Mine").withDescription("Prevents you from breaking blocks that cant be broken.")
     private val zeroPing by ToggleSetting("Zero Ping").withDescription("Removes the blocks you mine instantly instead of waiting for the server to remove them.")
 

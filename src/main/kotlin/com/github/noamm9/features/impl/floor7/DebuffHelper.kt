@@ -15,7 +15,7 @@ import net.minecraft.network.protocol.game.ServerboundUseItemPacket
 import net.minecraft.sounds.SoundEvents
 import com.mojang.blaze3d.platform.InputConstants
 
-object DebuffHelper: Feature(description = "Automatically pulls and fires bows based on Server Ticks (Lag Proof).") {
+object DebuffHelper: Feature(description = "Automatically pulls and fires bows based on Server Ticks (Lag Proof).", cheat = true) {
     private val semiAuto by ToggleSetting("Semi-Auto", true).withDescription("Automatically releases and re-draws the bow.").section("Options")
     private val soundEnabled by ToggleSetting("Play Sound", true).withDescription("Plays a sound when fully charged.")
     private val sound = createSoundSettings("Sound", SoundEvents.EXPERIENCE_ORB_PICKUP) { soundEnabled.value }

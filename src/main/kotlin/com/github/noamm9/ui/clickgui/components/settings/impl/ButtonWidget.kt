@@ -29,6 +29,7 @@ class ButtonWidget(config: ButtonSetting): Widget<Unit>(config) {
         }
 
         ctx.drawCenteredString(name, x + (width / 2), y + 6)
+        Style.drawCheatBadge(ctx, this, x + (width / 2f) + (name.width() / 2f) + 4f, y + 5.5f)
 
         if (hoverAnim.value > 0.01f) {
             val textWidth = name.width()

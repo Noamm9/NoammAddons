@@ -13,7 +13,7 @@ import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket
 import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.monster.Giant
 
-object HiddenMobs: Feature("Reveals invisible mobs in dungeons.") {
+object HiddenMobs: Feature("Reveals invisible mobs in dungeons.", cheat = true) {
     private val watcherMobs by lazy { DataDownloader.loadJson<List<String>>("watcherMobsNames.json") }
 
     private val showFels by ToggleSetting("Show Fels", true)

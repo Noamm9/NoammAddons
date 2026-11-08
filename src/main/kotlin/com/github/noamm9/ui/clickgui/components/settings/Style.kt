@@ -1,6 +1,7 @@
 package com.github.noamm9.ui.clickgui.components.settings
 
 import com.github.noamm9.features.impl.dev.ClickGui
+import com.github.noamm9.ui.clickgui.CheatIndicator
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.NumbersUtils.div
 import com.github.noamm9.utils.NumbersUtils.minus
@@ -8,6 +9,7 @@ import com.github.noamm9.utils.NumbersUtils.plus
 import com.github.noamm9.utils.SoundUtils
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawString
+import com.github.noamm9.utils.render.RenderHelper.width
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.sounds.SoundEvents
 import java.awt.Color
@@ -32,6 +34,27 @@ object Style {
     fun drawNudgedText(ctx: GuiGraphicsExtractor, text: String, x: Float, y: Float, anim: Float, color: Color = Color.WHITE) {
         val xOffset = 2f * anim
         ctx.drawString(text, x + xOffset, y, color)
+    }
+
+    /** Draws a setting's name (sliding right on hover like [drawNudgedText]) followed by its cheat badge, if it has one. */
+    fun drawLabel(ctx: GuiGraphicsExtractor, widget: Widget<*>, x: Float, y: Float, anim: Float, color: Color = Color.WHITE) {
+        drawNudgedText(ctx, widget.name, x, y, anim, color)
+        drawCheatBadge(ctx, widget, x + 2f * anim + widget.name.width() + 6f, y - 0.5f)
+    }
+
+    /**
+     * Draws the cheat badge for [widget] with its top-left corner at ([x], [y]) if the setting is marked as a cheat,
+     * and remembers the position so the settings window can show the badge tooltip.
+     * Use this directly only for labels not drawn through [drawLabel] (e.g. centered labels).
+     */
+    fun drawCheatBadge(ctx: GuiGraphicsExtractor, widget: Widget<*>, x: Float, y: Float) {
+        if (! widget.config.cheat) {
+            widget.cheatBadgeX = Float.NaN
+            return
+        }
+        CheatIndicator.Setting.draw(ctx, x, y)
+        widget.cheatBadgeX = x
+        widget.cheatBadgeY = y
     }
 
     fun drawSlider(ctx: GuiGraphicsExtractor, x: Float, y: Float, w: Float, progress: Float, color: Color) {

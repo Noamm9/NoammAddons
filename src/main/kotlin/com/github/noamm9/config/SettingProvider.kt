@@ -37,4 +37,7 @@ interface SettingProvider {
     fun <T: ConfigHolder<*>> T.hideIf(condition: () -> Boolean): T = apply { visibility = { ! condition() } }
     fun <T: ConfigHolder<*>> T.hidden() = apply { visibility = { false } }
     fun <T: ConfigHolder<*>> T.jsonName(str: String): T = apply { jsonName = str }
+
+    /** Marks this setting as cheat-only so the ClickGui shows a warning triangle next to it. */
+    fun <T: ConfigHolder<*>> T.cheat(): T = apply { cheat = true }
 }

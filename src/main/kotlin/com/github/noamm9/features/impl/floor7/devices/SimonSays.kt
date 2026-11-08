@@ -43,10 +43,10 @@ object SimonSays: Feature("Simon Says Solver") {
     private val numberColor by ColorSetting("Number Color", Color.WHITE, false).withDescription("Color of the button numbers.").showIf { buttonNumbers.value }
 
     //#if CHEAT
-    private val triggerBot by ToggleSetting("Triggerbot", false).withDescription("Automatically clicks the correct button when you're aiming at it.").section("Auto")
-    private val autoStart by ToggleSetting("Auto Start", false).withDescription("Automatically starts the device when it can be started.")
-    private val startClicks by SliderSetting("Start Clicks", 3, 1, 10, 1).withDescription("Amount of clicks to start the device.").showIf { autoStart.value }
-    private val startClickDelay by SliderSetting("Start Click Delay", 3, 1, 25, 1).withDescription("Delay in ticks between each start click.").showIf { autoStart.value }
+    private val triggerBot by ToggleSetting("Triggerbot", false).withDescription("Automatically clicks the correct button when you're aiming at it.").section("Auto").cheat()
+    private val autoStart by ToggleSetting("Auto Start", false).withDescription("Automatically starts the device when it can be started.").cheat()
+    private val startClicks by SliderSetting("Start Clicks", 3, 1, 10, 1).withDescription("Amount of clicks to start the device.").showIf { autoStart.value }.cheat()
+    private val startClickDelay by SliderSetting("Start Click Delay", 3, 1, 25, 1).withDescription("Delay in ticks between each start click.").showIf { autoStart.value }.cheat()
     //#endif
 
     private val alertsEnabled by ToggleSetting("Alerts Enabled", true).section("Alerts")

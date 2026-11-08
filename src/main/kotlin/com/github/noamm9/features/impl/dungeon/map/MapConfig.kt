@@ -15,7 +15,7 @@ object MapConfig: SettingProvider {
     val mapEnabled by ToggleSetting("Map Enabled", true).section("General")
 
     //#if CHEAT
-    val dungeonMapCheater by ToggleSetting("Cheater Map", false)
+    val dungeonMapCheater by ToggleSetting("Cheater Map", false).cheat()
     //#else
     //!val dungeonMapCheater by ToggleSetting("Legit", false).hidden().jsonName(UUID.randomUUID().toString())
     //#endif
@@ -41,9 +41,9 @@ object MapConfig: SettingProvider {
     val colorUndiscovered by ColorSetting("Undiscovered Room", Color(0, 0, 0), false).showIf { dungeonMapCheater.value }
 
     //#if CHEAT
-    val mimicEsp by ToggleSetting("Mimic ESP")
-    val mimicEspColor by ColorSetting("Mimic ESP Color", Color(255, 0, 0, 50), true).showIf { mimicEsp.value }
-    val highlightMimicRoom by ToggleSetting("Highlight Mimic Room", true)
+    val mimicEsp by ToggleSetting("Mimic ESP").cheat()
+    val mimicEspColor by ColorSetting("Mimic ESP Color", Color(255, 0, 0, 50), true).showIf { mimicEsp.value }.cheat()
+    val highlightMimicRoom by ToggleSetting("Highlight Mimic Room", true).cheat()
     //#endif
 
     val playerNames by DropdownSetting("Show Player Names", 0, listOf("Off", "Holding Leap", "Always")).section("Players")
@@ -58,7 +58,7 @@ object MapConfig: SettingProvider {
     val colorUnopened by ColorSetting("Unopened Room", Color(65, 65, 65), true).section("Room Colors")
 
     //#if CHEAT
-    val colorMimic by ColorSetting("Mimic Room", Color(255, 0, 0), true).showIf { highlightMimicRoom.value }
+    val colorMimic by ColorSetting("Mimic Room", Color(255, 0, 0), true).showIf { highlightMimicRoom.value }.cheat()
     //#endif
 
     val colorBlood by ColorSetting("Blood Room", Color(255, 0, 0), true)

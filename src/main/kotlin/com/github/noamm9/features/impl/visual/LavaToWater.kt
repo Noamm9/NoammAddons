@@ -19,7 +19,7 @@ import java.awt.Color
  * @see com.github.noamm9.mixin.MixinLavaFogEnvironment
  */
 @Suppress("UNNECESSARY_SAFE_CALL") // mc.levelExtractor is null at game init
-object LavaToWater: Feature("Replaces lava with the water texture") {
+object LavaToWater: Feature("Replaces lava with the water texture", cheat = true) {
     @JvmStatic val colorTint by ToggleSetting("Color Tint", false)
     @JvmStatic val tintColor by ColorSetting("Tint Color", Color(63, 118, 228), false).showIf { colorTint.value }
     @JvmStatic val hideFog by ToggleSetting("Hide fog", true).withDescription("Removes the lava fog")

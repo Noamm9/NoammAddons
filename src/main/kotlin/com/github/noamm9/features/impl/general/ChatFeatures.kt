@@ -29,7 +29,7 @@ object ChatFeatures: Feature(jsonName = "Chat", description = "Useful tweaks for
     private val chatEmoji by ToggleSetting("Chat Emoji", true).withDescription("Lets you use [MVP++] emojis in chat")
 
     //#if CHEAT
-    private val autoDialogue by ToggleSetting("Auto dialogue").withDescription("Automatically continues dialogues with NPCs.")
+    private val autoDialogue by ToggleSetting("Auto dialogue").withDescription("Automatically continues dialogues with NPCs.").cheat()
     //#endif
 
     private val uselessMessages by lazy { DataDownloader.loadJson<List<String>>("uselessMessages.json").map(::Regex) }

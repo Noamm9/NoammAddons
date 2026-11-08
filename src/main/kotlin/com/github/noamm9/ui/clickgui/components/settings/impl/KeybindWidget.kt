@@ -21,7 +21,7 @@ class KeybindWidget(config: KeybindSetting): Widget<Int>(config) {
 
         Style.drawBackground(ctx, x, y, width, height)
         Style.drawHoverBar(ctx, x, y, height, hoverAnim.value)
-        Style.drawNudgedText(ctx, name, x + 8f, y + 6f, hoverAnim.value)
+        Style.drawLabel(ctx, this, x + 8f, y + 6f, hoverAnim.value)
 
         val bindText = when {
             listening -> "§b..."

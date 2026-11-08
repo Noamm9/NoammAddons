@@ -22,8 +22,8 @@ object Abilities: Feature(
     private val abilityKeybind by KeybindSetting("Ability Keybind")
 
     //#if CHEAT
-    private val autoUlt by ToggleSetting("Auto Use Ultimate").section("Auto Ultimate")
-    private val autoUltDelay by SliderSetting(name = "Auto delay", 0, 0, 100, 1, suffix = "ticks").showIf { autoUlt.value }
+    private val autoUlt by ToggleSetting("Auto Use Ultimate").section("Auto Ultimate").cheat()
+    private val autoUltDelay by SliderSetting(name = "Auto delay", 0, 0, 100, 1, suffix = "ticks").showIf { autoUlt.value }.cheat()
 
     private class UltMessage(val msg: String, val classes: List<DungeonClass>, val floor: Int)
 

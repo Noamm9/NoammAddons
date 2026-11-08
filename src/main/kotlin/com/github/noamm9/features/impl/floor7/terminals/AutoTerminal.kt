@@ -17,7 +17,7 @@ import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.RenderHelper.width
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper
 
-object AutoTerminal: Feature("Automatically clicks terminals for you.") {
+object AutoTerminal: Feature("Automatically clicks terminals for you.", cheat = true) {
 
     private val randomDelay by ToggleSetting("Random Delay", true).withDescription("Normal distributed by min and max").section("Settings").jsonName("randomDelay")
     private val autoDelay by SliderSetting("Click Delay", 150, 80, 500, 10, "ms").withDescription("Fixed delay between clicks in milliseconds.").hideIf { randomDelay.value }.jsonName("autoDelay")

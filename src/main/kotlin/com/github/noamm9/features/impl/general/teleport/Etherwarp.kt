@@ -38,10 +38,10 @@ object Etherwarp: Feature("Etherwarp overlay and sound.") {
     private val playSound = createSoundSettings("Sound", SoundEvents.EXPERIENCE_ORB_PICKUP) { etherwarpSound.value }
 
     //#if CHEAT
-    private val leftClick by ToggleSetting("Left-Click Etherwarp").section("Left Click")
-    private val swingHandToggle by ToggleSetting("Swing Hand", true).showIf { leftClick.value }
-    private val autoSneak by ToggleSetting("Auto Sneak", false).showIf { leftClick.value }
-    private val autoSneakDelay by SliderSetting("Auto Sneak Delay", 50, 50, 150, 1).showIf { leftClick.value && autoSneak.value }
+    private val leftClick by ToggleSetting("Left-Click Etherwarp").section("Left Click").cheat()
+    private val swingHandToggle by ToggleSetting("Swing Hand", true).showIf { leftClick.value }.cheat()
+    private val autoSneak by ToggleSetting("Auto Sneak", false).showIf { leftClick.value }.cheat()
+    private val autoSneakDelay by SliderSetting("Auto Sneak Delay", 50, 50, 150, 1).showIf { leftClick.value && autoSneak.value }.cheat()
     //#endif
 
     override fun init() {

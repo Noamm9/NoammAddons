@@ -81,7 +81,7 @@ class ColorWidget(config: ColorSetting): Widget<Color>(config) {
 
         Style.drawBackground(ctx, x.toFloat(), y.toFloat(), width.toFloat(), 20f)
         Style.drawHoverBar(ctx, x.toFloat(), y.toFloat(), 20f, hoverAnim.value)
-        Style.drawNudgedText(ctx, name, x + 8f, y + 6f, hoverAnim.value)
+        Style.drawLabel(ctx, this, x + 8f, y + 6f, hoverAnim.value)
 
         val previewX = x + width - 18f
         if (cfg.withAlpha) drawCheckerboard(ctx, previewX, y + 6f, 8f, 8f, 2)

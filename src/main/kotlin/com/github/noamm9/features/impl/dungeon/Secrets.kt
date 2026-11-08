@@ -43,16 +43,16 @@ object Secrets: Feature(), IFeatureWindow {
     private val hudPrefix by TextInputSetting("HUD Prefix", "Secrets:").withDescription("The text before the secret count of the room")
 
     //#if CHEAT
-    private val lever by ToggleSetting("Lever").withDescription("Expand block Lever hitbox.").section("Secret Hitboxes")
-    private val leverSize by SliderSetting("Lever Hitbox Size", 1.0, 8.0 / 16.0, 1.0, 0.01).showIf { lever.value }
-    @JvmStatic val button by ToggleSetting("Button").withDescription("Expand button hitbox.")
-    private val buttonSize by SliderSetting("Button Hitbox Size", 1.0, 6.0 / 16.0, 1.0, 0.01).showIf { button.value }
-    @JvmStatic val skull by ToggleSetting("Skulls").withDescription("Full block Skull hitbox.")
-    @JvmStatic val mushroom by ToggleSetting("Mushroom").withDescription("Full block Mushroom hitbox.")
+    private val lever by ToggleSetting("Lever").withDescription("Expand block Lever hitbox.").section("Secret Hitboxes").cheat()
+    private val leverSize by SliderSetting("Lever Hitbox Size", 1.0, 8.0 / 16.0, 1.0, 0.01).showIf { lever.value }.cheat()
+    @JvmStatic val button by ToggleSetting("Button").withDescription("Expand button hitbox.").cheat()
+    private val buttonSize by SliderSetting("Button Hitbox Size", 1.0, 6.0 / 16.0, 1.0, 0.01).showIf { button.value }.cheat()
+    @JvmStatic val skull by ToggleSetting("Skulls").withDescription("Full block Skull hitbox.").cheat()
+    @JvmStatic val mushroom by ToggleSetting("Mushroom").withDescription("Full block Mushroom hitbox.").cheat()
 
-    private val secretsTb by ToggleSetting("Secrets Triggerbot").section("Triggerbot")
-    private val closeChest by ToggleSetting("Close Chest").withDescription("Automatically closes the secret chest for you.")
-    private val clickDelay by SliderSetting("Interact Delay", 200, 0, 700, 1, "ms").showIf { secretsTb.value }
+    private val secretsTb by ToggleSetting("Secrets Triggerbot").section("Triggerbot").cheat()
+    private val closeChest by ToggleSetting("Close Chest").withDescription("Automatically closes the secret chest for you.").cheat()
+    private val clickDelay by SliderSetting("Interact Delay", 200, 0, 700, 1, "ms").showIf { secretsTb.value }.cheat()
     private val shit by MultiCheckboxSetting(
         "TB Options", mutableMapOf(
             "Chest" to false,
@@ -60,7 +60,7 @@ object Secrets: Feature(), IFeatureWindow {
             "Skull" to false,
             "Mimic" to false
         )
-    ).showIf { secretsTb.value }
+    ).showIf { secretsTb.value }.cheat()
 
     private var lastTbClicks = mutableMapOf<BlockPos, Long>()
     //#endif

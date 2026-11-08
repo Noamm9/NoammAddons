@@ -14,7 +14,7 @@ import com.github.noamm9.utils.dungeons.enums.DungeonClass
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils
 
-object AutoGFS: Feature("Automatically refills dungeon items from your sacks using /gfs while in dungeons.") {
+object AutoGFS: Feature("Automatically refills dungeon items from your sacks using /gfs while in dungeons.", cheat = true) {
     private val delay by SliderSetting("Check Delay", 20.0, 5.0, 60.0, 1.0, "s").withDescription("How often to check for refills.")
 
     private val refillPearl by ToggleSetting("Refill Pearl")

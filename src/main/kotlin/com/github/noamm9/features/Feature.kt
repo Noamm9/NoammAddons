@@ -18,6 +18,8 @@ open class Feature(
     name: String? = null,
     toggled: Boolean = false,
     jsonName: String? = null,
+    /** Marks this feature as cheat-only so the ClickGui shows a warning triangle next to it. */
+    val cheat: Boolean = false,
 ): Shortcuts, SettingProvider, HudProvider {
     val name = name ?: this::class.simpleName.toString().spaceCaps()
     val jsonName = jsonName ?: this.name

@@ -20,7 +20,7 @@ import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket
 import java.awt.Color
 import java.util.concurrent.*
 
-object PvpBlink: Feature("Desyncs your connection to eat knockback or spoof position.") {
+object PvpBlink: Feature("Desyncs your connection to eat knockback or spoof position.", cheat = true) {
     private val mode by DropdownSetting("Mode", 0, listOf("Manual", "Auto", "Pulse")).withDescription("Manual: Hold key. Auto: On Velocity. Pulse: Every 0.3s.")
     private val blinkDuration by SliderSetting("Blink Duration", 300.0, 50.0, 1000.0, 50.0).withDescription("How long to desync (ms).")
     private val key by KeybindSetting("Blink Key", InputConstants.KEY_P).hideIf { mode.value == 1 }

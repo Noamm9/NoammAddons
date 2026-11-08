@@ -20,7 +20,7 @@ object Box3D: Feature("Replaces the Glow ESP with 3D boxes") {
     private val fillOpacity by SliderSetting("Fill Opacity", 35, 0, 100, 1).hideIf { mode.value == 0 }
 
     //#if CHEAT
-    private val phase by ToggleSetting("Phase", true)
+    private val phase by ToggleSetting("Phase", true).cheat()
     //#endif
 
     override fun init() {

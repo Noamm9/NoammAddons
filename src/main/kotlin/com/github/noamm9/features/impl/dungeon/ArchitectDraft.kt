@@ -13,7 +13,7 @@ object ArchitectDraft: Feature("Architect Draft") {
     private val sayDraft by ToggleSetting("Announce Draft", true)
 
     //#if CHEAT
-    private val autoDraft by ToggleSetting("Auto Draft", true)
+    private val autoDraft by ToggleSetting("Auto Draft", true).cheat()
     //#endif
 
     private val resetPattern = Regex("^You used the Architect's First Draft to reset (.+)!$")

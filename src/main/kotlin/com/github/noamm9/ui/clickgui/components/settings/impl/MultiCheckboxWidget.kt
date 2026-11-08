@@ -26,7 +26,7 @@ class MultiCheckboxWidget(config: MultiCheckboxSetting): Widget<MutableMap<Strin
 
         Style.drawBackground(ctx, x.toFloat(), y.toFloat(), width.toFloat(), 20f)
         Style.drawHoverBar(ctx, x.toFloat(), y.toFloat(), 20f, hoverAnim.value)
-        Style.drawNudgedText(ctx, name, x + 8f, y + 6f, hoverAnim.value)
+        Style.drawLabel(ctx, this, x + 8f, y + 6f, hoverAnim.value)
 
         val icon = if (expanded) "§7-" else "§7+"
         ctx.drawString(icon, x + width - 15f, y + 6f)

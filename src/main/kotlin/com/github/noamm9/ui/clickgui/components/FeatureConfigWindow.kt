@@ -3,6 +3,8 @@ package com.github.noamm9.ui.clickgui.components
 import com.mojang.blaze3d.platform.InputConstants
 
 import com.github.noamm9.features.Feature
+import com.github.noamm9.ui.clickgui.CheatIndicator
+import com.github.noamm9.ui.clickgui.FeatureBadges
 import com.github.noamm9.ui.clickgui.TooltipManager
 import com.github.noamm9.ui.clickgui.components.settings.Style
 import com.github.noamm9.ui.clickgui.components.settings.Widget
@@ -20,6 +22,7 @@ import com.github.noamm9.utils.render.Render2D.drawBorder
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawString
+import com.github.noamm9.utils.render.RenderHelper.width
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import java.awt.Color
 
@@ -147,7 +150,9 @@ open class FeatureConfigWindow(val feature: Feature) {
         context.drawRect(x, y, width, 2f, Style.accentColor.withAlpha(if (focused) 255 else 180))
         context.drawBorder(x, y, width, height, frameColor)
 
-        context.drawCenteredString("§l${feature.name}", x + (width / 2f), y + 8f)
+        val title = "§l${feature.name}"
+        context.drawCenteredString(title, x + (width / 2f), y + 8f)
+        FeatureBadges.renderRow(context, FeatureBadges.of(feature), x + (width / 2f) + (title.width() / 2f) + 4f, y + 4f, 16f, mouseX, mouseY)
         drawCloseButton(context, closeHovered)
 
         if (useSidebar) drawCategories(context, mx, my)
@@ -205,6 +210,10 @@ open class FeatureConfigWindow(val feature: Feature) {
 
             if (isHovered) {
                 TooltipManager.hover(setting.config.description, mouseX, mouseY)
+            }
+
+            if (isHovered && ! setting.cheatBadgeX.isNaN() && CheatIndicator.Setting.isHovered(setting.cheatBadgeX, setting.cheatBadgeY, mouseX, mouseY)) {
+                TooltipManager.hover(CheatIndicator.Setting.tooltip, mouseX, mouseY, TooltipManager.PRIORITY_BADGE)
             }
 
             currentY += setting.height + settingSpacing

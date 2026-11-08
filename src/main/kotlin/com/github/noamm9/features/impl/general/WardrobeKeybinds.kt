@@ -17,7 +17,7 @@ import net.minecraft.world.item.Items
 
 object WardrobeKeybinds: Feature("Make it possible to bind armor slots to your keyboard.") {
     //#if CHEAT
-    private val closeAfterUse by ToggleSetting("Auto Close On Use")
+    private val closeAfterUse by ToggleSetting("Auto Close On Use").cheat()
 
     //#endif
     private val preventUnequip by ToggleSetting("Prevent Unequip")

@@ -27,6 +27,7 @@ class CategoryPanel(val category: CategoryType, var x: Int, var y: Int, private 
         const val HEADER_HEIGHT = 22
         const val BUTTON_HEIGHT = 16
         const val MAX_DISPLAY_HEIGHT = 350
+        const val BADGE_PADDING = 4f
 
         private val headerBg = Color(20, 20, 20, 230)
         private val bodyBg = Color(15, 15, 15, 180)
@@ -90,10 +91,16 @@ class CategoryPanel(val category: CategoryType, var x: Int, var y: Int, private 
                         context.drawRect(x, currentY, WIDTH, BUTTON_HEIGHT, hoverColor)
                     }
 
-                    context.drawCenteredString(feature.name, x + WIDTH / 2, currentY + 4)
-
-                    if (isHovered && ! screen.isMouseOverConfigWindow(mouseX, mouseY)) {
+                    val canHover = isHovered && ! screen.isMouseOverConfigWindow(mouseX, mouseY)
+                    if (canHover) {
                         TooltipManager.hover(feature.description, mouseX, mouseY)
+                    }
+
+                    val badges = FeatureBadges.of(feature)
+                    if (badges.isEmpty()) context.drawCenteredString(feature.name, x + WIDTH / 2, currentY + 4)
+                    else {
+                        val badgesEnd = FeatureBadges.renderRow(context, badges, x + BADGE_PADDING, currentY.toFloat(), BUTTON_HEIGHT.toFloat(), mouseX, mouseY, canHover)
+                        drawFittedName(context, feature.name, badgesEnd + FeatureBadges.GAP, currentY)
                     }
                 }
                 currentY += BUTTON_HEIGHT
@@ -107,6 +114,20 @@ class CategoryPanel(val category: CategoryType, var x: Int, var y: Int, private 
                 context.drawRect(x + WIDTH - 2, barY, 2, barHeight)
             }
         }
+    }
+
+    /**
+     * Draws [name] centered on the row like every other feature, but never left of [minLeft] (the end of the badges).
+     * It only shifts right as far as needed and shrinks as a last resort when it still doesn't fit.
+     */
+    private fun drawFittedName(context: GuiGraphicsExtractor, name: String, minLeft: Float, rowY: Int) {
+        val maxRight = x + WIDTH - BADGE_PADDING
+        val nameWidth = name.width()
+        val scale = ((maxRight - minLeft) / nameWidth).coerceIn(0.1f, 1f)
+        val scaledWidth = nameWidth * scale
+        val left = (x + WIDTH / 2f - scaledWidth / 2f).coerceIn(minLeft, (maxRight - scaledWidth).coerceAtLeast(minLeft))
+        val textY = if (scale < 1f) rowY + (BUTTON_HEIGHT - 8f * scale) / 2f else rowY + 4f
+        context.drawCenteredString(name, left + scaledWidth / 2f, textY, scale = scale)
     }
 
     fun handleScroll(delta: Double) {

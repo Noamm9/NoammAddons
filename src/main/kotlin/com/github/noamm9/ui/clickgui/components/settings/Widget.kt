@@ -18,6 +18,10 @@ abstract class Widget<T>(val config: ConfigHolder<T>) {
     var width = 0
     open val height: Int get() = 20
 
+    /** Where [Style.drawCheatBadge] last drew this setting's cheat badge (NaN when none), used for its tooltip. */
+    var cheatBadgeX = Float.NaN
+    var cheatBadgeY = Float.NaN
+
     abstract fun draw(ctx: GuiGraphicsExtractor, mouseX: Int, mouseY: Int)
     abstract fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean
 

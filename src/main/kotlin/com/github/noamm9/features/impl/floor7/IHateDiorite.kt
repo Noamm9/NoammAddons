@@ -10,7 +10,7 @@ import net.minecraft.core.BlockPos
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.state.BlockState
 
-object IHateDiorite: Feature("Replaces the pillars in P2 with glass") {
+object IHateDiorite: Feature("Replaces the pillars in P2 with glass", cheat = true) {
     private val pillars = arrayOf(
         Pillar(BlockPos(46, 169, 41), Blocks.STAINED_GLASS.lime().defaultBlockState()),
         Pillar(BlockPos(46, 169, 65), Blocks.STAINED_GLASS.yellow().defaultBlockState()),

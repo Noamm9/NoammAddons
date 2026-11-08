@@ -14,13 +14,18 @@ object TooltipManager {
     private const val displayDelay = 500L
     private val backgroundColor = Color(10, 10, 10, 240)
 
+    /** Priority for badge/icon tooltips, so they win over the row or setting description they sit on. */
+    const val PRIORITY_BADGE = 10
+
     private var hoveredText: String? = null
+    private var hoveredPriority = Int.MIN_VALUE
     private var displayStartTime = 0L
     private var lastMouseX = 0
     private var lastMouseY = 0
 
-    fun hover(text: String?, mouseX: Int, mouseY: Int) {
-        if (text.isNullOrBlank()) return
+    /** Queues a tooltip for this frame. The highest [priority] wins; on a tie the latest call wins. */
+    fun hover(text: String?, mouseX: Int, mouseY: Int, priority: Int = 0) {
+        if (text.isNullOrBlank() || priority < hoveredPriority) return
         if (abs(mouseX - lastMouseX) > 5 || abs(mouseY - lastMouseY) > 5) {
             displayStartTime = System.currentTimeMillis()
         }
@@ -28,11 +33,14 @@ object TooltipManager {
         lastMouseX = mouseX
         lastMouseY = mouseY
         hoveredText = text
+        hoveredPriority = priority
     }
 
     fun draw(context: GuiGraphicsExtractor, logicalWidth: Float = Resolution.width, logicalHeight: Float = Resolution.height) {
-        val text = hoveredText ?: return
-        if (System.currentTimeMillis() - displayStartTime < displayDelay) return
+        val text = hoveredText
+        hoveredText = null
+        hoveredPriority = Int.MIN_VALUE
+        if (text == null || System.currentTimeMillis() - displayStartTime < displayDelay) return
 
         val lines = text.wrap(150)
         val padding = 6
@@ -53,7 +61,5 @@ object TooltipManager {
             context.text(mc.font, line, (tx + padding).toInt(), currentY.toInt(), - 1, true)
             currentY += mc.font.lineHeight + 2
         }
-
-        hoveredText = null
     }
 }

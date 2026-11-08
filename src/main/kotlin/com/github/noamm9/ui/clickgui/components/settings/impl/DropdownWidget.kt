@@ -29,7 +29,7 @@ class DropdownWidget(config: DropdownSetting): Widget<Int>(config) {
 
         ctx.drawRect(x, y, width, 20f, Style.settingBackgroundColor)
         Style.drawHoverBar(ctx, x, y, 20f, hoverAnim.value)
-        Style.drawNudgedText(ctx, name, x + 8f, y + 6f, hoverAnim.value)
+        Style.drawLabel(ctx, this, x + 8f, y + 6f, hoverAnim.value)
 
         val valStr = "§7${cfg.options[value]}"
         ctx.drawString(valStr, x + width - valStr.width() - 8f, y + 6f, scale = 1f)
