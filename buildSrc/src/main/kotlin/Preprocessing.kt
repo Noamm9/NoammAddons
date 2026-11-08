@@ -153,6 +153,17 @@ private fun Project.preprocessResources(variantName: String, outRoot: File) {
     preprocessFile("$modId.mixins.json5", "$modId.mixins.json", expandVersion = false)
 }
 
+private fun Project.validateCheatMarkers() {
+    val violations = findCheatMarkerViolations(File(sourceRoot(), "kotlin"))
+    if (violations.isEmpty()) return
+    throw GradleException(
+        (listOf("--------------------------------", "Cheat markers are out of sync with #if CHEAT blocks:") +
+            violations.map { "  $it" } +
+            listOf("See buildSrc/src/main/kotlin/CheatMarkers.kt for the rules.", "--------------------------------"))
+            .joinToString(separator = "\n")
+    )
+}
+
 fun Project.registerPreprocessTask(variantName: String): TaskProvider<Task> {
     val capitalised = variantName.replaceFirstChar { it.uppercase() }
     return tasks.register("preprocess$capitalised") {
@@ -170,6 +181,7 @@ fun Project.registerPreprocessTask(variantName: String): TaskProvider<Task> {
 
         doFirst { delete(outRoot.get().asFile) }
         doLast {
+            validateCheatMarkers()
             preprocessSources(variantName, outRoot.get().asFile)
             preprocessResources(variantName, resourcesOut.get().asFile)
         }
@@ -188,6 +200,7 @@ fun Project.registerPreprocessMainTask(): TaskProvider<Task> {
 
         doFirst { delete(outRoot.get().asFile) }
         doLast {
+            validateCheatMarkers()
             replaceSourceProperties(outRoot.get().asFile)
         }
     }
