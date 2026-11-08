@@ -136,7 +136,10 @@ object ConfigManager: ISelfInit {
             val feature = FeatureManager.getFeatureByName(featureElement.get("name")?.asString ?: return@forEach) ?: return@forEach
             if (featureElement.get("enabled")?.asBoolean != feature.enabled) feature.toggle()
             featureElement.getAsJsonObject("configSettings").entrySet().forEach { (name, value) ->
-                (feature.getSettingByName(name) as? Savable)?.read(value)
+                runCatching { (feature.getSettingByName(name) as? Savable)?.read(value) }.onFailure {
+                    NoammAddons.logger.error("Failed to load stored setting for ${feature.name}-$name")
+                    throw it
+                }
             }
         }
 

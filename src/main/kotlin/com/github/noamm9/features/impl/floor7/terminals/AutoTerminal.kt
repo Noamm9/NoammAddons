@@ -1,28 +1,24 @@
 package com.github.noamm9.features.impl.floor7.terminals
 
-import com.mojang.blaze3d.platform.InputConstants
 //#if CHEAT
 
 import com.github.noamm9.config.types.*
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.event.priority.EventPriority
 import com.github.noamm9.features.Feature
-import com.github.noamm9.features.impl.floor7.terminals.TerminalListener.FIRST_CLICK_DELAY
 import com.github.noamm9.features.impl.floor7.terminals.impl.*
 import com.github.noamm9.features.impl.floor7.terminals.sim.TerminalSimScreen
 import com.github.noamm9.ui.utils.Resolution
-import com.github.noamm9.utils.*
+import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
+import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.RenderHelper.width
+import com.mojang.blaze3d.platform.InputConstants
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper
 
 object AutoTerminal: Feature("Automatically clicks terminals for you.") {
-
-    private val randomDelay by ToggleSetting("Random Delay", true).withDescription("Normal distributed by min and max").section("Settings").jsonName("randomDelay")
-    private val autoDelay by SliderSetting("Click Delay", 150, 80, 500, 10, "ms").withDescription("Fixed delay between clicks in milliseconds.").hideIf { randomDelay.value }.jsonName("autoDelay")
-    private val minRandomDelay by SliderSetting("Min Random Delay", 120, 50, 500, 10, "ms").withDescription("The minimum possible delay").showIf { randomDelay.value }.jsonName("minRandomDelay")
-    private val maxRandomDelay by SliderSetting("Max Random Delay", 150, 80, 500, 10, "ms").withDescription("The maximum possible delay").showIf { randomDelay.value }.jsonName("maxRandomDelay")
+    private val autoDelay by RangeSliderSetting("Click Delay", 150 to 150, 80, 500, 5, "ms").withDescription("Fixed delay between clicks in milliseconds.").section("Settings")
     private val offtick by ToggleSetting("Off Tick Clicks").withDescription("Makes the auto check every frame if it can click or not instead of every server tick.")
     private val clickOrder by DropdownSetting("Click Order", 2, listOf("None", "Random", "Human", "Skizo")).withDescription("Human: Logic pathing. Skizo: Chaotic/Furthest.")
     private val invwalk by ToggleSetting("Fake InvWalk").withDescription("Draws the Term name and progress on screen rather then the solution")
@@ -75,7 +71,7 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
 
         register<RenderWorldEvent> {
             if (! offtick.value) return@register
-            if (simScreen != null) return@register
+            if (simScreen != null) return@register autoTick()
             val handler = TerminalListener.currentHandler ?: return@register
             if (handler is MelodyTerminal) return@register
             if (! handler.enabled()) return@register
@@ -98,7 +94,6 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
         register<TickEvent.End> {
             if (simScreen == null) return@register
             melodyTick()
-            autoTick()
         }
 
         register<ContainerEvent.MouseClick>(EventPriority.HIGH) {
@@ -200,16 +195,7 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
         is StartWithTerminal -> autoStartWith.value
     }
 
-    private fun getDelay() = when {
-        checkFcDelay() -> FIRST_CLICK_DELAY * 50
-        randomDelay.value -> {
-            val min = minRandomDelay.value.coerceAtLeast(0)
-            val max = maxRandomDelay.value.coerceAtLeast(0)
-            if (min == max) min else MathUtils.gaussianRandom(minOf(min, max), maxOf(min, max))
-        }
-
-        else -> autoDelay.value
-    }.coerceAtLeast(0)
+    private fun getDelay() = (if (checkFcDelay()) TerminalSolver.fcDelay else autoDelay).random()
 
     private val simScreen get() = mc.gui.screen() as? TerminalSimScreen
     private val currentHandler get() = simScreen?.terminal ?: TerminalListener.currentHandler

@@ -17,7 +17,6 @@ import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 
 object TerminalListener: ISelfInit {
-    inline val FIRST_CLICK_DELAY get() = TerminalSolver.fcDelay.value
     var interactCooldown = 0
 
     @JvmField var inTerm = false
@@ -124,11 +123,10 @@ object TerminalListener: ISelfInit {
     }
 
     fun checkFcDelay(): Boolean {
-        var delay = FIRST_CLICK_DELAY
-        if (currentHandler is MelodyTerminal && delay != 0) delay += 3
+        val delay = TerminalSolver.fcDelay.random()
 
-        return DungeonListener.currentTime - initialOpenTick < delay ||
-            System.currentTimeMillis() - initialOpenTime < (delay * 50)
+        return DungeonListener.currentTime - initialOpenTick < (delay / 50) ||
+            System.currentTimeMillis() - initialOpenTime < delay
     }
 
     private fun Terminal.sync(container: AbstractContainerMenu, slotId: Int = 0, stack: ItemStack = ItemStack.EMPTY) {

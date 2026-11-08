@@ -102,9 +102,5 @@ class TerminalSimScreen(private val sim: SimTerminal): Screen(Component.literal(
         )
     }
 
-    fun isFirstClickDelay(): Boolean {
-        var delay = TerminalSolver.fcDelay.value
-        if (terminal is MelodyTerminal && delay != 0) delay += 3
-        return System.currentTimeMillis() - openTime < delay * 50
-    }
+    fun isFirstClickDelay() = System.currentTimeMillis() - openTime < TerminalSolver.fcDelay.random()
 }

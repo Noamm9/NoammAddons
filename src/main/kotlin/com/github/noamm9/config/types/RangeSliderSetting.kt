@@ -3,6 +3,7 @@ package com.github.noamm9.config.types
 import com.github.noamm9.config.ConfigHolder
 import com.github.noamm9.config.Savable
 import com.github.noamm9.utils.GsonUtils.gsonArray
+import com.github.noamm9.utils.MathUtils
 import com.google.gson.JsonElement
 
 class RangeSliderSetting<T: Number>(
@@ -10,7 +11,7 @@ class RangeSliderSetting<T: Number>(
     defaultValue: Pair<T, T>,
     val min: T,
     val max: T,
-    val step: T,
+    step: T,
     val suffix: String = ""
 ): ConfigHolder<Pair<T, T>>(name, defaultValue), Savable {
     private val scale = SliderSetting(name, min, min, max, step, suffix)
@@ -34,6 +35,7 @@ class RangeSliderSetting<T: Number>(
     }
 
     operator fun contains(number: Number) = number.toDouble() in start.toDouble() .. end.toDouble()
+    fun random(): Int = if (start == end) start.toInt() else MathUtils.gaussianRandom(start.toInt(), end.toInt())
 
     fun snapToStep(rawDouble: Double) = scale.snapToStep(rawDouble)
     fun stringfy(v: T) = scale.stringfy(v)
