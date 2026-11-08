@@ -1,15 +1,19 @@
 package com.github.noamm9.features.impl.dungeon
 
+import com.github.noamm9.NoammAddons.isCheat
 import com.github.noamm9.compat.Enderman
 import com.github.noamm9.config.types.ColorSetting
+import com.github.noamm9.config.types.DropdownSetting
+import com.github.noamm9.config.types.SliderSetting
 import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
-import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.ChatUtils.removeFormatting
+import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.location.LocationUtils.inBoss
+import com.github.noamm9.utils.render.world.Render3D.renderBoxBounds
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.ExperienceOrb
@@ -18,6 +22,7 @@ import net.minecraft.world.entity.boss.wither.WitherBoss
 import net.minecraft.world.entity.decoration.ArmorStand
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.entity.projectile.arrow.AbstractArrow
+import net.minecraft.world.phys.AABB
 import java.awt.Color
 
 object StarMobESP: Feature(
@@ -32,8 +37,12 @@ object StarMobESP: Feature(
     private val starMobColor by ColorSetting("Star Mob Color", Color.YELLOW, false).section("General Colors").withDescription("Default color for all Starred mobs.")
     private val felColor by ColorSetting("Fel Color", Color.PINK, false).withDescription("The color used for fels.")
     private val batColor by ColorSetting("Bat Color", Color.GREEN, false).withDescription("The color used for highlighted bats.").showIf { espBats.value }
+    private val mode by DropdownSetting("Mode", 0, listOf("Outline", "Fill", "Filled Outline"))
+    private val lineWidth by SliderSetting("Line Width", 2.5, 1, 10, 0.1).hideIf { mode.value == 1 }
+    private val phase by ToggleSetting("Phase", false).showIf { isCheat }
 
     private val batHealths = setOf(100f, 200f, 400f, 800f)
+    private val bats = HashSet<Int>()
     private val starMobs = HashSet<Int>()
     private val checked = HashSet<Int>()
 
@@ -43,45 +52,61 @@ object StarMobESP: Feature(
             if (event.packet !is ClientboundSetEntityDataPacket) return@register
             val entity = level.getEntity(event.packet.id) ?: return@register
             if (entity is ArmorStand) {
-                val name = entity.customName?.formattedText ?: return@register
-                if (name.endsWith("§c❤") && name.contains("✯")) {
+                val name = entity.name.string
+                if (name.endsWith("❤") && name.contains("✯")) {
                     checkStarMob(entity, name)
                 }
             }
-            else if (entity is Player) {
-                val name = mc.connection?.getPlayerInfo(entity.uuid)?.profile?.name ?: return@register
-                if (name.equalsOneOf("Shadow Assassin", "Lost Adventurer", "Diamond Guy", "King Midas")) {
-                    starMobs.add(entity.id)
-                }
-            }
+            if (entity !is Bat) return@register
+            if (! espBats.value) return@register
+            if (entity.maxHealth !in batHealths) return@register
+            bats.add(entity.id)
         }
 
         register<EntityUnloadEvent> {
             if (! LocationUtils.inDungeon || inBoss) return@register
+            bats.remove(event.entity.id)
             starMobs.remove(event.entity.id)
             checked.remove(event.entity.id)
         }
 
         register<WorldChangeEvent> {
+            bats.clear()
             starMobs.clear()
             checked.clear()
         }
 
-        register<CheckEntityGlowEvent> {
+        register<RenderWorldEvent> {
             if (! LocationUtils.inDungeon || inBoss) return@register
-
-            if (event.entity.id in starMobs) {
-                val color = if (event.entity is Enderman/* && event.entity.customName?.string == "Dinnerbone"*/) felColor.value
+            val outline = mode.value.equalsOneOf(0, 2)
+            val fill = mode.value.equalsOneOf(1, 2)
+            val partialTick = mc.deltaTracker.getGameTimeDeltaPartialTick(false)
+            starMobs.forEach { id ->
+                val entity = level.getEntity(id) ?: return@forEach
+                val color = if (entity is Enderman) felColor.value
                 else starMobColor.value
-
-                event.color = color
-                return@register
+                event.ctx.renderBoxBounds(
+                    entity.getInterpolatedBoundingBox(partialTick),
+                    color,
+                    color.withAlpha(0.2f),
+                    outline,
+                    fill,
+                    phase.value,
+                    lineWidth.value
+                )
             }
-
-            if (! espBats.value) return@register
-            if (event.entity !is Bat) return@register
-            if (event.entity.maxHealth !in batHealths) return@register
-            event.color = batColor.value
+            bats.forEach { id ->
+                val entity = level.getEntity(id) ?: return@forEach
+                event.ctx.renderBoxBounds(
+                    entity.getInterpolatedBoundingBox(partialTick),
+                    batColor.value,
+                    batColor.value.withAlpha(0.2f),
+                    outline,
+                    fill,
+                    phase.value,
+                    lineWidth.value
+                )
+            }
         }
     }
 
@@ -113,4 +138,20 @@ object StarMobESP: Feature(
             starMobs.add(it.id)
         }
     }
+    // since entity.boundingBox is only updated 20 times per second
+    // we use getInterpolatedBoundingBox instead to make the box render smoothly on moving entities
+    //? if <26.3 {
+    private fun Entity.getInterpolatedBoundingBox(partialTicks: Float) : AABB {
+        // 26.2 does not have this function by default
+        val interpX = xOld + (x - xOld) * partialTicks
+        val interpY = yOld + (y - yOld) * partialTicks
+        val interpZ = zOld + (z - zOld) * partialTicks
+
+        return boundingBox.move(
+            interpX - x,
+            interpY - y,
+            interpZ - z
+        )
+    }
+    //? }
 }
