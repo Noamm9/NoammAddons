@@ -19,7 +19,8 @@ import kotlin.math.roundToInt
 
 object MaskTimers: Feature("Mask Cooldown Timers, Invulnerability Timers, and more") {
     private val onlyInDungeon by ToggleSetting("Dungeons Only").withDescription("enables this feature only while in a dungeon")
-    private val maskTimerStyle by DropdownSetting("Style", 0, listOf("NoammAddons", "Zyryon"))
+    private val maskTimerStyle by DropdownSetting("Style", 0, listOf("Default", "Zyryon"))
+    private val alwaysShow by ToggleSetting("Always Show").withDescription("Shows the timer even if the mask is not on cooldown")
 
     private val invulnerabilityTimers by ToggleSetting("Invulnerability Timers").withDescription("Shows the invulnerability time of the mask")
     private val procNotification by ToggleSetting("Proc Notification").withDescription("Shows a title on screen when a mask has been used")
@@ -29,7 +30,10 @@ object MaskTimers: Feature("Mask Cooldown Timers, Invulnerability Timers, and mo
     private val loreCdRegex = Regex("^Cooldown: ([\\d.]+)s$")
 
     override fun init() {
-        hudElement("Mask Timers") { context, example ->
+        hudElement(
+            "Mask Timers",
+            shouldDraw = { LocationUtils.inSkyblock }
+        ) { context, example ->
             if (onlyInDungeon.value && ! LocationUtils.inDungeon && ! example) return@hudElement 0f to 0f
 
             var maxWidth = 0
@@ -37,7 +41,7 @@ object MaskTimers: Feature("Mask Cooldown Timers, Invulnerability Timers, and mo
 
             Mask.entries.forEach { mask ->
                 val cd = if (example) mask.cooldownTicks / 2 else mask.cdLeft
-                if (cd <= 0 && ! example) return@forEach
+                if (cd <= 0 && ! example && ! alwaysShow.value) return@forEach
 
                 val text = if (maskTimerStyle.value == 0) {
                     val time = if (example) mask.cooldownTicks / 40f else cd / 20f
