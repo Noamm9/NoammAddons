@@ -5,7 +5,6 @@ import com.github.noamm9.config.types.ColorSetting
 import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
-import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.location.LocationUtils
@@ -42,18 +41,11 @@ object StarMobESP: Feature(
             if (! LocationUtils.inDungeon || inBoss) return@register
             if (event.packet !is ClientboundSetEntityDataPacket) return@register
             val entity = level.getEntity(event.packet.id) ?: return@register
-            if (entity is ArmorStand) {
-                val name = entity.customName?.formattedText ?: return@register
-                if (name.endsWith("§c❤") && name.contains("✯")) {
-                    checkStarMob(entity, name)
-                }
-            }
-            else if (entity is Player) {
-                val name = mc.connection?.getPlayerInfo(entity.uuid)?.profile?.name ?: return@register
-                if (name.equalsOneOf("Shadow Assassin", "Lost Adventurer", "Diamond Guy", "King Midas")) {
-                    starMobs.add(entity.id)
-                }
-            }
+            if (entity !is ArmorStand) return@register
+            val name = entity.name.string
+            if (!name.endsWith("❤") || !name.contains("✯")) return@register
+
+            checkStarMob(entity, name)
         }
 
         register<EntityUnloadEvent> {
