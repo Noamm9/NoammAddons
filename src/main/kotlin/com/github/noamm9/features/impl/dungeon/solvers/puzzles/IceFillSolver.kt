@@ -9,9 +9,7 @@ import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.render.world.Render3D.renderLine
 import com.github.noamm9.utils.render.world.RenderContext
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.world.level.block.Blocks
@@ -28,7 +26,7 @@ object IceFillSolver: PuzzleSolver {
         if (event.room.name != "Ice Fill") return
         NoammAddons.scope.launch {
             val time = measureTimeMillis { solve(event.room.centerPos, 360 - event.room.rotation !!) }
-            ChatUtils.modMessage("&bIce Fill took ${time}ms to solve")
+            ChatUtils.debug("icefill", "&bIce Fill took ${time}ms to solve")
         }
     }
 
