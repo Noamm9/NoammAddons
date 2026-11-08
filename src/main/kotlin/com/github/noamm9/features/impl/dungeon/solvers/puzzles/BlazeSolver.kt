@@ -2,18 +2,21 @@ package com.github.noamm9.features.impl.dungeon.solvers.puzzles
 
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.event.EventBus
-import com.github.noamm9.event.impl.CheckEntityGlowEvent
 import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers
 import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers.blazeCount
+import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers.blazeRenderMode
 import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers.firstBlazeColor
 import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers.lineColor
 import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers.secondBlazeColor
 import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers.thirdBlazeColor
 import com.github.noamm9.utils.ChatUtils.sendPartyMessage
 import com.github.noamm9.utils.ChatUtils.unformattedText
+import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.MathUtils.add
+import com.github.noamm9.utils.equalsOneOf
+import com.github.noamm9.utils.render.world.Render3D.renderBoxBounds
 import com.github.noamm9.utils.render.world.Render3D.renderLine
 import com.github.noamm9.utils.render.world.RenderContext
 import net.minecraft.world.entity.decoration.ArmorStand
@@ -40,20 +43,23 @@ object BlazeSolver: PuzzleSolver {
         lastBlazeCount = 10
     }
 
-    fun onEntityGlow(event: CheckEntityGlowEvent) {
-        if (! inBlaze || hpMap.isEmpty()) return
-        if (event.entity !is Blaze) return
-        val index = blazes.indexOf(event.entity)
-        if (index == - 1) return
-        if (index >= blazeCount.value) return
-        event.color = getBlazeColor(index)
-    }
-
     override fun onRenderWorld(ctx: RenderContext) {
         if (! inBlaze || blazes.isEmpty()) return
         blazes.forEachIndexed { i, entity ->
-            if (i == 0) return@forEachIndexed
             if (i >= blazeCount.value) return@forEachIndexed
+            val outline = blazeRenderMode.value.equalsOneOf(1, 2)
+            val fill = blazeRenderMode.value.equalsOneOf(0, 2)
+            val color = getBlazeColor(i)
+            ctx.renderBoxBounds(
+                entity.boundingBox,
+                color.withAlpha(1f),
+                color,
+                outline,
+                fill,
+                false,
+                2.5
+            )
+            if (i == 0) return@forEachIndexed
             val prev = blazes.getOrNull(i - 1) ?: return@forEachIndexed
 
             ctx.renderLine(

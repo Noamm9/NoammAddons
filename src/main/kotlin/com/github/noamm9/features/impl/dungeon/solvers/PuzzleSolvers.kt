@@ -15,10 +15,11 @@ object PuzzleSolvers: Feature(), IFeatureWindow {
     val blaze by ToggleSetting("Enabled").section("Blaze")
     val blazeDoneMessage by ToggleSetting("Blaze Done Message", true).withDescription("Sends a party message when you finish the Blaze puzzle.").showIf { blaze.value }
     val blazeCount by SliderSetting("Blazes to Highlight", 3, 1, 10, 1).showIf { blaze.value }
-    val firstBlazeColor by ColorSetting("First Blaze", Color.GREEN).showIf { blaze.value }
-    val secondBlazeColor by ColorSetting("Second Blaze", Color.YELLOW).showIf { blaze.value }
-    val thirdBlazeColor by ColorSetting("Other Blazes", Color.RED).showIf { blaze.value }
+    val firstBlazeColor by ColorSetting("First Blaze", Color.GREEN, true).showIf { blaze.value }
+    val secondBlazeColor by ColorSetting("Second Blaze", Color.YELLOW, true).showIf { blaze.value }
+    val thirdBlazeColor by ColorSetting("Other Blazes", Color.RED, true).showIf { blaze.value }
     val lineColor by ColorSetting("Line Color", Color.WHITE).showIf { blaze.value }
+    val blazeRenderMode by DropdownSetting("Render Mode", 0, listOf("Fill", "Outline", "Filled Outline")).withDescription("Choose how the box is rendered.").showIf { blaze.value }
 
     val boulder by ToggleSetting("Enabled ").section("Boulder")
     val showAll by ToggleSetting("Show All Moves", false).showIf { boulder.value }
@@ -83,7 +84,6 @@ object PuzzleSolvers: Feature(), IFeatureWindow {
         register<MainThreadPacketReceivedEvent.Pre> { puzzles.forEach { if (it.enabled) it.onPacket(event) } }
         register<DungeonEvent.RoomEvent.onEnter> { puzzles.forEach { if (it.enabled && ! inBoss) it.onRoomEnter(event) } }
         register<RenderWorldEvent> { puzzles.forEach { if (it.enabled) it.onRenderWorld(event.ctx) } }
-        register<CheckEntityGlowEvent> { if (BlazeSolver.enabled) BlazeSolver.onEntityGlow(event) }
         register<DungeonEvent.RoomEvent.onExit> { puzzles.forEach { if (it.enabled) it.onRoomExit() } }
         register<ChatMessageEvent> { puzzles.forEach { if (it.enabled) it.onChat(event) } }
         register<TickEvent.Server> { puzzles.forEach { if (it.enabled) it.onTick() } }
