@@ -7,6 +7,7 @@ import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.ChatUtils.removeFormatting
+import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.location.LocationUtils.inBoss
@@ -22,9 +23,7 @@ import java.awt.Color
 
 object StarMobESP: Feature(
     "Highlights all starred mobs in a dungeon.",
-    //#if LEGIT
-    //!name = "Star Mob Highlight",
-    //#endif
+    //#if LEGIT "Star Mob Highlight",
     jsonName = "Star Mob ESP"
 ) {
     private val espBats by ToggleSetting("Highlight Bats", true).withDescription("Highlights Bats in Dungeons.")
@@ -33,6 +32,7 @@ object StarMobESP: Feature(
     private val felColor by ColorSetting("Fel Color", Color.PINK, false).withDescription("The color used for fels.")
     private val batColor by ColorSetting("Bat Color", Color.GREEN, false).withDescription("The color used for highlighted bats.").showIf { espBats.value }
 
+    private val fakeMiniRooms = setOf("Duncan", "Balcony", "Wizard", "Pit", "Waterfall", "Atlas", "Chambers", "Layers") // thanks clear sim
     private val batHealths = setOf(100f, 200f, 400f, 800f)
     private val starMobs = HashSet<Int>()
     private val checked = HashSet<Int>()
@@ -50,9 +50,12 @@ object StarMobESP: Feature(
             }
             else if (entity is Player) {
                 val name = mc.connection?.getPlayerInfo(entity.uuid)?.profile?.name ?: return@register
-                if (name.equalsOneOf("Shadow Assassin", "Lost Adventurer", "Diamond Guy", "King Midas")) {
-                    starMobs.add(entity.id)
-                }
+                if (! name.equalsOneOf("Shadow Assassin", "Lost Adventurer", "Diamond Guy", "King Midas")) return@register
+                val roomName = ScanUtils.getRoomFromPos(entity.position())?.name ?: return@register
+                if (roomName in fakeMiniRooms) return@register
+                if (roomName == "Stairs" && entity.y > 80) return@register
+
+                starMobs.add(entity.id)
             }
         }
 
