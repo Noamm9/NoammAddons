@@ -18,6 +18,8 @@ import com.github.noamm9.utils.network.cache.ProfileCache
 import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.RenderHelper.width
 import com.mojang.brigadier.arguments.StringArgumentType
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
@@ -49,7 +51,7 @@ object PartyFinder: Feature(), ICommandProvider {
     private val minimumMagicalPower by SliderSetting("Minimum MP", 0, 0, 3000, 10).withDescription("Minimum MP Set to 0 to disable. Skipped when Inventory API is off.").showIf { autoKick.value }
 
     private val dungeonGroupJoinRegex = Regex("^Party Finder > (\\w{1,16}) joined the dungeon group! \\((\\w+) Level (\\d+)\\)$")
-    private val kickedPlayers = mutableSetOf<String>()
+    private val kickedPlayers = Collections.synchronizedSet(HashSet<String>())
 
     private val partyMembersRegex = Regex("^\\s*(\\w{1,16}):?\\s+(Archer|Tank|Berserk|Healer|Mage)\\s*\\((\\d+)\\)\\s*$")
     private val levelRequiredRegex = Regex("Dungeon Level Required:\\s*(\\d+)")
@@ -181,7 +183,7 @@ object PartyFinder: Feature(), ICommandProvider {
             if (name == mc.user.name) return@register
 
             scope.launch {
-                if (autoKick.value && PartyUtils.isLeader()) autoKickPlayer(name)
+                if (autoKick.value) autoKickPlayer(name)
                 if (showJoinStats.value) printPlayerStats(name)
             }
         }
@@ -293,18 +295,36 @@ object PartyFinder: Feature(), ICommandProvider {
         ChatUtils.chat("&a&l------------------------------------&r")
     }
 
-    private suspend fun autoKickPlayer(name: String) {
-        if (name.equalsOneOf("Noamm", mc.user.name)) return
+    private suspend fun autoKickPlayer(name: String) = coroutineScope {
+        if (name.equalsOneOf("Noamm", mc.user.name)) return@coroutineScope
+
+        // resolve leadership (may send one /pl) in parallel with the profile fetch
+        val isLeader = async { PartyUtils.awaitIsLeader() }
 
         if (name in kickedPlayers) {
+            if (isLeader.await() != true) return@coroutineScope
             ChatUtils.modMessage("&9AutoKick &f> &cAuto-kicking &e$name &c(previously kicked)")
             ThreadUtils.scheduledTask(6) { ChatUtils.sendCommand("party kick $name") }
-            return
+            return@coroutineScope
+        }
+
+        val profileResult = async { ProfileUtils.getProfile(name) }
+
+        when (isLeader.await()) {
+            false -> return@coroutineScope
+            null -> {
+                ChatUtils.modMessage("&9AutoKick &f> &cCouldn't confirm party leader, not checking &e$name")
+                return@coroutineScope
+            }
+            true -> {}
+        }
+
+        val profile = profileResult.await().getOrElse {
+            ChatUtils.modMessage("&9AutoKick &f> &cCouldn't check &e$name &c(${it.message?.take(60) ?: "lookup failed"}), not kicking")
+            return@coroutineScope
         }
 
         val reasons = mutableListOf<String>().apply {
-            val profile = ProfileUtils.getProfile(name).getOrNull() ?: return@apply
-
             val dungeons = profile.dungeons
             val floor = autoKickFloor.value + 1
             val dungeonType = if (masterMode.value) dungeons.masterCatacombs else dungeons.catacombs
@@ -326,19 +346,14 @@ object PartyFinder: Feature(), ICommandProvider {
                     add("MP(${profile.magicalPower}/${minimumMagicalPower.value})")
                 }
             }
-        }.ifEmpty { return }
+        }.ifEmpty { return@coroutineScope }
 
         ThreadUtils.setTimeout(60 * 1000) { kickedPlayers.remove(name) }
         kickedPlayers.add(name)
 
-        if (informKicked.value) {
-            ChatUtils.sendCommand("pc Kicking $name: ${reasons.joinToString(", ")}")
-            ThreadUtils.scheduledTask(6) { ChatUtils.sendCommand("party kick $name") }
-        }
-        else {
-            ChatUtils.modMessage("&cKicking &e$name:&r ${reasons.joinToString(", ")}")
-            ChatUtils.sendCommand("party kick $name")
-        }
+        if (informKicked.value) ChatUtils.sendCommand("pc Kicking $name: ${reasons.joinToString(", ")}")
+        else ChatUtils.modMessage("&cKicking &e$name:&r ${reasons.joinToString(", ")}")
+        ChatUtils.sendCommand("party kick $name")
     }
 
     private fun getLoreStats(name: String, floor: Int, type: Char): String {

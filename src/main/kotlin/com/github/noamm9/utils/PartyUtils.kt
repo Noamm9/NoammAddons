@@ -9,6 +9,9 @@ import com.github.noamm9.init.types.ISelfInit
 import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.location.LocationUtils
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withTimeoutOrNull
+import java.util.concurrent.atomic.AtomicLong
 
 // todo: party mute state.
 object PartyUtils: ISelfInit {
@@ -117,6 +120,8 @@ object PartyUtils: ISelfInit {
                 handleLine(text, formattedLines?.get(i) ?: raw)
                 lineRanks = emptyMap()
             }
+
+            syncIfLeaderUnknown()
         }
 
         register<DungeonEvent.RunStartedEvent> {
@@ -131,11 +136,41 @@ object PartyUtils: ISelfInit {
     fun getMember(name: String = self) = partyMembers.firstOrNull { it.name.same(name) }
     fun getRole(name: String = self) = getMember(name)?.role
 
-    fun isLeader() = getRole() == PartyRole.LEADER
+    /** Also requests a `/pl` (rate-limited) when we're in a party whose leader is unknown, so later calls are correct. */
+    fun isLeader(): Boolean {
+        syncIfLeaderUnknown()
+        return getRole() == PartyRole.LEADER
+    }
     fun isMember(name: String) = getMember(name) != null
     fun canInvite() = getRole() in setOf(PartyRole.LEADER, PartyRole.MOD)
 
     fun sync() = ChatUtils.sendCommand("pl")
+
+    private const val LEADER_SYNC_COOLDOWN = 5000L
+    private val lastLeaderSync = AtomicLong(0L)
+
+    /**
+     * Sends `/pl` when we're in a party whose leader is unknown (e.g. a fresh Party Finder group),
+     * at most once per [LEADER_SYNC_COOLDOWN]; concurrent callers share the pending request.
+     */
+    private fun syncIfLeaderUnknown() {
+        if (! isInParty || partyLeader != null || ! LocationUtils.onHypixel) return
+        val now = System.currentTimeMillis()
+        val last = lastLeaderSync.get()
+        if (now - last >= LEADER_SYNC_COOLDOWN && lastLeaderSync.compareAndSet(last, now)) sync()
+    }
+
+    /** Like [isLeader], but waits for the leader to be resolved. Returns null if it could not be confirmed. */
+    suspend fun awaitIsLeader(timeoutMs: Long = 3000L): Boolean? {
+        if (partyLeader != null) return isLeader()
+        syncIfLeaderUnknown()
+
+        withTimeoutOrNull(timeoutMs) {
+            while (partyLeader == null) delay(50)
+        }
+
+        return partyLeader?.let { isLeader() }
+    }
 
     private fun handleLine(text: String, formatted: String) {
         val prefixes = rankedNameFormatted.findAll(formatted).associate { it.groupValues[2].lowercase() to it.groupValues[1] }
@@ -275,6 +310,8 @@ object PartyUtils: ISelfInit {
         }
 
         listHeader.matchEntire(text)?.let {
+            // a list is arriving (the leader line follows in a later message); don't request another one meanwhile
+            lastLeaderSync.set(System.currentTimeMillis())
             val wasInParty = isInParty
             partyMembers = emptyList()
             isInParty = true
