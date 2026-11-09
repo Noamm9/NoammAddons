@@ -4,10 +4,12 @@ import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.config.*
 import com.github.noamm9.event.impl.CheckEntityGlowEvent
 import com.github.noamm9.utils.render.RenderHelper.renderBoundingBox
+import com.github.noamm9.utils.render.world.Render3D.renderBlock
 import com.github.noamm9.utils.render.world.Render3D.renderBoxBounds
 import com.github.noamm9.utils.render.world.RenderContext
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
+import net.minecraft.core.BlockPos
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.phys.AABB
 import java.awt.Color
@@ -19,7 +21,7 @@ class HighlightSetting(
     glow: Boolean = true,
     customColor: Boolean = false,
     customFillColor: Boolean = false,
-    defaultStyle: Style = Style.BOX,
+    defaultStyle: Style = Style.OUTLINE,
 ): DropdownSetting(name, defaultStyle.ordinal, Style.entries.filter { glow || it != Style.GLOW }.map { it.displayName }), SettingProvider {
     init {
         require(defaultStyle.displayName in options) { "Unavailable default highlight style: $defaultStyle" }
@@ -79,6 +81,21 @@ class HighlightSetting(
 
     fun draw(
         ctx: RenderContext,
+        aabb: BlockPos,
+        color: Color = Color.WHITE,
+        fillColor: Color = Color(255, 255, 255, 67),
+        overrideColor: Color? = null,
+        overrideFillColor: Color? = null,
+    ) {
+        if (! style.isBox) return
+        ctx.renderBlock(
+            aabb, outlineColor(color, overrideColor), this.fillColor(fillColor, overrideFillColor),
+            outline = style.outline, fill = style.fill, phase = ! depthCheck.value, lineWidth = thickness.value
+        )
+    }
+
+    fun draw(
+        ctx: RenderContext,
         entity: Entity,
         color: Color = Color.WHITE,
         fillColor: Color = Color(255, 255, 255, 67),
@@ -93,9 +110,9 @@ class HighlightSetting(
     }
 
     enum class Style(val displayName: String, val outline: Boolean = false, val fill: Boolean = false) {
-        BOX("Box", outline = true),
-        FILLED_BOX("Filled box", outline = true, fill = true),
+        OUTLINE("Outline", outline = true),
         FILLED("Filled", fill = true),
+        FILLED_OUTLINE("Filled Outline", outline = true, fill = true),
         GLOW("Glow");
 
         val isBox get() = outline || fill
