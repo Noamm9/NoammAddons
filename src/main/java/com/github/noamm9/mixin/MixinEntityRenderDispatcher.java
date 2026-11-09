@@ -3,6 +3,8 @@ package com.github.noamm9.mixin;
 import com.github.noamm9.event.EventBus;
 import com.github.noamm9.event.impl.CheckEntityRenderEvent;
 import com.github.noamm9.features.impl.visual.RenderOptimizer;
+import com.github.noamm9.utils.render.DepthTestGlow;
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -10,6 +12,7 @@ import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.world.entity.Entity;
 import org.joml.Quaternionf;
 import org.spongepowered.asm.mixin.Mixin;
@@ -20,7 +23,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(EntityRenderDispatcher.class)
 public class MixinEntityRenderDispatcher {
     @Inject(method = "shouldRender", at = @At("RETURN"), cancellable = true)
-    //~ if <26.3 ', float partialTicks, CallbackInfoReturnable' -> ', CallbackInfoReturnable'
+        //~ if <26.3 ', float partialTicks, CallbackInfoReturnable' -> ', CallbackInfoReturnable'
     private <T extends Entity> void onShouldRender(T entity, Frustum culler, double camX, double camY, double camZ, float partialTicks, CallbackInfoReturnable<Boolean> cir) {
         if (! cir.getReturnValue()) return;
         if (EventBus.post(new CheckEntityRenderEvent(entity))) {
@@ -32,5 +35,12 @@ public class MixinEntityRenderDispatcher {
     public void redirectDisplayFireAnimation(SubmitNodeCollector instance, PoseStack poseStack, EntityRenderState entityRenderState, Quaternionf quaternionf, Operation<Void> original) {
         if (RenderOptimizer.INSTANCE.enabled && RenderOptimizer.getHideFireOnEntities().getValue()) return;
         original.call(instance, poseStack, entityRenderState, quaternionf);
+    }
+
+    @WrapMethod(method = "submit")
+    private void beginDepthTestedGlow(EntityRenderState renderState, CameraRenderState camera, double x, double y, double z, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, Operation<Void> original) {
+        DepthTestGlow.active = DepthTestGlow.isTagged(renderState.outlineColor);
+        original.call(renderState, camera, x, y, z, poseStack, submitNodeCollector);
+        DepthTestGlow.active = false;
     }
 }

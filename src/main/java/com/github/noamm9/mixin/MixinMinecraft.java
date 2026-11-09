@@ -28,10 +28,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 //~ if <26.3 'services.MinecraftServicesDiscoveryService' -> 'yggdrasil.YggdrasilAuthenticationService'
 import com.mojang.authlib.services.MinecraftServicesDiscoveryService;
 
-//#if LEGIT
-//!import com.github.noamm9.utils.render.LegitEntityVisibility;
-//#endif
-
 @Mixin(Minecraft.class)
 public abstract class MixinMinecraft {
     @Shadow @Nullable public HitResult hitResult;
@@ -107,14 +103,6 @@ public abstract class MixinMinecraft {
         at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;isCurrentlyGlowing()Z")
     )
     private boolean onShouldEntityAppearGlowing(boolean original, Entity entity) {
-        //#if LEGIT
-        //! if (this.player ==null) return original;
-        //! if (!LegitEntityVisibility.isVisible(this.player, entity)) {
-        //! ((IGlowingEntity) entity).noammaddons$isGlowing(false);
-        //! return original;
-        //!}
-        //#endif
-
         var glow = (IGlowingEntity) entity;
 
         if (this.player == null || glow.noammaddons$glowCheckTick() != this.player.tickCount) {

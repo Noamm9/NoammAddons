@@ -17,3 +17,9 @@ typealias BlendFunction = com.mojang.renderpearl.api.pipeline.BlendFunction
 
 //~ if <26.3 'renderpearl.api.pipeline' -> 'blaze3d.pipeline'
 typealias ColorTargetState = com.mojang.renderpearl.api.pipeline.ColorTargetState
+
+//~ if <26.3 'renderpearl.api.pipeline' -> 'blaze3d.pipeline'
+typealias DepthStencilState = com.mojang.renderpearl.api.pipeline.DepthStencilState
+
+//~ if <26.3 'renderpearl.api.pipeline' -> 'blaze3d.platform'
+typealias CompareOp = com.mojang.renderpearl.api.pipeline.CompareOp

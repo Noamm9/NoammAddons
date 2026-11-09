@@ -17,3 +17,12 @@ fun RenderSetup.RenderSetupBuilder.withOit(mode: OitMode): RenderSetup.RenderSet
     )
     //? }
 }
+
+fun RenderSetup.RenderSetupBuilder.withOutlineTarget(): RenderSetup.RenderSetupBuilder {
+    //? if <26.3 {
+    /*return setOutputTarget(net.minecraft.client.renderer.rendertype.OutputTarget.OUTLINE_TARGET)
+    */ //? } else {
+    // 26.3 does not have OutputTarget.
+    return this
+    //? }
+}
