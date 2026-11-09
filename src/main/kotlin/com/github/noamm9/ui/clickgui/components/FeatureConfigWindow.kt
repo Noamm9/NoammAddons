@@ -1,26 +1,19 @@
 package com.github.noamm9.ui.clickgui.components
 
-import com.mojang.blaze3d.platform.InputConstants
-
-import com.github.noamm9.config.types.HighlightSetting
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.TooltipManager
-import com.github.noamm9.ui.clickgui.components.settings.Style
-import com.github.noamm9.ui.clickgui.components.settings.Widget
-import com.github.noamm9.ui.clickgui.components.settings.WidgetFactory
+import com.github.noamm9.ui.clickgui.components.settings.*
 import com.github.noamm9.ui.clickgui.components.settings.impl.CategoryWidget
 import com.github.noamm9.ui.clickgui.components.settings.impl.SeparatorWidget
 import com.github.noamm9.ui.clickgui.enums.WindowClickAction
-import com.github.noamm9.ui.utils.MouseHelper
-import com.github.noamm9.ui.utils.ResizeCorner
-import com.github.noamm9.ui.utils.Resolution
-import com.github.noamm9.ui.utils.ScrollState
+import com.github.noamm9.ui.utils.*
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.render.Render2D.drawBorder
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawString
+import com.mojang.blaze3d.platform.InputConstants
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import java.awt.Color
 
@@ -57,10 +50,7 @@ open class FeatureConfigWindow(val feature: Feature) {
     private var visibleWidgets = emptyList<Widget<*>>()
     private val scroll = ScrollState(minThumbHeight = 18f)
 
-    private val widgets = feature.configSettings.flatMap { setting ->
-        val settings = if (setting is HighlightSetting) listOf(setting) + setting.configSettings else listOf(setting)
-        settings.mapNotNull(WidgetFactory::fromSetting)
-    }
+    private val widgets = feature.configSettings.filter { it.parent == null }.mapNotNull(WidgetFactory::fromSetting)
 
     val settings = buildList {
         var lastSection: String? = null
@@ -126,7 +116,7 @@ open class FeatureConfigWindow(val feature: Feature) {
         clampToScreen()
     }
 
-    protected open fun drawPreview(context: GuiGraphicsExtractor, x: Float, y: Float, width: Float, height: Float) {}
+    protected open fun drawPreview(context: GuiGraphicsExtractor, x: Float, y: Float, width: Float, height: Float) = Unit
 
     protected open fun drawBackground(context: GuiGraphicsExtractor, x: Float, y: Float, width: Float, height: Float, color: Color) {
         context.drawRect(x, y, width, height, color)
@@ -208,7 +198,7 @@ open class FeatureConfigWindow(val feature: Feature) {
                 isInsideContent(mouseX.toFloat(), mouseY.toFloat())
 
             if (isHovered) {
-                TooltipManager.hover(setting.config.description, mouseX, mouseY)
+                TooltipManager.hover(setting.description(mouseX, mouseY), mouseX, mouseY)
             }
 
             currentY += setting.height + settingSpacing

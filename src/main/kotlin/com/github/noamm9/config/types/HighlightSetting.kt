@@ -1,9 +1,7 @@
 package com.github.noamm9.config.types
 
 import com.github.noamm9.NoammAddons.mc
-import com.github.noamm9.config.ConfigHolder
-import com.github.noamm9.config.Savable
-import com.github.noamm9.config.SettingProvider
+import com.github.noamm9.config.*
 import com.github.noamm9.event.impl.CheckEntityGlowEvent
 import com.github.noamm9.utils.render.RenderHelper.renderBoundingBox
 import com.github.noamm9.utils.render.world.Render3D.renderBoxBounds
@@ -21,18 +19,8 @@ class HighlightSetting(
     glow: Boolean = true,
     customColor: Boolean = false,
     customFillColor: Boolean = false,
-    private val aabbOffset: Boolean = false,
     defaultStyle: Style = Style.BOX,
 ): DropdownSetting(name, defaultStyle.ordinal, Style.entries.filter { glow || it != Style.GLOW }.map { it.displayName }), SettingProvider {
-    enum class Style(val displayName: String, val outline: Boolean = false, val fill: Boolean = false) {
-        BOX("Box", outline = true),
-        FILLED_BOX("Filled box", outline = true, fill = true),
-        FILLED("Filled", fill = true),
-        GLOW("Glow");
-
-        val isBox get() = outline || fill
-    }
-
     init {
         require(defaultStyle.displayName in options) { "Unavailable default highlight style: $defaultStyle" }
     }
@@ -41,27 +29,17 @@ class HighlightSetting(
 
     val style get() = Style.entries[value]
 
-    val useCustomColor by ToggleSetting("Custom Color", ! customColor).visibleIf { customColor && color != null }
-    val outline by ColorSetting("Outline Color", color ?: Color.WHITE).visibleIf {
-        color != null && (! customColor || useCustomColor.value)
-    }
+    val useCustomColor by ToggleSetting("Custom Color", ! customColor).showIf { customColor && color != null }.childOf(this)
+    val outline by ColorSetting("Outline Color", color ?: Color.WHITE).showIf { color != null && (! customColor || useCustomColor.value) }.childOf(this)
 
-    val useCustomFillColor by ToggleSetting("Custom Fill Color", ! customFillColor).visibleIf {
-        customFillColor && fillColor != null && style.fill
-    }
-    val fill by ColorSetting("Fill Color", fillColor ?: Color(255, 255, 255, 67)).visibleIf {
-        fillColor != null && style.fill && (! customFillColor || useCustomFillColor.value)
-    }
+    val useCustomFillColor by ToggleSetting("Custom Fill Color", ! customFillColor).showIf { customFillColor && fillColor != null && style.fill }.childOf(this)
+    val fill by ColorSetting("Fill Color", fillColor ?: Color(255, 255, 255, 67)).showIf { fillColor != null && style.fill && (! customFillColor || useCustomFillColor.value) }.childOf(this)
 
-    val depthCheck by ToggleSetting("Depth Check").visibleIf { true }
-    val thickness by SliderSetting("Thickness", 4f, 1f, 8f, 0.5f).visibleIf { style.outline }
-    val sizeOffset by SliderSetting("Size Offset", 0.0, -1.0, 1.0, 0.05).visibleIf { aabbOffset && style.isBox }
-        .withDescription("Changes the horizontal size of the highlight box")
+    val depthCheck by ToggleSetting("Depth Check").childOf(this)
+    val thickness by SliderSetting("Thickness", 4f, 1f, 8f, 0.5f).showIf { style.outline }.childOf(this)
 
     private val hasOutlineColor = color != null
     private val hasFillColor = fillColor != null
-
-    private fun <T: ConfigHolder<*>> T.visibleIf(condition: () -> Boolean): T = showIf { this@HighlightSetting.visibility() && condition() }
 
     override fun write() = JsonObject().apply {
         addProperty("style", style.name)
@@ -81,11 +59,8 @@ class HighlightSetting(
         configSettings.forEach(ConfigHolder<*>::reset)
     }
 
-    fun outlineColor(fallback: Color = Color.WHITE, override: Color? = null): Color =
-        override ?: if (hasOutlineColor && useCustomColor.value) outline.value else fallback
-
-    fun fillColor(fallback: Color = Color(255, 255, 255, 67), override: Color? = null): Color =
-        override ?: if (! hasFillColor) fallback else if (useCustomFillColor.value) fill.value else Color(fallback.red, fallback.green, fallback.blue, fill.value.alpha)
+    fun outlineColor(fallback: Color = Color.WHITE, override: Color? = null): Color = override ?: if (hasOutlineColor && useCustomColor.value) outline.value else fallback
+    fun fillColor(fallback: Color = Color(255, 255, 255, 67), override: Color? = null): Color = override ?: if (! hasFillColor) fallback else if (useCustomFillColor.value) fill.value else Color(fallback.red, fallback.green, fallback.blue, fill.value.alpha)
 
     fun draw(
         ctx: RenderContext,
@@ -96,9 +71,8 @@ class HighlightSetting(
         overrideFillColor: Color? = null,
     ) {
         if (! style.isBox) return
-        val box = if (aabbOffset) aabb.inflate(sizeOffset.value, 0.0, sizeOffset.value) else aabb
         ctx.renderBoxBounds(
-            box, outlineColor(color, overrideColor), this.fillColor(fillColor, overrideFillColor),
+            aabb, outlineColor(color, overrideColor), this.fillColor(fillColor, overrideFillColor),
             outline = style.outline, fill = style.fill, phase = ! depthCheck.value, lineWidth = thickness.value
         )
     }
@@ -116,5 +90,14 @@ class HighlightSetting(
         if (style != Style.GLOW) return
         if (depthCheck.value && mc.player?.hasLineOfSight(event.entity) != true) return
         event.color = outlineColor(color, overrideColor)
+    }
+
+    enum class Style(val displayName: String, val outline: Boolean = false, val fill: Boolean = false) {
+        BOX("Box", outline = true),
+        FILLED_BOX("Filled box", outline = true, fill = true),
+        FILLED("Filled", fill = true),
+        GLOW("Glow");
+
+        val isBox get() = outline || fill
     }
 }

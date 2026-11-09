@@ -38,7 +38,7 @@ object CompTest: Feature("A test feature used to test every UI component.") {
 
     val secondaryColor by ColorSetting("Secondary", Color.MAGENTA).withDescription("A secondary color used for gradients and specialized UI elements.")
 
-    val highlight by HighlightSetting("test Highlight", color = Color(85, 255, 255), customColor = true, customFillColor = true, aabbOffset = true)
+    val highlight by HighlightSetting("test Highlight", color = Color(85, 255, 255), customColor = true, customFillColor = true)
         .withDescription("Highlights the entity you are looking at to test highlight styles")
 
     val panicBind by KeybindSetting("test Keybind", InputConstants.KEY_P).withDescription("Pressing this key will instantly disable every active module in the mod.")
