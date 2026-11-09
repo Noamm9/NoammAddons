@@ -28,10 +28,10 @@ object Etherwarp: Feature("Etherwarp overlay and sound.") {
     private val fullBlock by ToggleSetting("Full Block").withDescription("Draws the overlay as a full block").showIf { overlay.value }
 
     private val fillColor by ColorSetting("Fill Color", Utils.favoriteColor.withAlpha(50)).showIf { overlay.value && mode.value != 0 }.section("Colors")
-    private val outlineColor by ColorSetting("Outline Color", Utils.favoriteColor, false).showIf { overlay.value && mode.value != 1 }
+    private val outlineColor by ColorSetting("Outline Color", Utils.favoriteColor).showIf { overlay.value && mode.value != 1 }
 
     private val invalidFillColor by ColorSetting("Invalid Fill Color ", Color.RED.withAlpha(50)).showIf { overlay.value && mode.value != 0 && showFail.value }
-    private val invalidOutlineColor by ColorSetting("Invalid Outline Color ", Color.RED, false).showIf { overlay.value && mode.value != 1 && showFail.value }
+    private val invalidOutlineColor by ColorSetting("Invalid Outline Color ", Color.RED).showIf { overlay.value && mode.value != 1 && showFail.value }
 
     private val etherwarpSound by ToggleSetting("Etherwarp Sound").section("Sound")
     private val zeroPingSound by ToggleSetting("Zero-Ping Sound").withDescription("Plays the Etherwarp sound client-side instead of waiting for the server to send the sound packet").showIf { etherwarpSound.value }
