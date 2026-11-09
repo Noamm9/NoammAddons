@@ -82,11 +82,13 @@ object LegitEntityVisibility: ISelfInit, Shortcuts {
             )
 
             if (blockPos != lastCheckedBlockPos) {
-                val state = level.getBlockState(blockPos)
-
-                if (state.canOcclude()) return false
-
                 lastCheckedBlockPos = blockPos
+
+                val state = level.getBlockState(blockPos)
+                val shape = if (state.canOcclude()) state.getCollisionShape(level, blockPos) else null
+
+                if (shape != null && !shape.isEmpty && shape.clip(source, target, blockPos) != null)
+                    return false
             }
             currentPos = currentPos.add(stepVector)
         }
