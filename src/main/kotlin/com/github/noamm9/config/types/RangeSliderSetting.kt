@@ -40,4 +40,5 @@ class RangeSliderSetting<T: Number>(
     fun snapToStep(rawDouble: Double) = scale.snapToStep(rawDouble)
     fun stringfy(v: T) = scale.stringfy(v)
     fun getPercent(valueIn: T) = scale.getPercent(valueIn)
+    fun fromPercent(percent: Float) = scale.fromPercent(percent)
 }
