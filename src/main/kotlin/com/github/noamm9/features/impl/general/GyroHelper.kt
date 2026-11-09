@@ -1,20 +1,19 @@
 package com.github.noamm9.features.impl.general
 
-import com.github.noamm9.config.types.ColorSetting
-import com.github.noamm9.config.types.SliderSetting
-import com.github.noamm9.config.types.ToggleSetting
+import com.github.noamm9.config.types.*
 import com.github.noamm9.event.impl.RenderWorldEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.utils.ColorUtils.withAlpha
-import com.github.noamm9.utils.MathUtils
 import com.github.noamm9.utils.MathUtils.add
 import com.github.noamm9.utils.MathUtils.toVec
 import com.github.noamm9.utils.Utils
 import com.github.noamm9.utils.WorldUtils
+import com.github.noamm9.utils.items.EtherwarpHelper
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.render.world.Render3D.renderBox
 import com.github.noamm9.utils.render.world.Render3D.renderCircle
 import net.minecraft.tags.BlockTags
+import net.minecraft.world.phys.shapes.CollisionContext
 
 object GyroHelper: Feature("Renders a circle where your gyro will be located.", "Gyro Helper") {
     private val drawBox by ToggleSetting("Draw Box", true).withDescription("Draws a box in the middle of the Gyrokinetic Wand sucking range").section("Render")
@@ -29,11 +28,14 @@ object GyroHelper: Feature("Renders a circle where your gyro will be located.", 
             if (! drawRing.value && ! drawBox.value) return@register
             if (boxColor.value.alpha + ringColor.value.alpha == 0) return@register
             if (player.mainHandItem.skyblockId != "GYROKINETIC_WAND") return@register
-            val gyroPos = MathUtils.raytrace(player, 25) ?: return@register
-            val stateAtPos = WorldUtils.getStateAt(gyroPos)
-            val stateAbove = WorldUtils.getStateAt(gyroPos.above())
+            val ray = EtherwarpHelper.getEtherPos(player.position(), player.lookAngle, 25.0)
+            val gyroPos = ray.pos ?: return@register
+            val gyroPosAbove = gyroPos.above()
 
-            if (stateAtPos.isAir || (! stateAbove.isAir && ! stateAbove.`is`(BlockTags.WOOL_CARPETS))) return@register
+            val stateAbove = WorldUtils.getStateAt(gyroPosAbove)
+            val empty = stateAbove.getCollisionShape(level, gyroPosAbove, CollisionContext.empty()).isEmpty
+
+            if (! ray.succeeded && ! empty || (! empty && ! stateAbove.`is`(BlockTags.WOOL_CARPETS))) return@register
 
             if (drawBox.value) event.ctx.renderBox(gyroPos.x + 0.5, gyroPos.y, gyroPos.z + 0.5, 1, 1, boxColor.value)
             if (drawRing.value) {

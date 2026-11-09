@@ -2,11 +2,11 @@ package com.github.noamm9.utils
 
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.utils.render.RenderHelper.renderVec
-import net.minecraft.client.player.LocalPlayer
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Vec3i
 import net.minecraft.util.Mth
-import net.minecraft.world.phys.*
+import net.minecraft.world.phys.AABB
+import net.minecraft.world.phys.Vec3
 import kotlin.math.*
 import kotlin.random.Random
 
@@ -83,7 +83,6 @@ object MathUtils {
     fun BlockPos.toVec() = vec(x, y, z)
     val BlockPos.center get() = Vec3.atCenterOf(this)
 
-
     fun Vec3.toPos() = BlockPos(floor(x).toInt(), floor(y).toInt(), floor(z).toInt())
     fun Vec3.add(x: Number = 0.0, y: Number = 0.0, z: Number = 0.0) = add(vec(x, y, z))
     fun Vec3i.destructured() = Triple(x, y, z)
@@ -94,11 +93,6 @@ object MathUtils {
     fun vec(x: Number, y: Number, z: Number) = Vec3(x.toDouble(), y.toDouble(), z.toDouble())
     fun aabb(x1: Number, y1: Number, z1: Number, x2: Number, y2: Number, z2: Number): AABB {
         return AABB(x1.toDouble(), y1.toDouble(), z1.toDouble(), x2.toDouble(), y2.toDouble(), z2.toDouble())
-    }
-
-    fun raytrace(player: LocalPlayer, range: Number): BlockPos? {
-        val hit = player.pick(range.toDouble(), 1f, false)
-        return (hit as? BlockHitResult)?.takeIf { it.type == HitResult.Type.BLOCK }?.blockPos
     }
 
     fun getLookVec(yaw: Float, pitch: Float) = Vec3.directionFromRotation(pitch, yaw)
