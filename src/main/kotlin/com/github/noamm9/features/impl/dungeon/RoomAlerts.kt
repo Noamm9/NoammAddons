@@ -6,7 +6,6 @@ import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.utils.Resolution
-import com.github.noamm9.utils.SoundUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.map.core.RoomState
 import com.github.noamm9.utils.dungeons.map.core.RoomType
@@ -20,11 +19,12 @@ object RoomAlerts: Feature("Alerts when certain stuff happens in your current ro
     private val clear by ToggleSetting("Cleared", true)
     private val secrets by ToggleSetting("Secrets Done", true)
     private val displayTime by SliderSetting("Display Time", 2.0, 0.5, 3.0, 0.1, "s")
+    private val sound = createSoundSettings("Sound", SoundEvents.NOTE_BLOCK_PLING.value()) { clear.value || secrets.value }
 
     private var alertText = "Cleared"
         set(value) {
             field = value
-            SoundUtils.playSound(SoundEvents.NOTE_BLOCK_PLING, 0.25f, 1f)
+            sound()
             alertUntil = System.currentTimeMillis() + (displayTime.value * 1000).roundToLong()
         }
 
