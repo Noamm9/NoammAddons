@@ -13,6 +13,7 @@ import com.github.noamm9.utils.MathUtils.aabb
 import com.github.noamm9.utils.MathUtils.add
 import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.dungeons.DungeonListener
+import com.github.noamm9.utils.dungeons.enums.DungeonClass
 import com.github.noamm9.utils.items.ItemUtils
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
@@ -39,6 +40,7 @@ object BloodCamp: Feature("Features for Blood Room."), IFeatureWindow {
 
     private val killTimer by ToggleSetting("Move Timer").withDescription("Displays a HUD counting down to when the blood mobs are ready to be killed.").section("Alerts")
     private val killTitle by ToggleSetting("Kill Title").withDescription("Displays a Title when the blood mobs are ready to be killed. &bNOTE: Not always accurate, you will get better move times by learning when to kill the mobs yourself.")
+    private val mageOnly by ToggleSetting("Mage Only").withDescription("Only shows the Move Timer and Kill Title when playing Mage.").showIf { killTimer.value || killTitle.value }
 
     //#if CHEAT
     private val bloodTb by ToggleSetting("Blood Mobs Triggerbot").withDescription("Automatically clicks when a blood mob's timer reaches 0 while you are looking at its box.").section("Triggerbot").showIf { bloodCamp.value }
@@ -51,6 +53,7 @@ object BloodCamp: Feature("Features for Blood Room."), IFeatureWindow {
     private var watcherEntity: Zombie? = null
     private var firstSpawns = true
     private var killTimerEnd = 0L
+    private val shouldShowAlerts get() = ! mageOnly.value || DungeonListener.thePlayer?.clazz == DungeonClass.Mage
 
     private data class BloodEntity(
         var startVec: Vec3,
@@ -67,7 +70,7 @@ object BloodCamp: Feature("Features for Blood Room."), IFeatureWindow {
         hudElement(
             "BloodCamp-MoveTimer",
             killTimer::value,
-            { killTimerEnd - DungeonListener.currentTime > 0 },
+            { shouldShowAlerts && killTimerEnd - DungeonListener.currentTime > 0 },
             centered = { true }
         ) { ctx, example ->
             val timeLeft = if (example) 420 else killTimerEnd - DungeonListener.currentTime
@@ -86,7 +89,7 @@ object BloodCamp: Feature("Features for Blood Room."), IFeatureWindow {
             val moveTicks = moveTimes[LocationUtils.dungeonFloorNumber !!]
             if (killTimer.value) killTimerEnd = DungeonListener.currentTime + moveTicks
             if (killTitle.value) ThreadUtils.scheduledTaskServer(moveTicks) {
-                ChatUtils.showTitle("&c&lKill Mobs")
+                if (shouldShowAlerts) ChatUtils.showTitle("&c&lKill Mobs")
             }
         }
 
