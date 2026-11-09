@@ -1,6 +1,8 @@
 package com.github.noamm9.features.impl.dev
 
 import com.github.noamm9.config.types.*
+import com.github.noamm9.event.impl.CheckEntityGlowEvent
+import com.github.noamm9.event.impl.RenderWorldEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.FeatureManager
 import com.github.noamm9.utils.render.RenderHelper.height
@@ -36,6 +38,9 @@ object CompTest: Feature("A test feature used to test every UI component.") {
 
     val secondaryColor by ColorSetting("Secondary", Color.MAGENTA).withDescription("A secondary color used for gradients and specialized UI elements.")
 
+    val highlight by HighlightSetting("test Highlight", color = Color(85, 255, 255), customColor = true, customFillColor = true, aabbOffset = true)
+        .withDescription("Highlights the entity you are looking at to test highlight styles")
+
     val panicBind by KeybindSetting("test Keybind", InputConstants.KEY_P).withDescription("Pressing this key will instantly disable every active module in the mod.")
 
     val customName by TextInputSetting("test text", "Player123").withDescription("The custom name displayed above your head or used in chat-based modules.")
@@ -50,7 +55,20 @@ object CompTest: Feature("A test feature used to test every UI component.") {
         return@hudElement str.width() to str.height()
     }
 
+    override fun init() {
+        register<RenderWorldEvent> {
+            val entity = mc.crosshairPickEntity ?: return@register
+            highlight.draw(event.ctx, entity, espColor.value, secondaryColor.value)
+        }
+
+        register<CheckEntityGlowEvent> {
+            if (event.entity != mc.crosshairPickEntity) return@register
+            highlight.draw(event, espColor.value)
+        }
+    }
+
     override fun onEnable() {
+        super.onEnable()
         mc.player?.sendSystemMessage(Component.literal("§6[Debug] §fTest Feature Enabled"))
     }
 }

@@ -2,6 +2,7 @@ package com.github.noamm9.ui.clickgui.components
 
 import com.mojang.blaze3d.platform.InputConstants
 
+import com.github.noamm9.config.types.HighlightSetting
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.TooltipManager
 import com.github.noamm9.ui.clickgui.components.settings.Style
@@ -56,7 +57,10 @@ open class FeatureConfigWindow(val feature: Feature) {
     private var visibleWidgets = emptyList<Widget<*>>()
     private val scroll = ScrollState(minThumbHeight = 18f)
 
-    private val widgets = feature.configSettings.mapNotNull(WidgetFactory::fromSetting)
+    private val widgets = feature.configSettings.flatMap { setting ->
+        val settings = if (setting is HighlightSetting) listOf(setting) + setting.configSettings else listOf(setting)
+        settings.mapNotNull(WidgetFactory::fromSetting)
+    }
 
     val settings = buildList {
         var lastSection: String? = null
