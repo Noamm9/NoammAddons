@@ -18,8 +18,6 @@ import com.github.noamm9.utils.network.cache.ProfileCache
 import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.RenderHelper.width
 import com.mojang.brigadier.arguments.StringArgumentType
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
@@ -183,7 +181,7 @@ object PartyFinder: Feature(), ICommandProvider {
             if (name == mc.user.name) return@register
 
             scope.launch {
-                if (autoKick.value) autoKickPlayer(name)
+                if (autoKick.value && PartyUtils.isLeader()) autoKickPlayer(name)
                 if (showJoinStats.value) printPlayerStats(name)
             }
         }
@@ -295,33 +293,18 @@ object PartyFinder: Feature(), ICommandProvider {
         ChatUtils.chat("&a&l------------------------------------&r")
     }
 
-    private suspend fun autoKickPlayer(name: String) = coroutineScope {
-        if (name.equalsOneOf("Noamm", mc.user.name)) return@coroutineScope
-
-        // resolve leadership (may send one /pl) in parallel with the profile fetch
-        val isLeader = async { PartyUtils.awaitIsLeader() }
+    private suspend fun autoKickPlayer(name: String) {
+        if (name.equalsOneOf("Noamm", mc.user.name)) return
 
         if (name in kickedPlayers) {
-            if (isLeader.await() != true) return@coroutineScope
             ChatUtils.modMessage("&9AutoKick &f> &cAuto-kicking &e$name &c(previously kicked)")
             ThreadUtils.scheduledTask(6) { ChatUtils.sendCommand("party kick $name") }
-            return@coroutineScope
+            return
         }
 
-        val profileResult = async { ProfileUtils.getProfile(name) }
-
-        when (isLeader.await()) {
-            false -> return@coroutineScope
-            null -> {
-                ChatUtils.modMessage("&9AutoKick &f> &cCouldn't confirm party leader, not checking &e$name")
-                return@coroutineScope
-            }
-            true -> {}
-        }
-
-        val profile = profileResult.await().getOrElse {
+        val profile = ProfileUtils.getProfile(name).getOrElse {
             ChatUtils.modMessage("&9AutoKick &f> &cCouldn't check &e$name &c(${it.message?.take(60) ?: "lookup failed"}), not kicking")
-            return@coroutineScope
+            return
         }
 
         val reasons = mutableListOf<String>().apply {
@@ -346,14 +329,19 @@ object PartyFinder: Feature(), ICommandProvider {
                     add("MP(${profile.magicalPower}/${minimumMagicalPower.value})")
                 }
             }
-        }.ifEmpty { return@coroutineScope }
+        }.ifEmpty { return }
 
         ThreadUtils.setTimeout(60 * 1000) { kickedPlayers.remove(name) }
         kickedPlayers.add(name)
 
-        if (informKicked.value) ChatUtils.sendCommand("pc Kicking $name: ${reasons.joinToString(", ")}")
-        else ChatUtils.modMessage("&cKicking &e$name:&r ${reasons.joinToString(", ")}")
-        ChatUtils.sendCommand("party kick $name")
+        if (informKicked.value) {
+            ChatUtils.sendCommand("pc Kicking $name: ${reasons.joinToString(", ")}")
+            ThreadUtils.scheduledTask(6) { ChatUtils.sendCommand("party kick $name") }
+        }
+        else {
+            ChatUtils.modMessage("&cKicking &e$name:&r ${reasons.joinToString(", ")}")
+            ChatUtils.sendCommand("party kick $name")
+        }
     }
 
     private fun getLoreStats(name: String, floor: Int, type: Char): String {
