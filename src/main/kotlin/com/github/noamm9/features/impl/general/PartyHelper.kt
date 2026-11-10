@@ -29,6 +29,7 @@ object PartyHelper: Feature("Party commands and reformatting."), ICommandProvide
             "!w" to true,
             "!f" to true,
             "!m" to true,
+            "!t" to true,
             "!inv" to true,
             "!kick" to true,
             "!dt" to true,
@@ -55,6 +56,8 @@ object PartyHelper: Feature("Party commands and reformatting."), ICommandProvide
     private val partyStartPattern = Regex("^Party Members \\((\\d+)\\)$")
     private val partyCommandRegex = Regex("^Party > (?:\\[[^]]+] )?([^:]+): ([!?.\\-@#`/])(.+)$")
     private val reinviteDmRegex = Regex("^From (?:\\[[^]]+] )?(\\w{1,16}): [!?.\\-@#`/]reinv(?:ite)?$", RegexOption.IGNORE_CASE)
+    private val kuudraTiers = listOf("NORMAL", "HOT", "BURNING", "FIERY", "INFERNAL")
+
     override fun CommandBuilder.command() {
         setName("partycommandsblacklist", "pcbl")
         description("Manages the party command blacklist")
@@ -174,6 +177,11 @@ object PartyHelper: Feature("Party commands and reformatting."), ICommandProvide
             commands["!m"] && cmd.startsWith("m") -> {
                 val floor = cmd.removePrefix("m").toIntOrNull() ?: args.getOrNull(0)?.toIntOrNull() ?: return
                 if (floor in 1 .. 7) runCommand("joininstance MASTER_CATACOMBS_FLOOR_${DungeonUtils.FLOOR_NAMES[floor]}", true)
+            }
+
+            commands["!t"] && cmd.startsWith("t") -> {
+                val tier = cmd.removePrefix("t").toIntOrNull() ?: args.getOrNull(0)?.toIntOrNull() ?: return
+                kuudraTiers.getOrNull(tier - 1)?.let { runCommand("joininstance KUUDRA_$it", true) }
             }
 
             commands["!pt"] && cmd.equalsOneOf("pt", "ptme") -> {
