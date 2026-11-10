@@ -45,7 +45,6 @@ public class MixinAvatarRenderer {
 
     @Inject(method = "extractRenderState(Lnet/minecraft/world/entity/Avatar;Lnet/minecraft/client/renderer/entity/state/AvatarRenderState;F)V", at = @At("TAIL"))
     private void decorateNameTag(Avatar entity, AvatarRenderState state, float partialTicks, CallbackInfo ci) {
-        if (NameTagTweaks.shouldShowNametag(entity)) state.scoreText = null;
         if (entity instanceof AbstractClientPlayer && state.nameTag != null) {
             state.nameTag = BadgeText.decorate(state.nameTag, entity.getUUID());
         }
