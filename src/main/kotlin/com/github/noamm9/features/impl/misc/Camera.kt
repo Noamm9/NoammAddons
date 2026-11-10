@@ -7,6 +7,7 @@ import com.github.noamm9.event.impl.GameStartEvent
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.features.Feature
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket
+import net.minecraft.world.entity.Entity
 
 //#if LEGIT
 //!import java.util.*
@@ -61,5 +62,13 @@ object Camera: Feature() {
             if (player.id != packet.id) return@register
             packet.packedItems.removeIf { it.id == 6 }
         }
+    }
+
+    @JvmStatic
+    fun belowNameDistanceHook(entity: Entity, distance: Double): Double {
+        if (! enabled) return distance
+        if (! customCameraDistance.value) return distance
+        if (entity != player) return distance
+        return distance + cameraDistance.value.toDouble()
     }
 }
