@@ -16,6 +16,7 @@ import com.github.noamm9.utils.location.WorldType
 import net.minecraft.world.item.Items
 
 // todo: party mute state.
+// todo: cache player ranks
 object PartyUtils: ISelfInit {
     enum class PartyRole { LEADER, MOD, MEMBER }
     enum class OnlineState { ONLINE, OFFLINE }

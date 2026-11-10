@@ -51,7 +51,7 @@ object PartyFinder: Feature(), ICommandProvider {
     private val minimumMagicalPower by SliderSetting("Minimum MP", 0, 0, 3000, 10).withDescription("Minimum MP Set to 0 to disable. Skipped when Inventory API is off.").showIf { autoKick.value }
 
     private val dungeonGroupJoinRegex = Regex("^Party Finder > (\\w{1,16}) joined the dungeon group! \\((\\w+) Level (\\d+)\\)$")
-    private val kickedPlayers = mutableSetOf<String>()
+    private val kickedPlayers = Collections.synchronizedSet(HashSet<String>())
 
     private val partyMembersRegex = Regex("^\\s*(\\w{1,16}):?\\s+(Archer|Tank|Berserk|Healer|Mage)\\s*\\((\\d+)\\)\\s*$")
     private val pfTimeRegex = Regex("(?<![\\w:.])(?:sub\\s*)?(?:(\\d+)[:.]?([0-5])([\\dx])|(\\d{1,2}))(?![\\w:]|\\.\\d)", RegexOption.IGNORE_CASE) // https://regex101.com/r/cFt0mB/1
@@ -323,9 +323,12 @@ object PartyFinder: Feature(), ICommandProvider {
             return
         }
 
-        val reasons = mutableListOf<String>().apply {
-            val profile = ProfileUtils.getProfile(name).getOrNull() ?: return@apply
+        val profile = ProfileUtils.getProfile(name).getOrElse {
+            ChatUtils.modMessage("&9AutoKick &f> &cCouldn't check &e$name &c(${it.message?.take(60) ?: "lookup failed"}), not kicking")
+            return
+        }
 
+        val reasons = mutableListOf<String>().apply {
             val dungeons = profile.dungeons
             val floor = autoKickFloor.value + 1
             val dungeonType = if (masterMode.value) dungeons.masterCatacombs else dungeons.catacombs
