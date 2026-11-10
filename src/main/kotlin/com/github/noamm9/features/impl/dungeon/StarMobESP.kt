@@ -32,7 +32,7 @@ object StarMobESP: Feature(
     private val felColor by ColorSetting("Fel Color", Color.PINK, false).withDescription("The color used for fels.")
     private val batColor by ColorSetting("Bat Color", Color.GREEN, false).withDescription("The color used for highlighted bats.").showIf { espBats.value }
 
-    private val fakeMiniRooms = setOf("Duncan", "Balcony", "Wizard", "Pit", "Waterfall", "Atlas", "Chambers", "Layers") // thanks clear sim
+    private val fakeMiniRooms = setOf("Duncan", "Balcony", "Wizard", "Pit", "Waterfall", "Atlas", "Chambers", "Layers", "Perch") // thanks clear sim
     private val batHealths = setOf(100f, 200f, 400f, 800f)
     private val starMobs = HashSet<Int>()
     private val checked = HashSet<Int>()
