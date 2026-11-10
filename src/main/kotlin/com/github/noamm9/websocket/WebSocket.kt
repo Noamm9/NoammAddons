@@ -17,6 +17,7 @@ import io.ktor.client.plugins.websocket.webSocket
 import io.ktor.client.request.parameter
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
+import kotlin.random.Random
 
 object WebSocket: ISelfInit {
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob() + CoroutineName("${NoammAddons.MOD_NAME}-WebSocket"))
@@ -74,7 +75,7 @@ object WebSocket: ISelfInit {
             session = null
             connecting = false
             scope.launch {
-                delay(60_000L)
+                delay(Random.nextLong(30_000L, 90_000L))
                 connect()
             }
         }
