@@ -7,8 +7,13 @@ import com.github.noamm9.event.impl.*
 import com.github.noamm9.event.priority.EventPriority
 import com.github.noamm9.init.types.ISelfInit
 import com.github.noamm9.utils.ChatUtils.removeFormatting
+import com.github.noamm9.utils.ChatUtils.unformattedText
+import com.github.noamm9.utils.NumbersUtils.romanToDecimal
 import com.github.noamm9.utils.dungeons.DungeonListener
+import com.github.noamm9.utils.items.ItemUtils.lore
 import com.github.noamm9.utils.location.LocationUtils
+import com.github.noamm9.utils.location.WorldType
+import net.minecraft.world.item.Items
 
 // todo: party mute state.
 object PartyUtils: ISelfInit {
@@ -125,6 +130,26 @@ object PartyUtils: ISelfInit {
                 if (t.isDead) continue
                 upsert(t.name, state = OnlineState.ONLINE)
             }
+        }
+
+        register<ContainerFullyOpenedEvent> {
+            if (LocationUtils.world != WorldType.DungeonHub) return@register
+            if (event.title.string != "Group Builder") return@register
+            if (event.items[32]?.hoverName?.unformattedText != "Confirm Group") return@register
+
+            val typeSlot = event.items[11]?.takeIf { it.`is`(Items.PLAYER_HEAD) } ?: return@register
+            val floorSlot = event.items[12]?.takeIf { it.`is`(Items.PLAYER_HEAD) } ?: return@register
+            val noteSlot = event.items[13]?.takeIf { it.`is`(Items.PAPER) } ?: return@register
+
+            if (typeSlot.hoverName.string != "Select Dungeon Type") return@register
+            if (floorSlot.hoverName.string != "Select Floor") return@register
+            if (noteSlot.hoverName.string != "Set Group Note") return@register
+
+            val isMaster = typeSlot.lore[3].removeFormatting().substringAfter("Currently Selected: ").startsWith("Master Mode")
+            val floor = floorSlot.lore[3].removeFormatting().substringAfter("Currently Selected: ").let { if (it[0] == 'E') 0 else it.substringAfter("Floor ").romanToDecimal() }
+            val note = noteSlot.lore[4].removeFormatting().substringBeforeLast(".")
+
+            EventBus.post(PartyEvent.FinderGroupSettings(floor, isMaster, note))
         }
     }
 

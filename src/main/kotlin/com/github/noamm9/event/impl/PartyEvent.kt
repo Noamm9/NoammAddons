@@ -17,6 +17,8 @@ abstract class PartyEvent: Event(false) {
     class Invite(val inviter: String, val invitee: String): PartyEvent()
     class InviteExpired(val invitee: String): PartyEvent()
 
+    class FinderGroupSettings(val floor: Int, val masterMode: Boolean, val note: String): PartyEvent()
+
     object Warp: PartyEvent()
     object Update: PartyEvent()
 
