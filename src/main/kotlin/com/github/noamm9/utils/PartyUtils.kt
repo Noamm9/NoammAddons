@@ -46,6 +46,7 @@ object PartyUtils: ISelfInit {
         "You are not in a party.",
     )
     private const val DISBANDED_PREFIX = "The party was disbanded because "
+    private const val QUEUING_PARTY = "Queueing your party..."
 
     private val joined = line("$RANK$NAME joined the party\\.")
     private val finderJoined = line("Party Finder > $RANK$NAME joined the (?:dungeon )?group! \\(.+\\)")
@@ -78,6 +79,7 @@ object PartyUtils: ISelfInit {
     private val separator = Regex("^[-▬=\\s]+$")
     private var membersKnown = false
     private var listSize: Int? = null
+    private var createdGroup = false
 
     @Volatile var partyMembers: List<PartyMember> = emptyList()
         private set(value) {
@@ -151,6 +153,14 @@ object PartyUtils: ISelfInit {
 
             EventBus.post(PartyEvent.FinderGroupSettings(floor, isMaster, note))
         }
+
+        register<ContainerEvent.SlotClick> {
+            if (! LocationUtils.world.equalsOneOf(WorldType.DungeonHub, WorldType.CrimsonIsle)) return@register
+            if (event.screen.title.string != "Group Builder") return@register
+            if (event.slotId != 32) return@register
+            createdGroup = true
+            ThreadUtils.scheduledTaskServer(20) { createdGroup = false }
+        }
     }
 
     fun getMember(name: String = self) = partyMembers.firstOrNull { it.name.same(name) }
@@ -199,6 +209,11 @@ object PartyUtils: ISelfInit {
             upsert(name, state = OnlineState.ONLINE)
             EventBus.post(PartyEvent.MemberJoined(name))
             return
+        }
+
+        if (text == QUEUING_PARTY && createdGroup && ! isInParty) {
+            createdGroup = false
+            setLeader(self)
         }
 
         removed.matchEntire(text)?.let {
