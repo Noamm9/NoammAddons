@@ -12,6 +12,7 @@ import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.location.WorldType
+import com.github.noamm9.utils.render.RenderHelper
 import net.minecraft.network.protocol.game.ClientboundSetSubtitleTextPacket
 import net.minecraft.world.entity.decoration.ArmorStand
 import net.minecraft.world.phys.EntityHitResult
@@ -24,7 +25,7 @@ object AutoBlazeDagger: Feature("Automatically swaps to the correct dagger for b
     override fun init() {
         register<TickEvent.Start> {
             if (LocationUtils.world != WorldType.CrimsonIsle) return@register
-            val hit = mc.hitResult as? EntityHitResult ?: return@register
+            val hit = player.pick(6.0, RenderHelper.partialTicks, false) as? EntityHitResult ?: return@register
 
             val armorStands = level.entitiesForRendering().filter {
                 it is ArmorStand && it.distanceTo(hit.entity) < 5
