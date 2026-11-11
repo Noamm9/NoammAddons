@@ -25,7 +25,7 @@ object Ragnarock: Feature("Ragnarock alerts") {
             if (! strengthGainedMessage.value) return@register
             val packet = event.packet as? ClientboundSoundPacket ?: return@register
             if (packet.sound.value().location.path != "entity.wolf.death") return@register
-            if (packet.pitch.toDouble() == 1.4920635) return@register
+            if (packet.pitch.toDouble() != 1.4920635223388672) return@register
             if (player.mainHandItem.skyblockId != "RAGNAROCK_AXE") return@register
             val strengthLine = player.mainHandItem.lore.map { it.removeFormatting() }.find { it.startsWith("Strength:") } ?: return@register
             val match = strengthRegex.find(strengthLine) ?: return@register
