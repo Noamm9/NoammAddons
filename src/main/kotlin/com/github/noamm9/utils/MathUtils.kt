@@ -5,8 +5,9 @@ import com.github.noamm9.utils.render.RenderHelper.renderVec
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Vec3i
 import net.minecraft.util.Mth
-import net.minecraft.world.phys.AABB
-import net.minecraft.world.phys.Vec3
+import net.minecraft.world.entity.projectile.ProjectileUtil
+import net.minecraft.world.level.ClipContext
+import net.minecraft.world.phys.*
 import kotlin.math.*
 import kotlin.random.Random
 
@@ -96,4 +97,23 @@ object MathUtils {
     }
 
     fun getLookVec(yaw: Float, pitch: Float) = Vec3.directionFromRotation(pitch, yaw)
+
+    fun raycastEntity(range: Double): EntityHitResult? {
+        val player = mc.player ?: return null
+        val level = mc.level ?: return null
+
+        val startPos = player.eyePosition
+        val look = player.lookAngle
+        val endPos = startPos.add(look.scale(range))
+
+        val context = ClipContext(startPos, endPos, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, player)
+        val blockHitDistance = level.clip(context).location.distanceTo(startPos)
+
+        val searchBox = player.boundingBox.expandTowards(look.scale(range)).inflate(1.0)
+        return ProjectileUtil.getEntityHitResult(
+            player, startPos, endPos, searchBox,
+            { entity -> ! entity.isSpectator && entity.isPickable && entity != player },
+            Mth.square(blockHitDistance)
+        )
+    }
 }
