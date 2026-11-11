@@ -30,6 +30,14 @@ object BreakerHelper: Feature("Utilities for Dungeon Breaker") {
         Blocks.DISPENSER, Blocks.HOPPER, Blocks.DROPPER
     )
 
+    // tooltip says +2 every sec but the server actually gives +2 three times every sec. thx hypixel
+    private const val regenTime = 1000L / 3
+    private const val regenAmount = 2
+    private const val maxCharges = 20
+
+    private var charges = maxCharges
+    private var lastRegen = System.currentTimeMillis()
+
     override fun init() {
         register<PlayerInteractEvent.LEFT_CLICK.BLOCK> {
             if (! preventMine.value) return@register
@@ -46,7 +54,8 @@ object BreakerHelper: Feature("Utilities for Dungeon Breaker") {
             if (! preventMiningWithoutCharges.value) return@register
             if (! LocationUtils.inDungeon) return@register
             if (event.item?.skyblockId != "DUNGEONBREAKER") return@register
-            if (event.item.maxDamage - event.item.damageValue > 0) return@register
+            if (WorldUtils.getBlockAt(event.pos) in blacklist) return@register
+            if (getCharges() > 0) return@register
             event.isCanceled = true
         }
     }
@@ -54,6 +63,8 @@ object BreakerHelper: Feature("Utilities for Dungeon Breaker") {
     @JvmStatic
     fun onHitBlock(pos: BlockPos) {
         if (! enabled) return
+        syncCharge(pos)
+
         if (! zeroPing.value) return
         if (! LocationUtils.inDungeon) return
         if (player.mainHandItem.skyblockId != "DUNGEONBREAKER") return
@@ -71,6 +82,23 @@ object BreakerHelper: Feature("Utilities for Dungeon Breaker") {
             state.soundType.pitch * 0.8f,
             false
         )
+    }
+
+    private fun getCharges(): Int {
+        val now = System.currentTimeMillis()
+        val ticks = (now - lastRegen) / regenTime
+        charges = (charges + ticks.toInt() * regenAmount).coerceAtMost(maxCharges)
+        lastRegen = if (charges == maxCharges) now else lastRegen + ticks * regenTime
+        return charges
+    }
+
+    private fun syncCharge(pos: BlockPos) {
+        if (! LocationUtils.inDungeon) return
+        if (player.mainHandItem.skyblockId != "DUNGEONBREAKER") return
+        val block = WorldUtils.getBlockAt(pos)
+        if (block in blacklist || block.equalsOneOf(Blocks.OBSIDIAN, Blocks.AIR)) return
+        if (getCharges() <= 0) return
+        charges --
     }
 }
 //#endif
