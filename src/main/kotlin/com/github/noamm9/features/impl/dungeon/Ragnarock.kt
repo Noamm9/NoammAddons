@@ -20,14 +20,12 @@ object Ragnarock: Feature("Ragnarock alerts") {
     private val cancelRegex = Regex("Ragnarock was cancelled due to (?:being hit|taking damage)!")
     private val strengthRegex = Regex("Strength: \\+(\\d+)")
 
-    private const val RAGNAROCK_PITCH: Double = 1.4920635223388672
-
     override fun init() {
         register<MainThreadPacketReceivedEvent.Pre> {
             if (! strengthGainedMessage.value) return@register
             val packet = event.packet as? ClientboundSoundPacket ?: return@register
             if (packet.sound.value().location.path != "entity.wolf.death") return@register
-            if (packet.pitch.toDouble() != RAGNAROCK_PITCH) return@register
+            if (packet.pitch.toDouble() != 1.4920635223388672) return@register
             if (player.mainHandItem.skyblockId != "RAGNAROCK_AXE") return@register
             val strengthLine = player.mainHandItem.lore.map { it.removeFormatting() }.find { it.startsWith("Strength:") } ?: return@register
             val match = strengthRegex.find(strengthLine) ?: return@register
