@@ -4,10 +4,9 @@ import com.github.noamm9.features.impl.dungeon.map.MapRenderer
 import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.dungeons.DungeonPlayer
-import com.github.noamm9.utils.dungeons.map.utils.MapUtils
+import com.github.noamm9.utils.dungeons.map.handlers.MapUpdater.animatedPos
 import com.github.noamm9.utils.render.Render2D.drawBorder
 import com.github.noamm9.utils.render.Render2D.drawRect
-import com.github.noamm9.utils.render.RenderHelper.renderVec
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import java.awt.Color
 
@@ -30,7 +29,7 @@ object MapLeapRenderer: LeapMenuRenderer() {
         val mapOy = (sh - mapPix - (8 * scale)) / 2f
 
         fun playerDot(player: DungeonPlayer): Triple<Float, Float, Float> {
-            val (pmx, pmz) = teammateMapPos(player)
+            val (pmx, pmz) = player.animatedPos()
             return Triple(mapOx + pmx * scale, mapOy + pmz * scale, 7f * scale)
         }
 
@@ -62,10 +61,4 @@ object MapLeapRenderer: LeapMenuRenderer() {
     }
 
     override fun getHoveredIndex() = hoveredIndex
-
-    private fun teammateMapPos(player: DungeonPlayer): Pair<Float, Float> {
-        val entity = player.entity
-        return if (entity == null || ! entity.isAlive) player.mapX to player.mapZ
-        else MapUtils.coordsToMap(entity.renderVec)
-    }
 }

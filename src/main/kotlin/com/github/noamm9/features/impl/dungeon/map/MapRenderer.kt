@@ -12,6 +12,7 @@ import com.github.noamm9.utils.dungeons.DungeonPlayer
 import com.github.noamm9.utils.dungeons.enums.DungeonClass
 import com.github.noamm9.utils.dungeons.map.core.*
 import com.github.noamm9.utils.dungeons.map.handlers.*
+import com.github.noamm9.utils.dungeons.map.handlers.MapUpdater.animatedPos
 import com.github.noamm9.utils.dungeons.map.utils.MapUtils
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
@@ -21,7 +22,6 @@ import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.Render2D.drawPlayerHead
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawTexture
-import com.github.noamm9.utils.render.RenderHelper.renderVec
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.resources.Identifier
 import java.awt.Color
@@ -317,15 +317,7 @@ object MapRenderer: HudElement() {
     }
 
     private fun GuiGraphicsExtractor.drawPlayerHead(teammate: DungeonPlayer, isSelf: Boolean = teammate == DungeonListener.thePlayer) {
-        val entity = teammate.entity
-
-        val (x, z, yaw) = if (entity == null || ! entity.isAlive) {
-            Triple(teammate.mapX, teammate.mapZ, teammate.yaw)
-        }
-        else {
-            val (mx, mz) = MapUtils.coordsToMap(entity.renderVec)
-            Triple(mx, mz, entity.yRot)
-        }
+        val (x, z, yaw) = teammate.animatedPos()
 
         val borderColor = if (MapConfig.mapPlayerHeadColorClassBased.value) teammate.clazz.color
         else MapConfig.mapPlayerHeadColor.value

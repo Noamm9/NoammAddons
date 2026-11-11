@@ -48,6 +48,7 @@ object MapConfig: SettingProvider {
 
     val playerNames by DropdownSetting("Show Player Names", 0, listOf("Off", "Holding Leap", "Always")).section("Players")
     val playerHeadScale by SliderSetting("Player Heads Scale", 1f, 0.3f, 1.5f, 0.1f)
+    val animatePlayerHeads by ToggleSetting("Animate Player Heads", true)
     val playerNameScale by SliderSetting("Player Name Scale", 0.5f, 0.3f, 1.5f, 0.1f)
     val mapPlayerHeadColor by ColorSetting("Head Border", Color(0, 0, 0), true)
     val mapPlayerHeadColorClassBased by ToggleSetting("Head Border Class Base", false)

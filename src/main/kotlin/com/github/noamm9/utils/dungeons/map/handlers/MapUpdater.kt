@@ -4,6 +4,7 @@ import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.event.impl.WorldChangeEvent
+import com.github.noamm9.features.impl.dungeon.map.MapConfig
 import com.github.noamm9.init.types.ISelfInit
 import com.github.noamm9.mixin.IMapState
 import com.github.noamm9.utils.*
@@ -13,6 +14,7 @@ import com.github.noamm9.utils.dungeons.DungeonPlayer
 import com.github.noamm9.utils.dungeons.map.core.*
 import com.github.noamm9.utils.dungeons.map.utils.MapUtils
 import com.github.noamm9.utils.location.LocationUtils
+import com.github.noamm9.utils.render.RenderHelper.renderVec
 import kotlinx.coroutines.*
 import net.minecraft.core.component.DataComponents
 import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket
@@ -22,12 +24,14 @@ import java.util.concurrent.*
 
 object MapUpdater: ISelfInit {
     private val playerHeadScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val renderPositions = ConcurrentHashMap<String, Triple<Float, Float, Float>>()
     private val playerJobs = ConcurrentHashMap<String, Job>()
 
     override fun init() {
         EventBus.register<WorldChangeEvent> {
             playerJobs.forEach { it.value.cancel() }
             playerJobs.clear()
+            renderPositions.clear()
         }
 
         EventBus.register<MainThreadPacketReceivedEvent.Post> {
@@ -65,19 +69,24 @@ object MapUpdater: ISelfInit {
         DungeonListener.dungeonTeammates.forEach { teammate ->
             if (teammate.isDead) return@forEach
             val decoration = decorations[teammate.icon] ?: return@forEach
-            smoothUpdatePlayer(teammate, decoration.mapX.toFloat(), decoration.mapZ.toFloat(), decoration.yaw)
+            teammate.mapX = decoration.mapX.toFloat()
+            teammate.mapZ = decoration.mapZ.toFloat()
+            teammate.yaw = decoration.yaw
+            smoothUpdatePlayer(teammate)
         }
     }
 
-    private fun smoothUpdatePlayer(player: DungeonPlayer, targetX: Float, targetZ: Float, targetYaw: Float) {
-        if (player.mapX == targetX && player.mapZ == targetZ && player.yaw == targetYaw) return
+    private fun smoothUpdatePlayer(player: DungeonPlayer) {
+        if (renderPositions.putIfAbsent(player.name, Triple(player.mapX, player.mapZ, player.yaw)) == null) return
+        val targetX = player.mapX
+        val targetZ = player.mapZ
+        val targetYaw = player.yaw
 
         playerHeadScope.launch {
-            playerJobs.put(player.name, coroutineContext.job)?.cancel()
+            playerJobs.put(player.name, coroutineContext.job)?.cancelAndJoin()
 
-            val startX = player.mapX
-            val startZ = player.mapZ
-            val startYaw = player.yaw
+            val (startX, startZ, startYaw) = renderPositions[player.name] ?: return@launch
+            if (startX == targetX && startZ == targetZ && startYaw == targetYaw) return@launch
 
             val animationDuration = 350L
             val startTime = System.currentTimeMillis()
@@ -87,13 +96,26 @@ object MapUpdater: ISelfInit {
                 val elapsedTime = System.currentTimeMillis() - startTime
                 progress = (elapsedTime.toFloat() / animationDuration).coerceAtMost(1f)
 
-                player.mapX = MathUtils.lerp(startX, targetX, progress).toFloat()
-                player.mapZ = MathUtils.lerp(startZ, targetZ, progress).toFloat()
-                player.yaw = MathUtils.interpolateYaw(startYaw, targetYaw, progress)
+                renderPositions[player.name] = Triple(
+                    MathUtils.lerp(startX, targetX, progress).toFloat(),
+                    MathUtils.lerp(startZ, targetZ, progress).toFloat(),
+                    MathUtils.interpolateYaw(startYaw, targetYaw, progress)
+                )
 
                 delay(10)
             }
         }
+    }
+
+    fun DungeonPlayer.animatedPos(): Triple<Float, Float, Float> {
+        val entity = entity
+        if (entity != null && entity.isAlive) {
+            val (mx, mz) = MapUtils.coordsToMap(entity.renderVec)
+            return Triple(mx, mz, entity.yRot).also { renderPositions[name] = it }
+        }
+
+        if (! MapConfig.animatePlayerHeads.value) return Triple(mapX, mapZ, yaw)
+        return renderPositions[name] ?: Triple(mapX, mapZ, yaw)
     }
 
     fun updateRooms(mapData: MapItemSavedData) {
