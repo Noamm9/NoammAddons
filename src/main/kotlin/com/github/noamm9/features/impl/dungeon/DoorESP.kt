@@ -31,12 +31,13 @@ object DoorESP: Feature(
     private val brDoors by ToggleSetting("Blood rush doors")
     private val highlightAllDoors by ToggleSetting("Highlight All Doors")
         .withDescription("Highlights every unopened door instead of only the next door after the run starts.")
-        .showIf { brDoors.value && MapConfig.dungeonMapCheater.value }
+        .showIf { brDoors.value && NoammAddons.isCheat }
     private val normalDoors by ToggleSetting("Normal doors")
 
     private val normalDoorColor by ColorSetting("Normal Door", Color.WHITE.withAlpha(50)).showIf { normalDoors.value }.section("Colors")
     private val doorNoKeyColor by ColorSetting("No Key Color ", Color.RED.withAlpha(50)).showIf { brDoors.value }
     private val doorKeyColor by ColorSetting("Has Key Color ", Color.GREEN.withAlpha(50)).showIf { brDoors.value }
+    private val fairyDoorColor by ColorSetting("Fairy Door Color ", Color.MAGENTA.withAlpha(50)).showIf { brDoors.value && NoammAddons.isCheat }
     private val roomName by ToggleSetting("Room Name").withDescription("shows the name of the room the door leads to").section("Extra")
     private val roomSecrets by ToggleSetting("Room Secrets").withDescription("shows the secrets of room the doors leads to")
 
@@ -81,9 +82,15 @@ object DoorESP: Feature(
                     if (! brDoors.value) continue
                     if (hideBrDoors && tile.state == RoomState.UNDISCOVERED && ! isFairy) continue
 
+                    val color = when {
+                        NoammAddons.isCheat && DungeonTree.isFairyEntrance(tile) -> fairyDoorColor
+                        tile.type.keys > 0 -> doorKeyColor
+                        else -> doorNoKeyColor
+                    }
+
                     event.ctx.renderBoxBounds(
                         tile.aabb,
-                        (if (tile.type.keys > 0) doorKeyColor else doorNoKeyColor).value,
+                        color.value,
                         outline = outline,
                         fill = fill,
                         phase = phase.value,

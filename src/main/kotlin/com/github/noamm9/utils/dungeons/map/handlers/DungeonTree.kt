@@ -44,6 +44,18 @@ object DungeonTree: ISelfInit {
         return (r1 == fRoom && r2 == nextRoom) || (r1 == nextRoom && r2 == fRoom)
     }
 
+    fun isFairyEntrance(door: DoorTile): Boolean {
+        getBloodRush()
+
+        val fRoom = fairyRoom ?: return false
+        val prevRoom = roomBeforeFairy ?: return false
+
+        val rooms = door.roomTiles.mapNotNull { it.uniqueRoom }
+        if (rooms.size != 2) return false
+
+        return fRoom in rooms && prevRoom in rooms
+    }
+
     fun getBloodRush(): List<UniqueRoom> = bloodRushCache ?: run {
         val graph = getSplits()
         val start = graph.keys.find { it.data.type == RoomType.ENTRANCE } ?: return emptyList()
