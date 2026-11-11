@@ -6,6 +6,7 @@ import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.PlayerInteractEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.utils.WorldUtils
+import com.github.noamm9.utils.dungeons.DungeonListener.dungeonStarted
 import com.github.noamm9.utils.dungeons.DungeonUtils.REDSTONE_KEY
 import com.github.noamm9.utils.dungeons.map.core.RoomType
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
@@ -93,6 +94,7 @@ object BreakerHelper: Feature("Utilities for Dungeon Breaker") {
     }
 
     private fun syncCharge(pos: BlockPos) {
+        if (! dungeonStarted) return
         val block = WorldUtils.getBlockAt(pos)
         if (block in blacklist || block.equalsOneOf(Blocks.OBSIDIAN, Blocks.AIR)) return
         if (getCharges() <= 0) return
