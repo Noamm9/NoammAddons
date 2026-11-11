@@ -21,7 +21,7 @@ import net.minecraft.world.level.block.entity.SkullBlockEntity
 object BreakerHelper: Feature("Utilities for Dungeon Breaker") {
     private val preventMine by ToggleSetting("Prevent Mine").jsonName("Prevent Secret Mine").withDescription("Prevents you from breaking blocks that cant be broken.")
     private val zeroPing by ToggleSetting("Zero Ping").withDescription("Removes the blocks you mine instantly instead of waiting for the server to remove them.")
-    private val preventMiningWhenBroken by ToggleSetting("Prevent Mining When Broken").withDescription("Prevents you from breaking blocks when your breaker is out of charges")
+    private val preventMiningWithoutCharges by ToggleSetting("Prevent Mining Without Charges").withDescription("Prevents you from breaking blocks when your breaker is out of charges")
     private val blacklist = setOf(
         Blocks.BARRIER, Blocks.BEDROCK, Blocks.COMMAND_BLOCK, Blocks.TNT, Blocks.CHEST, Blocks.PLAYER_HEAD,
         Blocks.PLAYER_WALL_HEAD, Blocks.TRAPPED_CHEST, Blocks.END_PORTAL_FRAME, Blocks.END_PORTAL, Blocks.STICKY_PISTON,
@@ -43,7 +43,7 @@ object BreakerHelper: Feature("Utilities for Dungeon Breaker") {
         }
 
         register<PlayerInteractEvent.LEFT_CLICK.BLOCK> {
-            if (! preventMiningWhenBroken.value) return@register
+            if (! preventMiningWithoutCharges.value) return@register
             if (! LocationUtils.inDungeon) return@register
             if (event.item?.skyblockId != "DUNGEONBREAKER") return@register
             if (event.item.maxDamage - event.item.damageValue > 0) return@register
