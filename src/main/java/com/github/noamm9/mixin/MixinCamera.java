@@ -30,7 +30,7 @@ public abstract class MixinCamera {
 
     @WrapOperation(method = "alignWithEntity", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;setPosition(DDD)V"))
     private void overrideCameraPos(Camera instance, double x, double y, double z, Operation<Void> original) {
-        com.github.noamm9.features.impl.misc.NoRotate.cameraHook(instance, x, y, z, original);
+        com.github.noamm9.features.impl.misc.ZeroPingCamera.cameraHook(instance, x, y, z, original);
     }
 
     @Inject(method = "getMaxZoom", at = @At("HEAD"), cancellable = true)

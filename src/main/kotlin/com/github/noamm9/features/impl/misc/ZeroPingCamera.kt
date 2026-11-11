@@ -2,9 +2,8 @@ package com.github.noamm9.features.impl.misc
 
 //#if CHEAT
 
-import com.github.noamm9.compat.acceptTeleport
-import com.github.noamm9.config.types.MultiCheckboxSetting
 import com.github.noamm9.config.types.SliderSetting
+import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
 import com.github.noamm9.mixin.ILocalPlayer
@@ -21,15 +20,15 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation
 import net.minecraft.client.Camera
 import net.minecraft.network.protocol.game.*
 import net.minecraft.tags.BlockTags
-import net.minecraft.world.entity.PositionMoveRotation
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.phys.Vec3
 import java.util.concurrent.*
 
-object NoRotate: Feature("Prevents the server from snapping back your head when teleporting.") {
-    private val tpItems by MultiCheckboxSetting("Teleport Items", mutableMapOf(Pair("Etherwarp", false), Pair("Instant Transmission", false), Pair("Wither Impact", false)))
-    val zeroPingCamera by MultiCheckboxSetting("Zero Ping Camera", mutableMapOf(Pair("Etherwarp", false), Pair("Instant Transmission", false), Pair("Wither Impact", false))).withDescription("Instantly sets your camera at the teleport position.")
-    private val resyncTimeout by SliderSetting("Resync Timeout", 500, 300, 1000, 50).showIf { zeroPingCamera.value.values.any { it } }.withDescription("time in milliseconds of how long should it take for the detected teleport to time out")
+object ZeroPingCamera: Feature("Places your camera at the place you will be teleported to instantly.") {
+    private val etherwarp by ToggleSetting("Etherwarp").withDescription("Instantly sets your camera at the Etherwarp position.")
+    private val instantTransmission by ToggleSetting("Instant Transmission").withDescription("Instantly sets your camera at the Instant Transmission position.")
+    private val witherImpact by ToggleSetting("Wither Impact").withDescription("Instantly sets your camera at the Wither Impact position.")
+    private val resyncTimeout by SliderSetting("Resync Timeout", 500, 300, 1000, 50).showIf { etherwarp.value || instantTransmission.value || witherImpact.value }.withDescription("time in milliseconds of how long should it take for the detected teleport to time out")
 
     val pendingTeleports = CopyOnWriteArrayList<TeleportUtils.Prediction>()
     private var lastWitherImpact = System.currentTimeMillis()
@@ -54,30 +53,8 @@ object NoRotate: Feature("Prevents the server from snapping back your head when 
         }
 
         register<MainThreadPacketReceivedEvent.Pre> {
-            val packet = event.packet as? ClientboundPlayerPositionPacket ?: return@register
-            if (pendingTeleports.isEmpty()) return@register
-            pendingTeleports.removeFirst()
-
-            val old = PositionMoveRotation.of(player)
-            val new = PositionMoveRotation.calculateAbsolute(old, packet.change, packet.relatives)
-
-            player.setPos(new.position())
-            player.deltaMovement = new.deltaMovement()
-
-            val newOldPos = PositionMoveRotation.calculateAbsolute(
-                PositionMoveRotation(player.oldPosition(), Vec3.ZERO, player.yRotO, player.xRotO), packet.change(), packet.relatives()
-            )
-
-            player.xo = newOldPos.position().x.also { player.xOld = it }
-            player.yo = newOldPos.position().y.also { player.yOld = it }
-            player.zo = newOldPos.position().z.also { player.zOld = it }
-
-            acceptTeleport(packet.id, player.x, player.y, player.z, new.yRot, new.xRot)
-
-            (player as ILocalPlayer).setLastYaw(new.yRot)
-            (player as ILocalPlayer).setLastPitch(new.xRot)
-
-            event.isCanceled = true
+            if (event.packet !is ClientboundPlayerPositionPacket) return@register
+            if (pendingTeleports.isNotEmpty()) pendingTeleports.removeFirst()
         }
     }
 
@@ -94,9 +71,8 @@ object NoRotate: Feature("Prevents the server from snapping back your head when 
     fun cameraHook(instance: Camera, x: Double, y: Double, z: Double, original: Operation<Void>): Void? {
         if (! enabled) return original.call(instance, x, y, z)
 
-        val config = zeroPingCamera.value.values.toList()
         val simulation = pendingTeleports.lastOrNull() ?: return original.call(instance, x, y, z)
-        if (! config[simulation.info.type]) return original.call(instance, x, y, z)
+        if (! isEnabled(simulation.info.type)) return original.call(instance, x, y, z)
         val (x, y, z) = simulation.position.add(y = player.eyeHeight).destructured()
 
         return original.call(instance, x, y, z)
@@ -135,14 +111,13 @@ object NoRotate: Feature("Prevents the server from snapping back your head when 
         doZeroPingInstantTransmission(tpInfo, yaw, pitch)
     }
 
-    private fun getInfo(stack: ItemStack?): TeleportUtils.Info? {
-        val info = TeleportUtils.getInfo(stack) ?: return null
-        return when (info.type) {
-            TeleportUtils.Etherwarp -> if (tpItems["Etherwarp"]) info else null
-            TeleportUtils.InstantTransmission -> if (tpItems["Instant Transmission"]) info else null
-            TeleportUtils.WitherImpact -> if (tpItems["Wither Impact"]) info else null
-            else -> null
-        }
+    fun isEnabled(type: Int) = when (type) {
+        TeleportUtils.Etherwarp -> etherwarp.value
+        TeleportUtils.InstantTransmission -> instantTransmission.value
+        TeleportUtils.WitherImpact -> witherImpact.value
+        else -> false
     }
+
+    private fun getInfo(stack: ItemStack?) = TeleportUtils.getInfo(stack)?.takeIf { isEnabled(it.type) }
 }
 //#endif
