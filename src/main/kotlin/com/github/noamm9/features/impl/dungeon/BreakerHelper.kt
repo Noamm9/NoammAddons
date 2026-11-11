@@ -63,11 +63,11 @@ object BreakerHelper: Feature("Utilities for Dungeon Breaker") {
     @JvmStatic
     fun onHitBlock(pos: BlockPos) {
         if (! enabled) return
+        if (! LocationUtils.inDungeon) return
+        if (player.mainHandItem.skyblockId != "DUNGEONBREAKER") return
         syncCharge(pos)
 
         if (! zeroPing.value) return
-        if (! LocationUtils.inDungeon) return
-        if (player.mainHandItem.skyblockId != "DUNGEONBREAKER") return
         if (ScanUtils.currentRoom?.data?.type.equalsOneOf(RoomType.PUZZLE, RoomType.FAIRY)) return
         val state = WorldUtils.getStateAt(pos).takeUnless { it.block in blacklist || it.block == Blocks.OBSIDIAN } ?: return
 
@@ -93,8 +93,6 @@ object BreakerHelper: Feature("Utilities for Dungeon Breaker") {
     }
 
     private fun syncCharge(pos: BlockPos) {
-        if (! LocationUtils.inDungeon) return
-        if (player.mainHandItem.skyblockId != "DUNGEONBREAKER") return
         val block = WorldUtils.getBlockAt(pos)
         if (block in blacklist || block.equalsOneOf(Blocks.OBSIDIAN, Blocks.AIR)) return
         if (getCharges() <= 0) return
