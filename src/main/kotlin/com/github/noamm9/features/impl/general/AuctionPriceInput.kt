@@ -2,15 +2,13 @@ package com.github.noamm9.features.impl.general
 
 import com.github.noamm9.compat.frontLine
 import com.github.noamm9.compat.signUpdatePacket
-import com.mojang.blaze3d.platform.InputConstants
-import com.github.noamm9.config.types.DropdownSetting
-import com.github.noamm9.config.types.MultiCheckboxSetting
-import com.github.noamm9.config.types.ToggleSetting
+import com.github.noamm9.config.ConfigManager
+import com.github.noamm9.config.types.*
 import com.github.noamm9.event.impl.ContainerEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.init.NetworkLoop
-import com.github.noamm9.mixin.IGui
 import com.github.noamm9.mixin.IAbstractSignEditScreen
+import com.github.noamm9.mixin.IGui
 import com.github.noamm9.ui.utils.components.UIButton
 import com.github.noamm9.ui.utils.components.UISearchBox
 import com.github.noamm9.utils.*
@@ -18,6 +16,7 @@ import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.Utils.send
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
+import com.mojang.blaze3d.platform.InputConstants
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
@@ -35,6 +34,7 @@ object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox
     private val defaultMode by DropdownSetting("Default mode", 0, listOf("Normal", "Undercut")).withDescription("The default input mode that will be used when you open the menu")
     private val rememberInput by MultiCheckboxSetting("Remember Input", mutableMapOf("Text" to false, "Mode" to false)).withDescription("Toggles for settings on the input menu that should be restored after reopening it")
     private val rememberTextPerMode by ToggleSetting("Remember Text Per Mode").withDescription("Remembers the text of Normal and Undercut mode separately instead of sharing one, so a value typed in one mode is not restored in the other. Needs Text in Remember Input").showIf { rememberInput["Text"] }
+    private val savedInputs by MapSetting<InputMode, String>("savedInputs").hidden()
 
     private val guiNames = setOf("Create BIN Auction", "Create Auction")
     private val confirmNames = setOf("Confirm BIN Auction", "Confirm Auction")
@@ -44,7 +44,6 @@ object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox
     private var item: ItemStack? = null
     private var mode: InputMode? = null
     private var input = ""
-    private val savedInputs = mutableMapOf<InputMode, String>()
 
     private fun separateTexts() = rememberTextPerMode.value && rememberInput["Text"]
 
@@ -136,7 +135,6 @@ object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox
             addRenderableWidget(UIButton(centerX - 100, centerY + 35, 200, 20, getModeText()) { button ->
                 mode = if (mode == InputMode.NORMAL) InputMode.UNDERCUT else InputMode.NORMAL
                 button.message = Component.literal(getModeText())
-                // Edited text follows the user to the other mode, untouched text is swapped for that mode's own saved text
                 if (separateTexts() && input == loaded) {
                     input = savedInputs[mode !!].orEmpty()
                     loaded = input
@@ -193,6 +191,7 @@ object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox
             ).send()
 
             onClose()
+            ThreadUtils.async(ConfigManager::save)
         }
 
         private fun recalculateValue() {
