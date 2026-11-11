@@ -28,6 +28,7 @@ fun SourceSet.configurePreprocessedVariant(javaDir: Provider<Directory>, kotlinD
     java.setSrcDirs(listOf(javaDir.get().asFile))
     (extensions.getByName("kotlin") as SourceDirectorySet).apply { setSrcDirs(listOf(kotlinDir.get().asFile)) }
     resources.setSrcDirs(mainSourceSet.resources.srcDirs)
+    if (System.getProperty("idea.sync.active").toBoolean()) return
     compileClasspath += mainSourceSet.compileClasspath
     runtimeClasspath += mainSourceSet.runtimeClasspath - mainSourceSet.output
 }
