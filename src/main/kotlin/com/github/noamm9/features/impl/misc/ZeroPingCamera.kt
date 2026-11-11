@@ -25,10 +25,11 @@ import net.minecraft.world.phys.Vec3
 import java.util.concurrent.*
 
 object ZeroPingCamera: Feature("Places your camera at the place you will be teleported to instantly.") {
-    private val etherwarp by ToggleSetting("Etherwarp").withDescription("Instantly sets your camera at the Etherwarp position.")
+    private val delay by SliderSetting("Camera Delay", 0, 0, 100, 5).withDescription("time in milliseconds to wait before moving the camera to the predicted position").section("Settings")
+    private val resyncTimeout by SliderSetting("Resync Timeout", 500, 300, 1000, 50).withDescription("time in milliseconds of how long should it take for the detected teleport to time out")
+    private val etherwarp by ToggleSetting("Etherwarp").withDescription("Instantly sets your camera at the Etherwarp position.").section("Items")
     private val instantTransmission by ToggleSetting("Instant Transmission").withDescription("Instantly sets your camera at the Instant Transmission position.")
     private val witherImpact by ToggleSetting("Wither Impact").withDescription("Instantly sets your camera at the Wither Impact position.")
-    private val resyncTimeout by SliderSetting("Resync Timeout", 500, 300, 1000, 50).showIf { etherwarp.value || instantTransmission.value || witherImpact.value }.withDescription("time in milliseconds of how long should it take for the detected teleport to time out")
 
     val pendingTeleports = CopyOnWriteArrayList<TeleportUtils.Prediction>()
     private var lastWitherImpact = System.currentTimeMillis()
@@ -79,8 +80,12 @@ object ZeroPingCamera: Feature("Places your camera at the place you will be tele
     }
 
     private fun teleport(prediction: TeleportUtils.Prediction) {
-        ThreadUtils.scheduledTaskServer(resyncTimeout.value / 50) { pendingTeleports.remove(prediction) }
-        pendingTeleports.add(prediction)
+        val block = {
+            pendingTeleports.add(prediction)
+            ThreadUtils.scheduledTaskServer(resyncTimeout.value / 50) { pendingTeleports.remove(prediction) }
+        }
+
+        if (delay.value == 0) block.invoke() else ThreadUtils.setTimeout(delay.value, block)
     }
 
     private fun doZeroPingEtherwarp(tpInfo: TeleportUtils.Info, yaw: Float? = null, pitch: Float? = null) {
