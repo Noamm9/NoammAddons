@@ -47,7 +47,7 @@ class ColorCodeWidget(config: ColorCodeSetting): Widget<ChatFormatting>(config) 
             val cellW = gridW / cols
             val gridY = y + 24f
             var hoveredName: String? = null
-
+            var hoveredColor: ChatFormatting? = null
             ColorCodeSetting.COLORS.forEachIndexed { index, format ->
                 val col = index % cols
                 val row = index / cols
@@ -55,14 +55,18 @@ class ColorCodeWidget(config: ColorCodeSetting): Widget<ChatFormatting>(config) 
                 val cy = gridY + row * (cellH + 2f)
 
                 val hov = mouseX >= cx && mouseX <= cx + cellW - 2f && mouseY >= cy && mouseY <= cy + cellH
-                if (hov) hoveredName = prettyName(format)
+                if (hov) {
+                    hoveredName = prettyName(format)
+                    hoveredColor = format
+                }
 
                 ctx.drawRect(cx, cy, cellW - 2f, cellH, swatchColor(format))
                 if (format == value) ctx.drawBorder(cx, cy, cellW - 1, cellH)
             }
 
             val label = hoveredName ?: prettyName(value)
-            ctx.drawString(label, gridX, gridY + rows * (cellH + 2f) + 2f, swatchColor(value), 1f)
+            val labelColor =  swatchColor(hoveredColor ?: value)
+            ctx.drawString(label, gridX, gridY + rows * (cellH + 2f) + 2f, labelColor, 1f)
         }
 
         ctx.disableScissor()
