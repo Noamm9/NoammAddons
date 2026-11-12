@@ -1,31 +1,25 @@
 package com.github.noamm9.mixin;
 
-import com.github.noamm9.NoammAddons;
 import com.github.noamm9.debug.TestGround;
 import com.github.noamm9.event.EventBus;
 import com.github.noamm9.event.impl.PacketEvent;
-import com.github.noamm9.event.impl.TickEvent;
 import com.github.noamm9.features.impl.general.CommandShortcuts;
+import com.github.noamm9.utils.ServerTickFixer;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.common.ClientboundPingPacket;
 import net.minecraft.network.protocol.game.ServerboundCommandSuggestionPacket;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.ModifyVariable;
+import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(Connection.class)
 public class MixinConnection {
     @Inject(method = "sendPacket", at = @At("HEAD"), cancellable = true)
     private void onPacketSent(Packet<?> packet, @Nullable ChannelFutureListener listener, boolean flush, CallbackInfo ci) {
-        if (EventBus.post(new PacketEvent.Sent(packet))) {
-            ci.cancel();
-        }
+        if (EventBus.post(new PacketEvent.Sent(packet))) ci.cancel();
     }
 
     @ModifyVariable(method = "sendPacket", at = @At("HEAD"), argsOnly = true)
@@ -38,14 +32,7 @@ public class MixinConnection {
 
     @Inject(method = "channelRead0(Lio/netty/channel/ChannelHandlerContext;Lnet/minecraft/network/protocol/Packet;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/Connection;genericsFtw(Lnet/minecraft/network/protocol/Packet;Lnet/minecraft/network/PacketListener;)V"), cancellable = true)
     private void channelRead0(ChannelHandlerContext ctx, Packet<?> packet, CallbackInfo ci) {
-        if (packet instanceof ClientboundPingPacket pingPacket && pingPacket.getId() != 0) {
-            if (! TestGround.INSTANCE.getTick()) {
-                NoammAddons.getMc().execute(() -> EventBus.post(TickEvent.Server.INSTANCE));
-            }
-        }
-
-        if (EventBus.post(new PacketEvent.Received(packet))) {
-            ci.cancel();
-        }
+        if (! TestGround.INSTANCE.getTick()) ServerTickFixer.onPacket(packet);
+        if (EventBus.post(new PacketEvent.Received(packet))) ci.cancel();
     }
 }
