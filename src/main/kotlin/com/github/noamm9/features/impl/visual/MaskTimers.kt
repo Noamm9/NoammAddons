@@ -105,7 +105,7 @@ object MaskTimers: Feature("Mask Cooldown Timers, Invulnerability Timers, and mo
 
         register<RenderOverlayEvent> {
             if (! invulnerabilityTimers.value) return@register
-            val active = Mask.entries.filter { it.invulnLeft > 0 }.maxByOrNull { it.invulnLeft } ?: return@register
+            val active = Mask.entries.maxByOrNull { it.invulnLeft }?.takeIf { it.invulnLeft > 0 } ?: return@register
 
             val color = if (active.invulnLeft < 20) "&c" else "&a"
             val str = "${active.color}${active.displayName}: $color${(active.invulnLeft / 20.0).toFixed(1)}"
