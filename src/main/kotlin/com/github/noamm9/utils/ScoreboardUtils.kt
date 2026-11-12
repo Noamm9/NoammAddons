@@ -2,8 +2,8 @@ package com.github.noamm9.utils
 
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.event.EventBus
-import com.github.noamm9.event.priority.EventPriority
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
+import com.github.noamm9.event.priority.EventPriority
 import com.github.noamm9.init.types.ISelfInit
 import net.minecraft.network.chat.Component
 import net.minecraft.network.protocol.game.*
@@ -14,16 +14,13 @@ object ScoreboardUtils: ISelfInit {
     private var cachedLines: List<Component> = emptyList()
     private var listDirty = true
 
-    private val updatePackets = setOf(
-        ClientboundSetScorePacket::class, ClientboundSetObjectivePacket::class,
-        ClientboundSetDisplayObjectivePacket::class, ClientboundResetScorePacket::class,
-        ClientboundSetPlayerTeamPacket::class
-    )
-
     override fun init() {
         EventBus.register<MainThreadPacketReceivedEvent.Post>(EventPriority.HIGHEST) {
-            if (updatePackets.none { it.java.isInstance(event.packet) }) return@register
-            listDirty = true
+            when (event.packet) {
+                is ClientboundSetScorePacket, is ClientboundSetObjectivePacket,
+                is ClientboundSetDisplayObjectivePacket, is ClientboundResetScorePacket,
+                is ClientboundSetPlayerTeamPacket -> listDirty = true
+            }
         }
     }
 
