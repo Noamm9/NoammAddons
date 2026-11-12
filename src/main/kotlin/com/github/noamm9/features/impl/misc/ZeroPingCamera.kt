@@ -18,9 +18,11 @@ import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.location.WorldType
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation
 import net.minecraft.client.Camera
+import net.minecraft.client.renderer.entity.state.EntityRenderState
 import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.game.*
 import net.minecraft.tags.BlockTags
+import net.minecraft.world.entity.Entity
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.phys.Vec3
 import java.util.concurrent.*
@@ -32,7 +34,7 @@ object ZeroPingCamera: Feature("Places your camera at the place you will be tele
     private val instantTransmission by ToggleSetting("Instant Transmission").withDescription("Instantly sets your camera at the Instant Transmission position.")
     private val witherImpact by ToggleSetting("Wither Impact").withDescription("Instantly sets your camera at the Wither Impact position.")
 
-    val pendingTeleports = CopyOnWriteArrayList<TeleportUtils.Prediction>()
+    private val pendingTeleports = CopyOnWriteArrayList<TeleportUtils.Prediction>()
     private var lastWitherImpact = System.currentTimeMillis()
 
     override fun init() {
@@ -71,13 +73,27 @@ object ZeroPingCamera: Feature("Places your camera at the place you will be tele
 
     @JvmStatic
     fun cameraHook(instance: Camera, x: Double, y: Double, z: Double, original: Operation<Void>): Void? {
-        if (! enabled) return original.call(instance, x, y, z)
-
-        val simulation = pendingTeleports.lastOrNull() ?: return original.call(instance, x, y, z)
-        if (! isEnabled(simulation.info.type)) return original.call(instance, x, y, z)
-        val (x, y, z) = simulation.position.add(y = player.eyeHeight).destructured()
+        val position = getPredictedPosition() ?: return original.call(instance, x, y, z)
+        val (x, y, z) = position.add(y = player.eyeHeight).destructured()
 
         return original.call(instance, x, y, z)
+    }
+
+    @JvmStatic
+    fun renderStateHook(entity: Entity, state: EntityRenderState) {
+        if (entity !== mc.player) return
+        val (x, y, z) = getPredictedPosition()?.destructured() ?: return
+        state.x = x
+        state.y = y
+        state.z = z
+    }
+
+    @JvmStatic
+    fun shouldForceRender(entity: Entity) = entity === mc.player && getPredictedPosition() != null
+
+    fun getPredictedPosition(): Vec3? {
+        if (! enabled) return null
+        return pendingTeleports.lastOrNull()?.position
     }
 
     private fun teleport(prediction: TeleportUtils.Prediction) {
@@ -118,13 +134,13 @@ object ZeroPingCamera: Feature("Places your camera at the place you will be tele
         doZeroPingInstantTransmission(tpInfo, yaw, pitch)
     }
 
-    fun isEnabled(type: Int) = when (type) {
+    fun Int.isEnabled() = when (this) {
         TeleportUtils.Etherwarp -> etherwarp.value
         TeleportUtils.InstantTransmission -> instantTransmission.value
         TeleportUtils.WitherImpact -> witherImpact.value
         else -> false
     }
 
-    private fun getInfo(stack: ItemStack?) = TeleportUtils.getInfo(stack)?.takeIf { isEnabled(it.type) }
+    private fun getInfo(stack: ItemStack?) = TeleportUtils.getInfo(stack)?.takeIf { it.type.isEnabled() }
 }
 //#endif

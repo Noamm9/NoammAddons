@@ -48,10 +48,7 @@ object EtherwarpHelper {
     private fun getZeroPingCameraPos(fallback: Vec3): Vec3 {
         //#if CHEAT
         val zeroPingTeleport = com.github.noamm9.features.impl.misc.ZeroPingCamera
-        if (! zeroPingTeleport.enabled) return fallback
-        val pendingTeleport = zeroPingTeleport.pendingTeleports.lastOrNull() ?: return fallback
-        if (! zeroPingTeleport.isEnabled(pendingTeleport.info.type)) return fallback
-        return pendingTeleport.position
+        return zeroPingTeleport.getPredictedPosition() ?: fallback
         //#else
         //!return fallback
         //#endif

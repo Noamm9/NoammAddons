@@ -31,6 +31,16 @@ public class MixinEntityRenderDispatcher {
         }
     }
 
+
+    //#if CHEAT
+    @Inject(method = "shouldRender", at = @At("RETURN"), cancellable = true, order = 999)
+        //~ if <26.3 ', float partialTicks, CallbackInfoReturnable' -> ', CallbackInfoReturnable'
+    private <T extends Entity> void forceRenderZeroPing(T entity, Frustum culler, double camX, double camY, double camZ, float partialTicks, CallbackInfoReturnable<Boolean> cir) {
+        if (cir.getReturnValue()) return;
+        if (com.github.noamm9.features.impl.misc.ZeroPingCamera.shouldForceRender(entity)) cir.setReturnValue(true);
+    }
+    //#endif
+
     @WrapOperation(method = "submit", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/SubmitNodeCollector;submitFlame(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/entity/state/EntityRenderState;Lorg/joml/Quaternionf;)V"))
     public void redirectDisplayFireAnimation(SubmitNodeCollector instance, PoseStack poseStack, EntityRenderState entityRenderState, Quaternionf quaternionf, Operation<Void> original) {
         if (RenderOptimizer.INSTANCE.enabled && RenderOptimizer.getHideFireOnEntities().getValue()) return;
