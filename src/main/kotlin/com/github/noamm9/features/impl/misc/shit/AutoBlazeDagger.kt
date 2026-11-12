@@ -24,13 +24,12 @@ object AutoBlazeDagger: Feature("Automatically swaps to the correct dagger for b
             if (LocationUtils.world != WorldType.CrimsonIsle) return@register
             val hit = MathUtils.raycastEntity(range = 6.0) ?: return@register
 
-            val armorStands = level.entitiesForRendering().filter {
-                it is ArmorStand && it.distanceTo(hit.entity) < 5
-            }
+            for (armor in level.entitiesForRendering()) {
+                if (armor !is ArmorStand) continue
+                if (armor.distanceToSqr(hit.entity) > 42) continue
 
-            armorStands.forEach { armor ->
-                val targetShield = HellionShield.fromText(armor.displayName.unformattedText) ?: return@forEach
-                val dagger = Dagger.entries.find { targetShield in it.shields } ?: return@forEach
+                val targetShield = HellionShield.fromText(armor.displayName.unformattedText) ?: continue
+                val dagger = Dagger.entries.find { targetShield in it.shields } ?: continue
                 trySwap(dagger, targetShield)
                 return@register
             }
