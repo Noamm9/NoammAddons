@@ -18,6 +18,7 @@ import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.location.WorldType
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation
 import net.minecraft.client.Camera
+import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.game.*
 import net.minecraft.tags.BlockTags
 import net.minecraft.world.item.ItemStack
@@ -106,6 +107,7 @@ object ZeroPingCamera: Feature("Places your camera at the place you will be tele
 
         val playerPos = pendingTeleports.lastOrNull()?.position ?: Vec3(player.serverX, player.serverY, player.serverZ)
         val pos = InstantTransmissionHelper.predictTeleport(tpInfo.distance, playerPos, yaw ?: player.serverYaw, pitch ?: player.serverPitch) ?: return
+        if (BlockPos.containing(pos) == BlockPos.containing(playerPos)) return
         if (ScanUtils.getRoomFromPos(pos)?.data?.name.equalsOneOf("Teleport Maze", "Boulder")) return
         teleport(TeleportUtils.Prediction(pos, tpInfo))
     }
