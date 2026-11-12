@@ -18,6 +18,7 @@ import net.minecraft.client.gui.render.TextureSetup
 import net.minecraft.client.renderer.RenderPipelines
 import net.minecraft.client.renderer.state.gui.GuiElementRenderState
 import net.minecraft.locale.Language
+import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.FormattedText
 import net.minecraft.resources.Identifier
 import net.minecraft.util.FormattedCharSequence
@@ -123,12 +124,30 @@ object Render2D: ISelfInit {
         pose().popMatrix()
     }
 
-
     fun GuiGraphicsExtractor.drawCenteredString(str: String, x: Number, y: Number, color: Color = Color.WHITE, scale: Number = 1, shadow: Boolean = true) {
         val fScale = scale.toFloat()
         val totalScaledWidth = str.width() * fScale
         val centerX = x.toFloat() - (totalScaledWidth / 2f)
         drawString(str, centerX, y, color, scale, shadow)
+    }
+
+    fun GuiGraphicsExtractor.drawComponent(comp: Component, x: Number, y: Number, color: Color = Color.WHITE, scale: Number = 1, shadow: Boolean = true) {
+        val fx = x.toFloat()
+        val fy = y.toFloat()
+        val fScale = scale.toFloat()
+
+        pose().pushMatrix()
+        pose().translate(fx, fy)
+        if (fScale != 1f) pose().scale(fScale, fScale)
+        text(mc.font, comp, 0, 0, color.rgb, shadow)
+        pose().popMatrix()
+    }
+
+    fun GuiGraphicsExtractor.drawCenteredComponent(comp: Component, x: Number, y: Number, color: Color = Color.WHITE, scale: Number = 1, shadow: Boolean = true) {
+        val fScale = scale.toFloat()
+        val totalScaledWidth = mc.font.width(comp) * fScale
+        val centerX = x.toFloat() - (totalScaledWidth / 2f)
+        drawComponent(comp, centerX, y, color, scale, shadow)
     }
 
     fun GuiGraphicsExtractor.drawFloatingRect(x: Number, y: Number, width: Number, height: Number, color: Color) {
