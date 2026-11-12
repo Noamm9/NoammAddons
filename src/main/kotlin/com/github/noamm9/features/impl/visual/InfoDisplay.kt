@@ -35,12 +35,15 @@ object InfoDisplay: Feature("Displays the system time, clicks per second, FPS, a
     private val cpsSeparatorColor by ColorSetting("CPS Separator Color", Color(170, 170, 170), false).showIf { cpsDisplay.value }
     private val cpsLabelColor by ColorSetting("CPS Label Color", Color(85, 255, 255), false).showIf { cpsDisplay.value && cpsLabelPosition.value != 2 }
 
+    private val clockFormat = DateTimeFormatter.ofPattern("HH:mm")
+    private val clockFormatSeconds = DateTimeFormatter.ofPattern("HH:mm:ss")
+
     private val leftClicks = mutableListOf<Long>()
     private val rightClicks = mutableListOf<Long>()
 
     override fun init() {
         hudElement("ClockDisplay", { clockDisplay.value }) { ctx, _ ->
-            val text = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm${if (seconds.value) ":ss" else ""}"))
+            val text = LocalTime.now().format(if (seconds.value) clockFormatSeconds else clockFormat)
             ctx.drawString(text, 0, 0, clockColor.value)
             return@hudElement text.width() to 9
         }
