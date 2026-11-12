@@ -87,20 +87,13 @@ object TerminalListener: ISelfInit {
             when (event.packet) {
                 is ServerboundContainerClickPacket -> {
                     if (! inTerm) return@register
-                    val isMelody = currentHandler is MelodyTerminal
-                    if ((checkFcDelay() && ! isMelody)) {
-                        event.isCanceled = true
-                        return@register
-                    }
-
-                    if (isMelody) return@register
+                    if (currentHandler is MelodyTerminal) return@register
                     lastClick = System.currentTimeMillis()
                 }
 
-                is ServerboundContainerClosePacket -> if (inTerm) reset()
-
                 is ServerboundInteractPacket -> hit(event.packet.entityId)
                 is ServerboundAttackPacket -> hit(event.packet.entityId)
+                is ServerboundContainerClosePacket -> if (inTerm) reset()
             }
         }
 
