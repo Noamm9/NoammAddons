@@ -46,6 +46,7 @@ object TerminalListener: ISelfInit {
             currentItems.putAll(event.items)
             clickedSlots.clear()
             currentHandler = handler
+            handler.reset()
 
             if (handler is MelodyTerminal) currentItems.forEach { (slot, stack) ->
                 handler.solve(currentItems, currentTitle, slot, stack)

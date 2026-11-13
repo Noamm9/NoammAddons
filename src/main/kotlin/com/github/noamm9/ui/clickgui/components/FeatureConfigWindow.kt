@@ -99,6 +99,15 @@ open class FeatureConfigWindow(val feature: Feature) {
     protected var previewHeight = 0f
         private set
 
+    /** Mouse position of the last frame, in the click gui's coordinates. */
+    protected var lastMouseX = 0f
+        private set
+    protected var lastMouseY = 0f
+        private set
+
+    /** Name of the sidebar category that is open, or null without a sidebar. */
+    protected val selectedSection get() = if (useSidebar) selectedCategory?.name else null
+
     var dragging = false
     private var dragOffsetX = 0f
     private var dragOffsetY = 0f
@@ -124,6 +133,9 @@ open class FeatureConfigWindow(val feature: Feature) {
 
     protected open fun drawPreview(context: GuiGraphicsExtractor, x: Float, y: Float, width: Float, height: Float) {}
 
+    /** A click inside the preview panel. Return true when the preview used it. */
+    protected open fun previewClicked(mouseX: Float, mouseY: Float, button: Int) = false
+
     protected open fun drawBackground(context: GuiGraphicsExtractor, x: Float, y: Float, width: Float, height: Float, color: Color) {
         context.drawRect(x, y, width, height, color)
     }
@@ -131,6 +143,8 @@ open class FeatureConfigWindow(val feature: Feature) {
     fun render(context: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, focused: Boolean) {
         val mx = mouseX.toFloat()
         val my = mouseY.toFloat()
+        lastMouseX = mx
+        lastMouseY = my
 
         updateInteraction(mx, my)
         clampToScreen()
@@ -245,6 +259,10 @@ open class FeatureConfigWindow(val feature: Feature) {
                 dragOffsetY = my - y
                 return WindowClickAction.CONSUMED
             }
+        }
+
+        if (previewWidth > 0f && isInsidePreview(mx, my) && previewClicked(mx, my, button)) {
+            return WindowClickAction.CONSUMED
         }
 
         if (button == InputConstants.MOUSE_BUTTON_LEFT && useSidebar && mx >= x && mx <= x + categoryWidth) {
@@ -413,6 +431,10 @@ open class FeatureConfigWindow(val feature: Feature) {
 
     private fun isInsideContent(mouseX: Float, mouseY: Float): Boolean {
         return mouseX in contentLeft .. contentRight && mouseY >= contentTop && mouseY <= contentBottom
+    }
+
+    private fun isInsidePreview(mouseX: Float, mouseY: Float): Boolean {
+        return mouseX >= previewX && mouseX <= previewX + previewWidth && mouseY >= previewY && mouseY <= previewY + previewHeight
     }
 
     private fun isInsideCloseButton(mouseX: Float, mouseY: Float): Boolean {
