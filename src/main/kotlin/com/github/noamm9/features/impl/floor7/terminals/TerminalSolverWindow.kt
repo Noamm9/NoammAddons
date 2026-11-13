@@ -1,5 +1,6 @@
 package com.github.noamm9.features.impl.floor7.terminals
 
+import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.impl.floor7.terminals.impl.MelodyTerminal
 import com.github.noamm9.features.impl.floor7.terminals.impl.RubixTerminal
@@ -10,6 +11,7 @@ import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.mojang.blaze3d.platform.InputConstants
+import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.world.item.ItemStack
 import java.awt.Color
@@ -48,6 +50,7 @@ class TerminalSolverWindow(feature: Feature): FeatureConfigWindow(feature) {
     private var lastTick = 0L
     private var solvedAt = 0L
     private var lastSection: String? = null
+    private var lastDropTime = 0L
 
     // Where the menu's grid was drawn last frame, for mouse hit tests.
     private var menuX = 0f
@@ -60,7 +63,7 @@ class TerminalSolverWindow(feature: Feature): FeatureConfigWindow(feature) {
         advance(sim)
 
         drawTabs(context, x, y, width)
-        drawMenu(context, sim, x, y, width, height)
+        drawMenu(context, sim)
         drawFooter(context, sim, x, y, width, height)
     }
 
@@ -77,6 +80,20 @@ class TerminalSolverWindow(feature: Feature): FeatureConfigWindow(feature) {
             InputConstants.MOUSE_BUTTON_LEFT -> click(sim)
             InputConstants.MOUSE_BUTTON_RIGHT -> start(sim)
             else -> return false
+        }
+        return true
+    }
+
+    /** The drop key clicks the slot under the mouse, at most Max CPS times a second, as in a real terminal. */
+    override fun previewKeyPressed(keyCode: Int): Boolean {
+        if (keyCode != KeyMappingHelper.getBoundKeyOf(mc.options.keyDrop).value) return false
+        val sim = sim ?: return false
+        if (hoveredSlot == null) return false
+
+        val now = System.currentTimeMillis()
+        if (now - lastDropTime >= 1000 / TerminalSolver.maxCps.value) {
+            lastDropTime = now
+            click(sim)
         }
         return true
     }
@@ -174,41 +191,71 @@ class TerminalSolverWindow(feature: Feature): FeatureConfigWindow(feature) {
         }
     }
 
-    private fun drawMenu(context: GuiGraphicsExtractor, sim: SimTerminal, x: Float, y: Float, width: Float, height: Float) {
-        val terminal = sim.terminal
-        val (gridW, gridH) = TerminalSolver.gridSpan(terminal)
-        val (left, top, right, bottom) = TerminalSolver.menuMargins().toList()
-
-        val areaX = x + MARGIN
-        val areaY = y + tabsHeight() + MARGIN
-        val areaW = width - MARGIN * 2
-        val areaH = height - tabsHeight() - FOOTER_HEIGHT - MARGIN * 2
-        if (areaW <= 0f || areaH <= 0f) return
-
-        val totalW = left + gridW + right
-        val totalH = top + gridH + bottom
-        menuScale = min(MAX_MENU_SCALE, min(areaW / totalW, areaH / totalH))
-        menuX = areaX + (areaW - totalW * menuScale) / 2f + left * menuScale
-        menuY = areaY + (areaH - totalH * menuScale) / 2f + top * menuScale
-
+    private fun drawMenu(context: GuiGraphicsExtractor, sim: SimTerminal) {
+        if (! layoutMenu(sim)) return
         val mx = (lastMouseX - menuX) / menuScale
         val my = (lastMouseY - menuY) / menuScale
 
         context.pose().pushMatrix()
         context.pose().translate(menuX, menuY)
         context.pose().scale(menuScale)
-        TerminalSolver.drawTerminal(context, terminal, sim.items, minCol, minRow, mx, my, ::hoveredSlot)
+        TerminalSolver.drawTerminal(context, sim.terminal, sim.items, minCol, minRow, mx, my, ::hoveredSlot)
         context.pose().popMatrix()
 
         // A click outside the menu clicks nothing.
+        val (areaX, areaY, areaW, areaH) = menuArea()
         if (lastMouseX < areaX || lastMouseX > areaX + areaW || lastMouseY < areaY || lastMouseY > areaY + areaH) hoveredSlot = null
+    }
+
+    /** The part of the preview the menu is fitted into: x, y, width, height. */
+    private fun menuArea() = floatArrayOf(
+        previewX + MARGIN,
+        previewY + tabsHeight() + MARGIN,
+        previewWidth - MARGIN * 2,
+        previewHeight - tabsHeight() - FOOTER_HEIGHT - MARGIN * 2,
+    )
+
+    /** Places the menu's grid in the preview for this frame. False when there is no room for it. */
+    private fun layoutMenu(sim: SimTerminal): Boolean {
+        val (gridW, gridH) = TerminalSolver.gridSpan(sim.terminal)
+        val (left, top, right, bottom) = TerminalSolver.menuMargins()
+        val (areaX, areaY, areaW, areaH) = menuArea()
+        if (areaW <= 0f || areaH <= 0f) return false
+
+        val totalW = left + gridW + right
+        val totalH = top + gridH + bottom
+        menuScale = min(MAX_MENU_SCALE, min(areaW / totalW, areaH / totalH))
+        menuX = areaX + (areaW - totalW * menuScale) / 2f + left * menuScale
+        menuY = areaY + (areaH - totalH * menuScale) / 2f + top * menuScale
+        return true
+    }
+
+    /**
+     * The window's panels are drawn around the terminal's own background (the grid and its padding)
+     * and not under it, so the solver's Background Color shows as it does over the game.
+     */
+    override fun drawBackground(context: GuiGraphicsExtractor, x: Float, y: Float, width: Float, height: Float, color: Color) {
+        val sim = sim
+        if (sim == null || ! layoutMenu(sim)) return super.drawBackground(context, x, y, width, height, color)
+
+        val (gridW, gridH) = TerminalSolver.gridSpan(sim.terminal)
+        val pad = TerminalSolver.menuMargins()[0]
+        val holeX = (menuX - pad * menuScale).coerceIn(x, x + width)
+        val holeY = (menuY - pad * menuScale).coerceIn(y, y + height)
+        val holeRight = (menuX + (gridW + pad) * menuScale).coerceIn(holeX, x + width)
+        val holeBottom = (menuY + (gridH + pad) * menuScale).coerceIn(holeY, y + height)
+
+        context.drawRect(x, y, width, holeY - y, color)
+        context.drawRect(x, holeBottom, width, y + height - holeBottom, color)
+        context.drawRect(x, holeY, holeX - x, holeBottom - holeY, color)
+        context.drawRect(holeRight, holeY, x + width - holeRight, holeBottom - holeY, color)
     }
 
     private fun drawFooter(context: GuiGraphicsExtractor, sim: SimTerminal, x: Float, y: Float, width: Float, height: Float) {
         val text = when {
             solvedAt != 0L -> "§aSolved!"
             ! TerminalSolver.isSolverEnabled(sim.terminal) -> "§cThe solver is off for ${sim.terminal.displayName}"
-            else -> "§7Click to test, right click for a new one"
+            else -> "§7Click or drop to test, right click for new"
         }
         context.drawCenteredString(text, x + width / 2f, y + height - FOOTER_HEIGHT + 2f, scale = 0.8f)
     }

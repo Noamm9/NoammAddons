@@ -59,7 +59,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
     private val slotStyle by DropdownSetting("Slot Style", 0, listOf("Rect", "Bordered-Rect", "Button"))
     val fcDelay by RangeSliderSetting("First Click delay", 350 to 350, 0, 400, 5, "ms").withDescription("The delay for how long a terminal will block clicks when you open it").jsonName("FCD-Random")
     val breakTimeout by SliderSetting("Break Timeout", 500, 300, 800, 50, "ms").withDescription("How long should the solver wait for a click to be confirmed by hypixel")
-    private val maxCps by SliderSetting("Max CPS", 15, 1, 20, 1, " CPS").withDescription("How many drop button presses should register in a second")
+    val maxCps by SliderSetting("Max CPS", 15, 1, 20, 1, " CPS").withDescription("How many drop button presses should register in a second")
     private val backgroundColor by ColorSetting("Background Color", Color(0, 0, 0, 100))
     private val borderColor by ColorSetting("Border Color", Color(255, 255, 255))
     private val rainbowBorder by ToggleSetting("Rainbow Border").withDescription("Animate a rainbow gradient around the terminal menu. Opacity follows Border Color.")

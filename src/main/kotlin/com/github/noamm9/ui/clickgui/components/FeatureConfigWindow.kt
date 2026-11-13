@@ -136,6 +136,9 @@ open class FeatureConfigWindow(val feature: Feature) {
     /** A click inside the preview panel. Return true when the preview used it. */
     protected open fun previewClicked(mouseX: Float, mouseY: Float, button: Int) = false
 
+    /** A key pressed while this window has focus and no setting took it. Return true when the preview used it. */
+    protected open fun previewKeyPressed(keyCode: Int) = false
+
     protected open fun drawBackground(context: GuiGraphicsExtractor, x: Float, y: Float, width: Float, height: Float, color: Color) {
         context.drawRect(x, y, width, height, color)
     }
@@ -328,7 +331,7 @@ open class FeatureConfigWindow(val feature: Feature) {
                 return true
             }
         }
-        return false
+        return previewWidth > 0f && previewKeyPressed(keyCode)
     }
 
     fun charTyped(codePoint: Char): Boolean {
