@@ -41,13 +41,6 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
     private val numbersTerm by ToggleSetting("Numbers", true)
     private val melodyTerm by ToggleSetting("Melody", true)
 
-    init {
-        configSettings.add(ButtonSetting("Terminal Simulator") {
-            mc.execute { mc.gui.screen()?.onClose() }
-            GuiUtils.setScreen(TerminalSimSelectorScreen())
-        }.withDescription("Opens the Terminal Simulator. can also be open via /na termsim"))
-    }
-
     val simAutoNext by ToggleSetting("Simulator Auto Next").hidden()
 
     private val soundsEnabled by ToggleSetting("Terminal Sounds", true).section("Sounds")
