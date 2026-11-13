@@ -20,8 +20,8 @@ import kotlin.math.min
 /**
  * The Terminal Solver's config window, with a live terminal next to the settings, the way the
  * Dungeon Map's window shows the map. The preview is a small simulator: pick a terminal on the tabs,
- * click its solution to test it, right click for a new one. It is drawn with the solver's own menu
- * code every frame, so any setting changed in the window shows at once.
+ * click its solution (or press the drop key) to test it; clicking the open tab deals a new one.
+ * It is drawn with the solver's own menu code every frame, so any setting changed in the window shows at once.
  */
 class TerminalSolverWindow(feature: Feature): FeatureConfigWindow(feature) {
     companion object {
@@ -75,12 +75,8 @@ class TerminalSolverWindow(feature: Feature): FeatureConfigWindow(feature) {
             return true
         }
 
-        val sim = sim ?: return false
-        when (button) {
-            InputConstants.MOUSE_BUTTON_LEFT -> click(sim)
-            InputConstants.MOUSE_BUTTON_RIGHT -> start(sim)
-            else -> return false
-        }
+        // Any mouse button clicks, as in a real terminal.
+        click(sim ?: return false)
         return true
     }
 
@@ -255,7 +251,7 @@ class TerminalSolverWindow(feature: Feature): FeatureConfigWindow(feature) {
         val text = when {
             solvedAt != 0L -> "§aSolved!"
             ! TerminalSolver.isSolverEnabled(sim.terminal) -> "§cThe solver is off for ${sim.terminal.displayName}"
-            else -> "§7Click or drop to test, right click for new"
+            else -> "§7Click or press drop to test"
         }
         context.drawCenteredString(text, x + width / 2f, y + height - FOOTER_HEIGHT + 2f, scale = 0.8f)
     }
