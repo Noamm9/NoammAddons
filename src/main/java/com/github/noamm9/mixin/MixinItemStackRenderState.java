@@ -18,19 +18,16 @@ public abstract class MixinItemStackRenderState {
     @Shadow private ItemStackRenderState.LayerRenderState[] layers;
 
     @WrapMethod(method = "submit")
-    private void applyLegacySkullSize(PoseStack poseStack, SubmitNodeCollector collector, int lightCoords, int overlayCoords, int outlineColor, Operation<Void> original) {
-        if (Tweaks.INSTANCE.enabled && Tweaks.getLegacySkullSize().getValue() && displayContext.firstPerson()) {
+    private void applyLegacyHeldSkull(PoseStack poseStack, SubmitNodeCollector collector, int lightCoords, int overlayCoords, int outlineColor, Operation<Void> original) {
+        if (Tweaks.INSTANCE.enabled && Tweaks.getLegacyHeldSkull().getValue() && displayContext.firstPerson()) {
             for (int i = 0; i < activeLayerCount; i++) {
                 // PackDisabler can render non-head items with a player head model.
                 if (! (((IItemStackLayerRenderState) layers[i]).getSpecialRenderer() instanceof PlayerHeadSpecialRenderer)) continue;
 
                 poseStack.pushPose();
-                poseStack.scale(0.55f, 0.55f, 0.55f);
-                try {
-                    original.call(poseStack, collector, lightCoords, overlayCoords, outlineColor);
-                } finally {
-                    poseStack.popPose();
-                }
+                Tweaks.transformHead(poseStack, displayContext.leftHand());
+                original.call(poseStack, collector, lightCoords, overlayCoords, outlineColor);
+                poseStack.popPose();
                 return;
             }
         }
