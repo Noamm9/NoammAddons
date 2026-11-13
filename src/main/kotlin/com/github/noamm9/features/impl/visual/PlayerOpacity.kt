@@ -11,8 +11,8 @@ import net.minecraft.world.entity.Entity
 /**
  * @see com.github.noamm9.mixin.MixinEntityRenderer
  * @see com.github.noamm9.mixin.MixinEntityRenderDispatcher
- * @see com.github.noamm9.mixin.MixinLivingEntityRenderer
- * @see com.github.noamm9.mixin.MixinEquipmentLayerRenderer
+ * @see com.github.noamm9.mixin.MixinSubmitNodeCollection
+ * @see com.github.noamm9.mixin.MixinItemFeatureRenderer
  */
 object PlayerOpacity: Feature("Makes nearby players transparent so they don't block your view.") {
     private val dungeonOnly by ToggleSetting("Dungeons only").withDescription("Only enables this feature inside dungeons.")
