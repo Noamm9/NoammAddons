@@ -47,4 +47,5 @@ object ColorUtils {
     val ChatFormatting.code get() = toString()[1]
     fun ChatFormatting.toColor(): Color = TextColor.fromLegacyFormat(this)?.value?.let(::Color) ?: Color.WHITE
     fun Color.invert() = Color(255 - red, 255 - green, 255 - blue, alpha)
+    val Color.code get() = "§x" + (rgb and 0xFFFFFF).toString(16).padStart(6, '0')
 }

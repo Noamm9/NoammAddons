@@ -2,14 +2,12 @@ package com.github.noamm9.utils.render.world
 
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.compat.rotateCompat
-import com.github.noamm9.utils.ChatUtils.addColor
 import com.github.noamm9.utils.NumbersUtils.times
 import com.github.noamm9.utils.render.Render2D.visualOrder
 import com.github.noamm9.utils.render.RenderHelper.width
 import net.minecraft.client.gui.Font
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
-import net.minecraft.network.chat.Component
 import net.minecraft.util.LightCoordsUtil
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.phys.AABB
@@ -271,7 +269,7 @@ object Render3D {
         matrixStack.rotateCompat(camera.orientation)
         matrixStack.scale(toScale, - toScale, toScale)
 
-        for ((i, line) in text.addColor().lineSequence().withIndex()) collector.submitText(
+        for ((i, line) in text.lineSequence().withIndex()) collector.submitText(
             matrixStack, - line.width() / 2f, i * 9f, line.visualOrder(), true,
             if (phase) Font.DisplayMode.SEE_THROUGH else Font.DisplayMode.NORMAL,
             LightCoordsUtil.FULL_BRIGHT, color.rgb, 0, 0
@@ -287,40 +285,6 @@ object Render3D {
         scale: Number = 1f,
         phase: Boolean = false
     ) = renderString(text, pos.x, pos.y, pos.z, color, scale, phase)
-
-    fun RenderContext.renderComponent(
-        component: Component,
-        x: Number, y: Number, z: Number,
-        color: Color = Color.WHITE,
-        scale: Number = 1f,
-        phase: Boolean = false
-    ) {
-        val dx = (x.toDouble() - camera.pos.x).toFloat()
-        val dy = (y.toDouble() - camera.pos.y).toFloat()
-        val dz = (z.toDouble() - camera.pos.z).toFloat()
-        val toScale = (scale.toFloat() * 0.025f)
-
-        matrixStack.pushPose()
-        matrixStack.translate(dx, dy, dz)
-        matrixStack.rotateCompat(camera.orientation)
-        matrixStack.scale(toScale, - toScale, toScale)
-
-        val displayMode = if (phase) Font.DisplayMode.SEE_THROUGH else Font.DisplayMode.NORMAL
-        for ((i, line) in mc.font.split(component, Int.MAX_VALUE).withIndex()) collector.submitText(
-            matrixStack, - mc.font.width(line) / 2f, i * 9f, line, true,
-            displayMode, LightCoordsUtil.FULL_BRIGHT, color.rgb, 0, 0
-        )
-
-        matrixStack.popPose()
-    }
-
-    fun RenderContext.renderComponent(
-        comp: Component,
-        pos: Vec3,
-        color: Color = Color.WHITE,
-        scale: Number = 1f,
-        phase: Boolean = false
-    ) = renderComponent(comp, pos.x, pos.y, pos.z, color, scale, phase)
 
     fun RenderContext.renderRainbowLine(start: Vec3, finish: Vec3, thickness: Number, alpha: Float) {
         matrixStack.pushPose()

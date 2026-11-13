@@ -12,6 +12,7 @@ enum class DungeonClass(val setting: ColorSetting) {
     Empty(ClassColors.emptyColor);
 
     val color get() = setting.value
+    val code get() = setting.code
 
     companion object {
         fun fromName(name: String) = entries.find {

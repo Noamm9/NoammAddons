@@ -1,6 +1,5 @@
 package com.github.noamm9.utils
 
-import net.minecraft.network.chat.TextColor
 import com.github.noamm9.NoammAddons
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.NoammAddons.scope
@@ -135,6 +134,59 @@ object ChatUtils: ISelfInit {
     fun chat(comp: Component) = mc.execute { if (mc.player != null) mc.gui.hud.chat.addClientSystemMessage(comp) }
 
     fun String.addColor() = replace("&", "§")
+
+    private fun String.parseHex(start: Int): Int {
+        if (start + 6 > length) return - 1
+        var rgb = 0
+        for (i in start until start + 6) {
+            val digit = Character.digit(this[i], 16).takeIf { it >= 0 } ?: return - 1
+            rgb = (rgb shl 4) or digit
+        }
+        return rgb
+    }
+
+    fun String.toComponent(): MutableComponent {
+        val result = Component.empty()
+        val text = StringBuilder()
+        var style = Style.EMPTY
+        var i = 0
+
+        fun flush() {
+            if (text.isEmpty()) return
+            result.append(Component.literal(text.toString()).setStyle(style))
+            text.clear()
+        }
+
+        while (i < length) {
+            val c = this[i]
+            if ((c == '&' || c == '§') && i + 1 < length) {
+                val code = this[i + 1]
+                val rgb = if (code == 'x' || code == 'X') parseHex(i + 2) else - 1
+                if (rgb >= 0) {
+                    flush()
+                    style = Style.EMPTY.withColor(rgb)
+                    i += 8
+                    continue
+                }
+                val formatting = ChatFormatting.getByCode(code)
+                if (formatting != null) {
+                    flush()
+                    style = if (formatting == ChatFormatting.RESET) Style.EMPTY else style.applyLegacyFormat(formatting)
+                    i += 2
+                    continue
+                }
+                if (c == '§') {
+                    i += 2
+                    continue
+                }
+            }
+            text.append(c)
+            i ++
+        }
+
+        flush()
+        return result
+    }
 
     val Component.unformattedText get() = string.removeFormatting()
     val Component.formattedText get() = formatted(this)

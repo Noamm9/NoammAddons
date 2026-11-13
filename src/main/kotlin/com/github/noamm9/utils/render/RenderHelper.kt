@@ -1,7 +1,7 @@
 package com.github.noamm9.utils.render
 
 import com.github.noamm9.NoammAddons.mc
-import com.github.noamm9.utils.ChatUtils.addColor
+import com.github.noamm9.utils.render.Render2D.visualOrder
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.phys.Vec3
 
@@ -16,10 +16,10 @@ object RenderHelper {
 
     val Entity.renderBoundingBox get() = boundingBox.move(renderX - x, renderY - y, renderZ - z)
 
-    fun String.width() = addColor().lineSequence().maxOf(mc.font::width)
+    fun String.width() = lineSequence().maxOf { mc.font.width(it.visualOrder()) }
     fun String.height() = mc.font.lineHeight * (count { it == '\n' } + 1)
     fun String.wrap(maxWidth: Int) = buildList {
-        for (raw in addColor().lineSequence()) {
+        for (raw in lineSequence()) {
             var line = ""
             for (word in raw.split(" ")) {
                 val candidate = if (line.isEmpty()) word else "$line $word"

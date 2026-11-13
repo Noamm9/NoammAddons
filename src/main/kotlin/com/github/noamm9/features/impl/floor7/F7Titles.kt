@@ -6,7 +6,6 @@ import com.github.noamm9.features.Feature
 import com.github.noamm9.features.IFeatureWindow
 import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.utils.*
-import com.github.noamm9.utils.ChatUtils.addColor
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.dungeons.DungeonListener
@@ -14,11 +13,8 @@ import com.github.noamm9.utils.dungeons.enums.DungeonClass
 import com.github.noamm9.utils.location.LocationUtils.F7Phase
 import com.github.noamm9.utils.location.LocationUtils.dungeonFloorNumber
 import com.github.noamm9.utils.location.LocationUtils.inBoss
-import com.github.noamm9.utils.render.Render2D.drawCenteredComponent
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.RenderHelper.width
-import net.minecraft.network.chat.Component
-import net.minecraft.network.chat.MutableComponent
 import net.minecraft.network.protocol.game.ClientboundSetSubtitleTextPacket
 import net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket
 import net.minecraft.sounds.SoundEvents
@@ -55,12 +51,12 @@ object F7Titles: Feature(name = "F7 Titles", description = "Custom Titles for F7
         hudElement(
             "Crystal Titles",
             { crystalTitles.value },
-            { crystalTitle.text != Component.empty() },
+            { crystalTitle.text.isNotBlank() },
             centered = { true }
         ) { ctx, example ->
-            val text = if (example) Component.literal("&3Crystal&r(${formatProgress(1, 2)})".addColor()) else crystalTitle.text
-            ctx.drawCenteredComponent(text, 0, 0)
-            return@hudElement mc.font.width(text) to 9f
+            val text = if (example) "&3Crystal&r(${formatProgress(1, 2)})" else crystalTitle.text
+            ctx.drawCenteredString(text, 0, 0)
+            return@hudElement text.width() to 9f
         } defaults {
             x = Resolution.width / 2f
             y = subtitleY()
@@ -70,12 +66,12 @@ object F7Titles: Feature(name = "F7 Titles", description = "Custom Titles for F7
         hudElement(
             "Wither Titles",
             { witherTitles.value },
-            { witherTitle.text != Component.empty() },
+            { witherTitle.text.isNotBlank() },
             centered = { true }
         ) { ctx, example ->
-            val text = if (example) Component.literal("&dMaxor Stunned!".addColor()) else witherTitle.text
-            ctx.drawCenteredComponent(text, 0, 0)
-            return@hudElement mc.font.width(text) to 9f
+            val text = if (example) "&dMaxor Stunned!" else witherTitle.text
+            ctx.drawCenteredString(text, 0, 0)
+            return@hudElement text.width() to 9f
         } defaults {
             x = Resolution.width / 2f
             y = subtitleY()
@@ -100,12 +96,12 @@ object F7Titles: Feature(name = "F7 Titles", description = "Custom Titles for F7
         hudElement(
             "Lightning Ended",
             { lightningTimer.value },
-            { lightningTitle.text != Component.empty() },
+            { lightningTitle.text.isNotBlank() },
             centered = { true }
         ) { ctx, example ->
-            val text = if (example) Component.literal("&aStorm's Lightning Ended!".addColor()) else lightningTitle.text
-            ctx.drawCenteredComponent(text, 0, 0)
-            return@hudElement mc.font.width(text) to 9f
+            val text = if (example) "&aStorm's Lightning Ended!" else lightningTitle.text
+            ctx.drawCenteredString(text, 0, 0)
+            return@hudElement text.width() to 9f
         } defaults {
             x = Resolution.width / 2f
             y = subtitleY()
@@ -115,12 +111,12 @@ object F7Titles: Feature(name = "F7 Titles", description = "Custom Titles for F7
         hudElement(
             "Terminal Titles",
             { terminalTitles.value },
-            { terminalTitle.text != Component.empty() },
+            { terminalTitle.text.isNotBlank() },
             centered = { true }
         ) { ctx, example ->
-            val comp = if (example) formatTerminalTitle(mc.user.name, "terminal", 6, 7) else terminalTitle.text
-            ctx.drawCenteredComponent(comp, 0, 0)
-            return@hudElement mc.font.width(comp) to 9f
+            val str = if (example) formatTerminalTitle(mc.user.name, "terminal", 6, 7) else terminalTitle.text
+            ctx.drawCenteredString(str, 0, 0)
+            return@hudElement str.width() to 9f
         } defaults {
             x = Resolution.width / 2f
             y = Resolution.height * 0.45f
@@ -259,30 +255,29 @@ object F7Titles: Feature(name = "F7 Titles", description = "Custom Titles for F7
         return true
     }
 
-    private fun showTerminalTitle(text: MutableComponent) = terminalTitle.show(text, terminalTitleDuration.value.toDouble() * 20)
-    private fun showTerminalTitle(text: String) = showTerminalTitle(Component.literal(text.addColor()))
-    private fun formatTerminalTitle(name: String, type: String, min: Int, max: Int): MutableComponent {
-        if (terminalPhaseDone.value && min == max) return Component.literal("&a&lPhase Done!".addColor())
+    private fun showTerminalTitle(text: String) = terminalTitle.show(text, terminalTitleDuration.value.toDouble() * 20)
 
-        val formattedType = Component.literal(when (type) {
+    private fun formatTerminalTitle(name: String, type: String, min: Int, max: Int): String {
+        if (terminalPhaseDone.value && min == max) return "&a&lPhase Done!"
+
+        val formattedType = when (type) {
             "terminal" -> "&5Terminal"
             "device" -> "&bDevice"
             "lever" -> "&cLever"
             else -> ""
-        }.addColor())
+        }
 
         val clazz = DungeonListener.dungeonTeammates.find { it.name == name }?.clazz
-        val classColor = clazz?.color ?: DungeonClass.Empty.color
-        val formattedName = Component.literal(name).withColor(classColor.rgb)
-        val formattedClass = Component.literal(clazz?.name ?: "Unknown").withColor(classColor.rgb)
-        val formattedProgress = Component.literal("${ColorUtils.colorCodeByPercent(min, max)}$min&8/&a$max".addColor())
+        val classColor = clazz?.code ?: DungeonClass.Empty.code
+        val formattedName = "$classColor$name&r"
+        val formattedClass = clazz?.name?.let { "$classColor$it&r" } ?: "${DungeonClass.Empty.code}Unknown&r"
+        val formattedProgress = "${ColorUtils.colorCodeByPercent(min, max)}$min&8/&a$max"
 
-        return terminalTitleFormat.value.formatComponents(mapOf(
-            "{name}" to formattedName,
-            "{class}" to formattedClass,
-            "{type}" to formattedType,
-            "{progress}" to formattedProgress
-        ))
+        return terminalTitleFormat.value
+            .replace("{name}", formattedName)
+            .replace("{class}", formattedClass)
+            .replace("{type}", formattedType)
+            .replace("{progress}", formattedProgress)
     }
 
     private fun showTitle(subtitle: String) {
@@ -298,20 +293,19 @@ object F7Titles: Feature(name = "F7 Titles", description = "Custom Titles for F7
     }
 
     private class Title {
-        var text = Component.empty()
+        var text = ""
             private set
 
         private var id = 0
 
-        fun show(text: MutableComponent, ticks: Number = 40) {
+        fun show(text: String, ticks: Number = 40) {
             this.text = text
             val cid = ++ id
-            ThreadUtils.scheduledTask(ticks) { if (id == cid) this.text = Component.empty() }
+            ThreadUtils.scheduledTask(ticks) { if (id == cid) this.text = "" }
         }
-        fun show(text: String, ticks: Number = 40) = show(Component.literal(text.addColor()), ticks)
 
         fun clear() {
-            text = Component.empty()
+            text = ""
             id ++
         }
     }
