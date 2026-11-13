@@ -1,5 +1,10 @@
 package com.github.noamm9.utils
 
+import com.github.noamm9.utils.ChatUtils.addColor
+import net.minecraft.network.chat.Component
+import net.minecraft.network.chat.MutableComponent
+import kotlin.text.forEach
+
 private val SPACE_CAPS_REGEX_1 = Regex("(?<=[a-z])(?=[A-Z])")
 private val SPACE_CAPS_REGEX_2 = Regex("(?<=[A-Z])(?=[A-Z][a-z])")
 
@@ -66,4 +71,44 @@ inline fun <T> catch(block: () -> T) = try {
 }
 catch (_: Throwable) {
     null
+}
+
+/**
+ * Converts this string to a [MutableComponent], replacing specified placeholder strings
+ * with their corresponding [Component]s and applying color formatting to text segments.
+ *
+ * @param replacements A map of placeholder strings to the [Component]s that should replace them.
+ * @return A [MutableComponent] combining the formatted text literals and injected components.
+ */
+fun String.formatComponents(replacements: Map<String, Component>): MutableComponent {
+    // replace placeholders with special chars to set up for component building
+    var tokenizedTitle = this
+    val componentMap = mutableMapOf<Char, Component>()
+
+    replacements.entries.forEachIndexed { index, (placeholder, component) ->
+        val token = ('\u0001' + index)
+        tokenizedTitle = tokenizedTitle.replace(placeholder, token.toString())
+        componentMap[token] = component
+    }
+    val result = Component.empty()
+    val currentText = StringBuilder()
+
+    // build the output component, replacing each placeholder char with the respective component
+    tokenizedTitle.forEach { char ->
+        if (componentMap.containsKey(char)) {
+            if (currentText.isNotEmpty()) {
+                result.append(Component.literal(currentText.toString().addColor()))
+                currentText.clear()
+            }
+            result.append(componentMap[char]!!)
+        } else {
+            currentText.append(char)
+        }
+    }
+
+    if (currentText.isNotEmpty()) {
+        result.append(Component.literal(currentText.toString().addColor()))
+    }
+
+    return result
 }

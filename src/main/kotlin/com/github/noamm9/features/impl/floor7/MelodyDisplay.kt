@@ -7,10 +7,13 @@ import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.utils.containsOneOf
 import com.github.noamm9.utils.dungeons.DungeonListener
+import com.github.noamm9.utils.dungeons.enums.DungeonClass
+import com.github.noamm9.utils.formatComponents
 import com.github.noamm9.utils.location.LocationUtils
-import com.github.noamm9.utils.render.Render2D.drawCenteredString
-import com.github.noamm9.utils.render.RenderHelper.width
+import com.github.noamm9.utils.render.Render2D.drawCenteredComponent
+import net.minecraft.network.chat.Component
 import net.minecraft.sounds.SoundEvents
+import java.awt.Color
 import kotlin.math.ceil
 import kotlin.math.roundToInt
 
@@ -20,7 +23,7 @@ object MelodyDisplay: Feature("Displays the current progress someone for melody 
     private val soundEnabled by ToggleSetting("Play sound", true).withDescription("Should it play a sound when someone gets melody?")
     private val sound = createSoundSettings("Sound", SoundEvents.EXPERIENCE_ORB_PICKUP) { soundEnabled.value }
 
-    private data class MelodyState(val name: String, val clazz: String, val progress: Int, val timestamp: Long)
+    private data class MelodyState(val name: String, val clazz: String, val progress: Int, val timestamp: Long, val color: Color)
     data class MelodyMessage(val name: String, val progress: Int)
 
     private val melodyRegex = Regex("""Party > (?:\[[^]]+]\s)?(\w+):""")
@@ -42,25 +45,25 @@ object MelodyDisplay: Feature("Displays the current progress someone for melody 
             shouldDraw = { LocationUtils.F7Phase == 3 },
             centered = { true }
         ) { ctx, example ->
-            val text = if (example) formatMessage(MelodyState(mc.user.name, "&bArcher", 1, 1))
+            val text = if (example) formatMessage(MelodyState(mc.user.name, "&bArcher", 1, 1, DungeonClass.Archer.color))
             else {
                 val state = currentState ?: return@hudElement 0f to 0f
                 formatMessage(state)
             }
 
-            ctx.drawCenteredString(text, 0, 0)
+            ctx.drawCenteredComponent(text, 0, 0)
 
-            return@hudElement text.width() to 9f
+            return@hudElement mc.font.width(text) to 9f
         }
 
         register<ChatMessageEvent> {
             if (LocationUtils.F7Phase != 3) return@register
             val (name, progress) = parseMelodyMessage(event.unformattedText) ?: return@register
             val clazz = DungeonListener.dungeonTeammates.find { it.name == name }?.clazz
-            val color = clazz?.code ?: "&7"
-            val clazzName = clazz?.name?.let { "$color$it&r" } ?: "&7Unknown&r"
+            val color = clazz?.color ?: DungeonClass.Empty.color
+            val clazzName = clazz?.name ?: "Unknown"
 
-            currentState = MelodyState("$color$name&r", clazzName, progress, System.currentTimeMillis())
+            currentState = MelodyState(name, clazzName, progress, System.currentTimeMillis(), color)
             if (soundEnabled.value) sound.invoke()
             timer.register()
         }
@@ -80,10 +83,15 @@ object MelodyDisplay: Feature("Displays the current progress someone for melody 
         return MelodyMessage(name, progress)
     }
 
-    private fun formatMessage(state: MelodyState): String {
-        return melodyFormat.value
-            .replace("{name}", state.name)
-            .replace("{class}", state.clazz)
-            .replace("{progress}", "${state.progress}/3")
+    private fun formatMessage(state: MelodyState): Component {
+        val formattedName = Component.literal(state.name).withColor(state.color.rgb)
+        val formattedClass = Component.literal(state.clazz).withColor(state.color.rgb)
+        val formattedProgress = Component.literal(state.progress.toString())
+
+        return melodyFormat.value.formatComponents(mapOf(
+            "{name}" to formattedName,
+            "{class}" to formattedClass,
+            "{progress}" to formattedProgress
+        ))
     }
 }

@@ -4,11 +4,14 @@ import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.CheckEntityGlowEvent
 import com.github.noamm9.event.impl.RenderWorldEvent
 import com.github.noamm9.features.Feature
+import com.github.noamm9.utils.ColorUtils.toColor
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.RenderHelper.renderVec
-import com.github.noamm9.utils.render.world.Render3D.renderString
+import com.github.noamm9.utils.render.world.Render3D.renderComponent
+import net.minecraft.ChatFormatting
 import net.minecraft.client.player.AbstractClientPlayer
+import net.minecraft.network.chat.Component
 import net.minecraft.world.entity.Entity
 
 object TeammateESP: Feature(
@@ -41,13 +44,17 @@ object TeammateESP: Feature(
             if (! LocationUtils.inDungeon) return@register
             for (teammate in DungeonListener.dungeonTeammatesNoSelf) {
                 val entity = teammate.entity ?: continue
-                val color = teammate.clazz.code
+                val classColor = teammate.clazz.color
                 val renderVec = entity.renderVec
                 val distance = renderVec.distanceTo(player.renderVec)
                 val scale = (distance * 0.12f).coerceAtLeast(1.0)
 
-                event.ctx.renderString(
-                    "&e[${teammate.clazz.name[0]}&e] $color${teammate.name}",
+                val nametagComponent = Component.empty().apply {
+                    append(Component.literal("[${teammate.clazz.name[0]}] ").withColor(ChatFormatting.YELLOW.toColor().rgb))
+                    append(Component.literal(teammate.name)).withColor(classColor.rgb)
+                }
+                event.ctx.renderComponent(
+                    nametagComponent,
                     renderVec.x,
                     renderVec.y + entity.bbHeight + 0.7 + distance * 0.015f,
                     renderVec.z,
