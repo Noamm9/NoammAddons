@@ -99,13 +99,11 @@ open class FeatureConfigWindow(val feature: Feature) {
     protected var previewHeight = 0f
         private set
 
-    /** Mouse position of the last frame, in the click gui's coordinates. */
     protected var lastMouseX = 0f
         private set
     protected var lastMouseY = 0f
         private set
 
-    /** Name of the sidebar category that is open, or null without a sidebar. */
     protected val selectedSection get() = if (useSidebar) selectedCategory?.name else null
 
     var dragging = false
@@ -133,10 +131,8 @@ open class FeatureConfigWindow(val feature: Feature) {
 
     protected open fun drawPreview(context: GuiGraphicsExtractor, x: Float, y: Float, width: Float, height: Float) {}
 
-    /** A click inside the preview panel. Return true when the preview used it. */
     protected open fun previewClicked(mouseX: Float, mouseY: Float, button: Int) = false
 
-    /** A key pressed while this window has focus and no setting took it. Return true when the preview used it. */
     protected open fun previewKeyPressed(keyCode: Int) = false
 
     protected open fun drawBackground(context: GuiGraphicsExtractor, x: Float, y: Float, width: Float, height: Float, color: Color) {

@@ -17,12 +17,6 @@ import net.minecraft.world.item.ItemStack
 import java.awt.Color
 import kotlin.math.min
 
-/**
- * The Terminal Solver's config window, with a live terminal next to the settings, the way the
- * Dungeon Map's window shows the map. The preview is a small simulator: pick a terminal on the tabs,
- * click its solution (or press the drop key) to test it; clicking the open tab deals a new one.
- * It is drawn with the solver's own menu code every frame, so any setting changed in the window shows at once.
- */
 class TerminalSolverWindow(feature: Feature): FeatureConfigWindow(feature) {
     companion object {
         private const val TAB_COLUMNS = 3
@@ -52,7 +46,6 @@ class TerminalSolverWindow(feature: Feature): FeatureConfigWindow(feature) {
     private var lastSection: String? = null
     private var lastDropTime = 0L
 
-    // Where the menu's grid was drawn last frame, for mouse hit tests.
     private var menuX = 0f
     private var menuY = 0f
     private var menuScale = 1f
@@ -75,12 +68,11 @@ class TerminalSolverWindow(feature: Feature): FeatureConfigWindow(feature) {
             return true
         }
 
-        // Any mouse button clicks, as in a real terminal.
+        // Real terminals click on any mouse button.
         click(sim ?: return false)
         return true
     }
 
-    /** The drop key clicks the slot under the mouse, at most Max CPS times a second, as in a real terminal. */
     override fun previewKeyPressed(keyCode: Int): Boolean {
         if (keyCode != KeyMappingHelper.getBoundKeyOf(mc.options.keyDrop).value) return false
         val sim = sim ?: return false
@@ -94,7 +86,6 @@ class TerminalSolverWindow(feature: Feature): FeatureConfigWindow(feature) {
         return true
     }
 
-    /** Opening the Rubix, Numbers or Melody category in the sidebar shows that terminal. */
     private fun followSection() {
         val section = selectedSection
         if (section == lastSection) return
@@ -115,7 +106,7 @@ class TerminalSolverWindow(feature: Feature): FeatureConfigWindow(feature) {
         if (terminal is MelodyTerminal) next.items.forEach { (slot, stack) -> terminal.solve(next.items, next.title, slot, stack) }
         else terminal.solve(next.items, next.title, 0, ItemStack.EMPTY)
 
-        // The grid is placed the way the real menu places it: from the first solution's corner.
+        // Same origin the real menu uses, so the layout matches it.
         val slots = terminal.solution.map { it.slotId }
         minCol = slots.minOfOrNull { it % 9 } ?: 0
         minRow = slots.minOfOrNull { it / 9 } ?: 0
@@ -124,7 +115,6 @@ class TerminalSolverWindow(feature: Feature): FeatureConfigWindow(feature) {
         return next
     }
 
-    /** Runs the simulator's ticks (Melody moves on them) and deals a new terminal after one is solved. */
     private fun advance(sim: SimTerminal) {
         val now = System.currentTimeMillis()
         if (solvedAt != 0L) {
@@ -151,7 +141,6 @@ class TerminalSolverWindow(feature: Feature): FeatureConfigWindow(feature) {
         sync(sim, sim.click(click))
     }
 
-    /** What the simulator screen does with the slots a click or a tick changed. */
     private fun sync(sim: SimTerminal, changedSlots: List<Int>) {
         val terminal = sim.terminal
         if (terminal !is RubixTerminal) for (slot in changedSlots) {
@@ -198,12 +187,10 @@ class TerminalSolverWindow(feature: Feature): FeatureConfigWindow(feature) {
         TerminalSolver.drawTerminal(context, sim.terminal, sim.items, minCol, minRow, mx, my, ::hoveredSlot)
         context.pose().popMatrix()
 
-        // A click outside the menu clicks nothing.
         val (areaX, areaY, areaW, areaH) = menuArea()
         if (lastMouseX < areaX || lastMouseX > areaX + areaW || lastMouseY < areaY || lastMouseY > areaY + areaH) hoveredSlot = null
     }
 
-    /** The part of the preview the menu is fitted into: x, y, width, height. */
     private fun menuArea() = floatArrayOf(
         previewX + MARGIN,
         previewY + tabsHeight() + MARGIN,
@@ -211,7 +198,6 @@ class TerminalSolverWindow(feature: Feature): FeatureConfigWindow(feature) {
         previewHeight - tabsHeight() - FOOTER_HEIGHT - MARGIN * 2,
     )
 
-    /** Places the menu's grid in the preview for this frame. False when there is no room for it. */
     private fun layoutMenu(sim: SimTerminal): Boolean {
         val (gridW, gridH) = TerminalSolver.gridSpan(sim.terminal)
         val (left, top, right, bottom) = TerminalSolver.menuMargins()
@@ -226,10 +212,7 @@ class TerminalSolverWindow(feature: Feature): FeatureConfigWindow(feature) {
         return true
     }
 
-    /**
-     * The window's panels are drawn around the terminal's own background (the grid and its padding)
-     * and not under it, so the solver's Background Color shows as it does over the game.
-     */
+    // Leaves a hole under the menu so its Background Color looks the same as in game.
     override fun drawBackground(context: GuiGraphicsExtractor, x: Float, y: Float, width: Float, height: Float, color: Color) {
         val sim = sim
         if (sim == null || ! layoutMenu(sim)) return super.drawBackground(context, x, y, width, height, color)

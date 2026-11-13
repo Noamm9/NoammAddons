@@ -162,11 +162,6 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
         Resolution.pop(ctx)
     }
 
-    /**
-     * Draws the custom menu with its grid's top left corner at the current origin, in menu units (a slot is 16).
-     * [mx] and [my] are the mouse in the same units. The slot under the mouse is written to [hovered].
-     * Used by the real terminal, the simulator and the preview in the config window.
-     */
     fun drawTerminal(ctx: GuiGraphicsExtractor, handler: Terminal, items: Map<Int, ItemStack>, minCol: Int, minRow: Int, mx: Float, my: Float, hovered: KMutableProperty0<Int?>) {
         val (width, height) = gridSpan(handler)
         val gap = slotGap.value
@@ -214,10 +209,8 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
         handler.render(ctx, solutionColor.value, ::slotPos, mx, my, hovered)
     }
 
-    /** Width and height of a terminal's grid in menu units, with the configured slot gap. */
     fun gridSpan(handler: Terminal) = spanFor(handler.gridSize.first) to spanFor(handler.gridSize.second)
 
-    /** How far the menu reaches past its grid on each side (title, padding), in menu units: left, top, right, bottom. */
     fun menuMargins(): FloatArray {
         val pad = padding.value
         val top = if (titleColor.value.isVisable()) 15f + pad else pad
