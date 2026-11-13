@@ -8,12 +8,12 @@ import com.github.noamm9.utils.ColorUtils.toColor
 import net.minecraft.ChatFormatting
 
 object ClassColors: Feature("Allows setting custom color for every dungeon class", toggled = true) {
-    val archColor by ColorSetting("Archer Code", ChatFormatting.DARK_RED.toColor(), false).section("Colors")
-    val bersColor by ColorSetting("Berserk Code", ChatFormatting.GOLD.toColor(), false)
-    val healColor by ColorSetting("Healer Code", ChatFormatting.DARK_PURPLE.toColor(), false)
-    val mageColor by ColorSetting("Mage Code", ChatFormatting.DARK_AQUA.toColor(), false)
-    val tankColor by ColorSetting("Tank Code", ChatFormatting.DARK_GREEN.toColor(), false)
-    val emptyColor = ColorSetting("Empty Code", ChatFormatting.GRAY.toColor(), false)
+    val archColor by ColorSetting("Archer Color", ChatFormatting.DARK_RED.toColor(), false).section("Colors").jsonName("arch")
+    val bersColor by ColorSetting("Berserk Color", ChatFormatting.GOLD.toColor(), false).jsonName("bers")
+    val healColor by ColorSetting("Healer Color", ChatFormatting.DARK_PURPLE.toColor(), false).jsonName("heal")
+    val mageColor by ColorSetting("Mage Color", ChatFormatting.DARK_AQUA.toColor(), false).jsonName("mage")
+    val tankColor by ColorSetting("Tank Color", ChatFormatting.DARK_GREEN.toColor(), false).jsonName("tank")
+    val emptyColor = ColorSetting("Empty Color", ChatFormatting.GRAY.toColor(), false).jsonName("empty")
 
     private val reset by ButtonSetting("Reset Colors") {
         configSettings.forEach(ConfigHolder<*>::reset)
