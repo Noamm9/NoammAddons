@@ -13,11 +13,16 @@ import net.minecraft.world.entity.Entity
  * @see com.github.noamm9.mixin.MixinEntityRenderDispatcher
  * @see com.github.noamm9.mixin.MixinSubmitNodeCollection
  * @see com.github.noamm9.mixin.MixinItemFeatureRenderer
+ * @see com.github.noamm9.mixin.MixinLocalPlayer
  */
 object PlayerOpacity: Feature("Makes nearby players transparent so they don't block your view.") {
     private val dungeonOnly by ToggleSetting("Dungeons only").withDescription("Only enables this feature inside dungeons.")
     private val distance by SliderSetting("Distance", 3, 1, 32, 1).withDescription("How close a player has to be to become transparent.")
     private val opacity by SliderSetting("Opacity", 30, 0, 100, 1, "%").withDescription("0% hides them completely.")
+
+    //#if CHEAT
+    private val clickThrough by ToggleSetting("Click Through").withDescription("Lets you hit and interact with whatever is behind transparent players.")
+    //#endif
 
     override fun init() {
         register<CheckEntityRenderEvent> {
@@ -33,6 +38,11 @@ object PlayerOpacity: Feature("Makes nearby players transparent so they don't bl
         if (! isNearby(entity)) return 1f
         return opacity.value / 100f
     }
+
+    //#if CHEAT
+    @JvmStatic
+    fun shouldClickThrough(entity: Entity) = clickThrough.value && getOpacity(entity) < 1f
+    //#endif
 
     private fun isNearby(entity: Entity): Boolean {
         if (dungeonOnly.value && ! LocationUtils.inDungeon) return false
