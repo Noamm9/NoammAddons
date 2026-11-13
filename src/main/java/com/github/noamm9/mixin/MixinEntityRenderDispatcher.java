@@ -3,7 +3,9 @@ package com.github.noamm9.mixin;
 import com.github.noamm9.event.EventBus;
 import com.github.noamm9.event.impl.CheckEntityRenderEvent;
 import com.github.noamm9.features.impl.visual.RenderOptimizer;
+import com.github.noamm9.interfaces.ITranslucentEntity;
 import com.github.noamm9.utils.render.DepthTestGlow;
+import com.github.noamm9.utils.render.TranslucentEntity;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
@@ -52,5 +54,12 @@ public class MixinEntityRenderDispatcher {
         DepthTestGlow.active = DepthTestGlow.isTagged(renderState.outlineColor);
         original.call(renderState, camera, x, y, z, poseStack, submitNodeCollector);
         DepthTestGlow.active = false;
+    }
+
+    @WrapMethod(method = "submit")
+    private void beginTranslucentEntity(EntityRenderState renderState, CameraRenderState camera, double x, double y, double z, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, Operation<Void> original) {
+        TranslucentEntity.opacity = ((ITranslucentEntity) renderState).noammaddons$getOpacity();
+        original.call(renderState, camera, x, y, z, poseStack, submitNodeCollector);
+        TranslucentEntity.opacity = 1f;
     }
 }
