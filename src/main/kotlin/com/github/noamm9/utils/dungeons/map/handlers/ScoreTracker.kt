@@ -21,6 +21,7 @@ import net.minecraft.network.protocol.game.*
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket.Action.ADD_PLAYER
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket.Action.UPDATE_DISPLAY_NAME
 import net.minecraft.world.entity.monster.zombie.Zombie
+import java.util.UUID
 import kotlin.jvm.optionals.getOrNull
 import kotlin.math.ceil
 import kotlin.math.floor
@@ -42,12 +43,11 @@ object ScoreTracker: ISelfInit {
     private var clearedPercentage = 0
     private var completedRooms = 0
     private var highestScore = 0
-    private val batKillers = mutableSetOf<String>()
+    private val batKillers = mutableSetOf<UUID>()
     private var secretsScore = 0
 
     var mimicKilled = false
     var princeKilled = false
-    var batKilled = false
     var deathCount = 0
     var foundSecrets = 0
     var cryptsCount = 0
@@ -82,7 +82,6 @@ object ScoreTracker: ISelfInit {
             bloodDone = false
             mimicKilled = false
             princeKilled = false
-            batKilled = false
             batKillers.clear()
             deathCount = 0
             foundSecrets = 0
@@ -178,10 +177,9 @@ object ScoreTracker: ISelfInit {
                         }
                     }
 
-                    if (msg == "a bat has been slain. +1 bonus score" && batKillers.size < maxBats) {
-                        if (batKillers.add(mc.user.name.lowercase())) {
-                            ::batKilled.onKill(S2CPacketDungeonBat, DungeonEvent.BatKilled)
-                        }
+                    if (msg == "a bat has been slain. +1 bonus score" && registerBatKill(mc.user.profileId)) {
+                        if (DungeonListener.dungeonTeammatesNoSelf.isNotEmpty()) WebSocket.send(mapOf("type" to "dungeonbat"))
+                        EventBus.post(DungeonEvent.BatKilled)
                     }
                     else partyChatRegex.matchEntire(msg)?.let { match ->
                         if (batKillers.size >= maxBats) return@let
@@ -189,13 +187,15 @@ object ScoreTracker: ISelfInit {
                         val message = match.groups["message"]?.value ?: return@let
                         if (sender.equals(mc.user.name, true)) return@let
                         if (batMessages.none(message::contains)) return@let
-                        batKillers.add(sender.lowercase())
-                        batKilled = true
+                        val uuid = mc.connection?.onlinePlayers?.firstOrNull { it.profile.name.equals(sender, true) }?.profile?.id ?: return@let
+                        registerBatKill(uuid)
                     }
                 }
             }
         }
     }
+
+    fun registerBatKill(uuid: UUID) = batKillers.size < maxBats && batKillers.add(uuid)
 
     private fun KMutableProperty0<Boolean>.onKill(packet: WebSocketPacket, event: DungeonEvent) {
         if (get()) return
