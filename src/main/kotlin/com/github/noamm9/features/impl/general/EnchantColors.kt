@@ -21,7 +21,7 @@ import net.minecraft.network.chat.TextColor
 import java.awt.Color
 import java.util.regex.*
 
-object EnchantColors: Feature("Changes the color of enchantments in items lore.") {
+object EnchantColors: Feature("Changes the color of enchantments in items' lore.") {
     private val showNumbers by ToggleSetting("Levels as Numbers").withDescription("Show levels as numbers instead of roman numerals")
     private val boldMaxLevel by ToggleSetting("Bold Max Level", true).withDescription("Make max level bold")
     private val rainbowMaxLevel by ToggleSetting("Rainbow Max Level").withDescription("Animate max level enchants with a rainbow effect")

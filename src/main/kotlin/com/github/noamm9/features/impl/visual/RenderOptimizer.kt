@@ -20,7 +20,7 @@ import net.minecraft.world.item.ItemStack
 import java.util.*
 
 object RenderOptimizer: Feature("Optimize Rendering by hiding useless stuff.") {
-    private val hideStar by ToggleSetting("Hide Star Mobs's Nametag").withDescription("Should probably be used with &b${StarMobESP.name}")
+    private val hideStar by ToggleSetting("Hide Star Mobs' Nametags").jsonName("Hide Star Mobs's Nametag").withDescription("Should probably be used with &b${StarMobESP.name}")
     private val hideNonStar by ToggleSetting("Hide Non Star Mob's Nametag")
     private val hideFallingBlocks by ToggleSetting("Hide Falling Blocks")
     private val hideLightning by ToggleSetting("Hide Lightning Bolts")
@@ -28,7 +28,7 @@ object RenderOptimizer: Feature("Optimize Rendering by hiding useless stuff.") {
     private val hideHealerFairy by ToggleSetting("Hide Healer Fairy").withDescription("Hides healer fairy")
     private val hideHealerOrbs by ToggleSetting("Hide Healer Orbs").withDescription("Hides healer support orbs in dungeons. excludes the Damage orb")
     private val hide0HealthNames by ToggleSetting("Hide 0 Health").withDescription("Hide 0 Health nametags")
-    private val hideDeadMobs by ToggleSetting("Hide Dead Mobs").withDescription("Hides the mobs death animation.")
+    private val hideDeadMobs by ToggleSetting("Hide Dead Mobs").withDescription("Hides the mobs' death animation.")
     private val hideXpOrbs by ToggleSetting("Hide XP Orbs")
     private val hideTalismanCoins by ToggleSetting("Hide Talisman Coins").withDescription("Hides coins dropped by the Talisman of Coins and its upgrades.")
     private val removeTentacles by ToggleSetting("Hide P5 Tentacles").withDescription("Hides the Wither King Tentacles")

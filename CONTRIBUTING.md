@@ -17,7 +17,7 @@ agree to release it under this project's [LICENSE](LICENSE).
 - `./gradlew chiseledBuild` builds every Minecraft version.
 - `./gradlew buildActive` builds only the active one.
 - Jars land in `build/libs/`, one legit and one cheat jar per Minecraft version.
-- Run configurations are in the `.run/` folder. (runClient and etc...)
+- Run configurations are in the `.run/` folder. (runClient, etc.)
 - If you switched the active Stonecutter version, run `./gradlew "Reset active project"` before committing.
 
 ## Where does my change go?

@@ -21,7 +21,7 @@ import net.minecraft.network.chat.Component
 object RunSplits: Feature("A Splits HUD for Dungeons.") {
     private val showWitherDoors by ToggleSetting("Show Wither Doors").withDescription("Show The Number of Wither Doors in the run")
     private val showTotalTime by ToggleSetting("Total Time").withDescription("Shows the total run time.")
-    private val showTimeLost by ToggleSetting("Show Time Lost").withDescription("Shows the total time run time that was lost due to server lags.")
+    private val showTimeLost by ToggleSetting("Show Time Lost").withDescription("Shows the total run time that was lost due to server lag.")
     private val show300Score by ToggleSetting("Show 300 Score Time").withDescription("Shows when 300 score was reached.")
     private val printSplits by ToggleSetting("Print Splits").withDescription("Prints the splits into chat at the end of the run.")
 

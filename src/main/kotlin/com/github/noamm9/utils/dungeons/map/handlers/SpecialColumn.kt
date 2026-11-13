@@ -101,11 +101,11 @@ object SpecialColumn: ISelfInit {
             else -> listOf(CHAMPION, TRAP)
         }
 
-        // miniboss is generated firstb so if the special column has puzzles + 1 rooms the 1x1 on the map is the miniboss
+        // miniboss is generated first so if the special column has puzzles + 1 rooms the 1x1 on the map is the miniboss
         if (columnRooms == puzzleCount + 1) return listOf(CHAMPION)
         if (openedTrap && openedChampion) return listOf(PUZZLE)
 
-        // only 1 unopened 1x1 is left and it cant be a puzzle because the check above didn't return
+        // only 1 unopened 1x1 is left and it can't be a puzzle because the check above didn't return
         if (opened1x1s.size == getSpecialRoomCount(puzzleCount) - 1) {
             if (! openedTrap) return listOf(TRAP)
             return listOf(CHAMPION)

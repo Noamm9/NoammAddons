@@ -32,7 +32,7 @@ import net.minecraft.world.phys.Vec3
 import java.awt.Color
 
 object M7Relics: Feature(name = "M7 Relics", description = "A bunch of M7 Relics features") {
-    private val relicBox by ToggleSetting("Box Relics").withDescription("Draws a box on where the relics are spawning and the cauldron you need to place.")
+    private val relicBox by ToggleSetting("Box Relics").withDescription("Draws a box where the relics are spawning and around the cauldron you need to place them in.")
     private val relicSpawnTimer by ToggleSetting("Spawn Timer").withDescription("Shows on screen when the relic will spawn.")
     private val relicTimer by ToggleSetting("Place Timer").withDescription("Sends in chat the time it took to place the relic after you picked it up.")
 

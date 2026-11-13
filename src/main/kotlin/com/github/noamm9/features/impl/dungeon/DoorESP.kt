@@ -39,11 +39,11 @@ object DoorESP: Feature(
     private val doorKeyColor by ColorSetting("Has Key Color ", Color.GREEN.withAlpha(50)).showIf { brDoors.value }
     private val fairyDoorColor by ColorSetting("Fairy Door Color ", Color.MAGENTA.withAlpha(50)).showIf { brDoors.value && NoammAddons.isCheat }
     private val roomName by ToggleSetting("Room Name").withDescription("shows the name of the room the door leads to").section("Extra")
-    private val roomSecrets by ToggleSetting("Room Secrets").withDescription("shows the secrets of room the doors leads to")
+    private val roomSecrets by ToggleSetting("Room Secrets").withDescription("shows the secrets of the room the door leads to")
 
     private val mode by DropdownSetting("Mode", 0, listOf("Outline", "Fill", "Filled Outline")).section("Options")
     private val lineWidth by SliderSetting("Line Width", 2.5, 1, 10, 0.1).hideIf { mode.value == 1 }
-    private val phase by ToggleSetting("Phase", true).withDescription("Toggles phase for ${roomName.name}, ${roomSecrets.name} aswell")
+    private val phase by ToggleSetting("Phase", true).withDescription("Toggles phase for ${roomName.name}, ${roomSecrets.name} as well")
 
     private const val MAX_TEXT_WIDTH = 2.8f // width in blocks
     private const val TEXT_REF = 0.025f

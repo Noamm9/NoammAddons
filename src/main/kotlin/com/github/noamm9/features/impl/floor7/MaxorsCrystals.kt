@@ -15,9 +15,9 @@ import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket
 
 object MaxorsCrystals: Feature("Utilities for F7 Maxor's Crystals") {
-    private val spawnTimer by ToggleSetting("Spawn Timer").withDescription("Shows on screen a Tick Timer on screen for when the crystals with respawn")
-    private val placeTimer by ToggleSetting("Place Timer").withDescription("Sends in chat the time took to place the crystal after picking it up")
-    private val placeAlert by ToggleSetting("Place Alert").withDescription("Shows on screen when you have a Energy Crystal in your hotbar that you didn't place")
+    private val spawnTimer by ToggleSetting("Spawn Timer").withDescription("Shows a Tick Timer on screen for when the crystals will respawn")
+    private val placeTimer by ToggleSetting("Place Timer").withDescription("Sends in chat the time it took to place the crystal after picking it up")
+    private val placeAlert by ToggleSetting("Place Alert").withDescription("Shows on screen when you have an Energy Crystal in your hotbar that you didn't place")
 
     private val pickupRegex = Regex("^(\\w+) picked up an Energy Crystal!")
     private val spawnRegex = Regex("^\\[BOSS] Maxor: THAT BEAM! IT HURTS! IT HURTS!!$|^\\[BOSS] Maxor: YOU TRICKED ME!$")

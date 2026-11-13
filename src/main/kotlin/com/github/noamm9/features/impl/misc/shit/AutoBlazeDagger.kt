@@ -15,7 +15,7 @@ import net.minecraft.network.protocol.game.ClientboundSetSubtitleTextPacket
 import net.minecraft.world.entity.decoration.ArmorStand
 
 object AutoBlazeDagger: Feature("Automatically swaps to the correct dagger for blaze!") {
-    private val swapDelay by SliderSetting("Swap Delay", 100, 0, 300, 1).withDescription("Delay to swap in miliseconds")
+    private val swapDelay by SliderSetting("Swap Delay", 100, 0, 300, 1).withDescription("Delay to swap in milliseconds")
     private var lastSwap = System.currentTimeMillis()
     private var clicked = false
 

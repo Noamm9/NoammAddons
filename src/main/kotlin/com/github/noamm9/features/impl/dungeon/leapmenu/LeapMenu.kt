@@ -49,7 +49,7 @@ object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
     val scale by SliderSetting("Menu Scale", 50f, 30, 100, 1).showIf { customLeapMenu.value }.section("Default")
     val showLastDoorOpener by ToggleSetting("Show Last Door Opener", false).showIf { customLeapMenu.value }
     val tintDeadPlayers by ToggleSetting("Tint Dead Players", true).showIf { customLeapMenu.value }
-    val highlightInCore by ToggleSetting("Highlight Players in core", true).withDescription("Hightlights teammates in green if they are inside core in F7/M7 S3").showIf { customLeapMenu.value }
+    val highlightInCore by ToggleSetting("Highlight Players in core", true).withDescription("Highlights teammates in green if they are inside core in F7/M7 S3").showIf { customLeapMenu.value }
 
     val mapLeapScale by SliderSetting("Map Leap Scale", 1.5f, 0.5f, 3f, 0.1f).showIf { customLeapMenu.value && renderMode.value == 1 }.section("Map")
     private val mapLeapAfterBlood by ToggleSetting("After Blood Only", false).withDescription("Use the Default leap menu until the Blood opens, then switch to Map.").showIf { customLeapMenu.value && renderMode.value == 1 }

@@ -14,8 +14,8 @@ import net.minecraft.sounds.SoundEvents
 import kotlin.math.ceil
 import kotlin.math.roundToInt
 
-object MelodyDisplay: Feature("Displays the current progress someone for melody on screen.") {
-    private val melodyFormat by TextInputSetting("Format", "{name} has {progress} melody").withDescription("replaces {name}, {class} & {progress} with the player name, dungeon class and melody progress. &bSupports code codes")
+object MelodyDisplay: Feature("Displays someone's current melody progress on screen.") {
+    private val melodyFormat by TextInputSetting("Format", "{name} has {progress} melody").withDescription("replaces {name}, {class} & {progress} with the player name, dungeon class and melody progress. &bSupports color codes")
     private val alertDuration by SliderSetting("Alert Duration", 2.5f, 0f, 5f, 0.1f)
     private val soundEnabled by ToggleSetting("Play sound", true).withDescription("Should it play a sound when someone gets melody?")
     private val sound = createSoundSettings("Sound", SoundEvents.EXPERIENCE_ORB_PICKUP) { soundEnabled.value }

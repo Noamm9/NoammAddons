@@ -17,7 +17,7 @@ import net.minecraft.world.level.block.SkullBlock
 import net.minecraft.world.level.block.entity.SkullBlockEntity
 
 object BreakerHelper: Feature("Utilities for Dungeon Breaker") {
-    private val preventMine by ToggleSetting("Prevent Mine").jsonName("Prevent Secret Mine").withDescription("Prevents you from breaking blocks that cant be broken.")
+    private val preventMine by ToggleSetting("Prevent Mine").jsonName("Prevent Secret Mine").withDescription("Prevents you from breaking blocks that can't be broken.")
     private val preventMiningWithoutCharges by ToggleSetting("Prevent Mine Without Charges").withDescription("Prevents you from breaking blocks when your breaker is out of charges")
 
     // tooltip says +2 every sec but the server actually gives +2 three times every sec. thx hypixel
