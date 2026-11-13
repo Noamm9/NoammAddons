@@ -4,7 +4,7 @@ import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.event.EventBus.register
 import com.github.noamm9.event.impl.RenderOverlayEvent
 import com.github.noamm9.init.types.ISelfInit
-import com.github.noamm9.utils.ChatUtils.addColor
+import com.github.noamm9.utils.ChatUtils.toComponent
 import com.github.noamm9.utils.ColorUtils
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.NumbersUtils.minus
@@ -18,7 +18,6 @@ import net.minecraft.client.gui.render.TextureSetup
 import net.minecraft.client.renderer.RenderPipelines
 import net.minecraft.client.renderer.state.gui.GuiElementRenderState
 import net.minecraft.locale.Language
-import net.minecraft.network.chat.FormattedText
 import net.minecraft.resources.Identifier
 import net.minecraft.util.FormattedCharSequence
 import net.minecraft.world.inventory.Slot
@@ -41,7 +40,7 @@ object Render2D: ISelfInit {
             visualOrderLanguage = language
         }
 
-        return visualOrderCache.getOrPut(this) { language.getVisualOrder(FormattedText.of(addColor())) }
+        return visualOrderCache.getOrPut(this) { language.getVisualOrder(toComponent()) }
     }
 
     override fun init() {
@@ -122,7 +121,6 @@ object Render2D: ISelfInit {
         text(mc.font, str.visualOrder(), 0, 0, color.rgb, shadow)
         pose().popMatrix()
     }
-
 
     fun GuiGraphicsExtractor.drawCenteredString(str: String, x: Number, y: Number, color: Color = Color.WHITE, scale: Number = 1, shadow: Boolean = true) {
         val fScale = scale.toFloat()

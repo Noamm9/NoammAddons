@@ -9,6 +9,7 @@ import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ChatUtils.unformattedText
 import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.dungeons.DungeonListener
+import com.github.noamm9.utils.dungeons.enums.DungeonClass
 import com.github.noamm9.utils.location.LocationUtils.F7Phase
 import com.github.noamm9.utils.location.LocationUtils.dungeonFloorNumber
 import com.github.noamm9.utils.location.LocationUtils.inBoss
@@ -267,9 +268,9 @@ object F7Titles: Feature(name = "F7 Titles", description = "Custom Titles for F7
         }
 
         val clazz = DungeonListener.dungeonTeammates.find { it.name == name }?.clazz
-        val classColor = clazz?.code ?: "&7"
+        val classColor = clazz?.code ?: DungeonClass.Empty.code
         val formattedName = "$classColor$name&r"
-        val formattedClass = clazz?.name?.let { "$classColor$it&r" } ?: "&7Unknown&r"
+        val formattedClass = clazz?.name?.let { "$classColor$it&r" } ?: "${DungeonClass.Empty.code}Unknown&r"
         val formattedProgress = "${ColorUtils.colorCodeByPercent(min, max)}$min&8/&a$max"
 
         return terminalTitleFormat.value

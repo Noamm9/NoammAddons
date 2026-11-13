@@ -63,7 +63,6 @@ fun String.remove(vararg patterns: Regex): String = patterns.fold(this) { acc, r
 
 inline fun <T> catch(block: () -> T) = try {
     block()
-}
-catch (_: Throwable) {
+} catch (_: Throwable) {
     null
 }

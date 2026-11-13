@@ -8,6 +8,7 @@ import com.github.noamm9.features.impl.dungeon.map.MapConfig
 import com.github.noamm9.init.types.ISelfInit
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ChatUtils.addColor
+import com.github.noamm9.utils.ChatUtils.toComponent
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.DungeonPlayer
 import com.github.noamm9.utils.dungeons.map.core.*
@@ -88,7 +89,7 @@ object ClearInfoUpdater: ISelfInit {
                 val playerFormatted = "${teammate.clazz.code}${teammate.name}"
                 val foundSecrets = secretsAfterRun - before
 
-                val baseComp = NoammAddons.PREFIX.copy().append(Component.literal(" $playerFormatted&f:&r ".addColor()))
+                val baseComp = NoammAddons.PREFIX.copy().append(" $playerFormatted&f:&r ".toComponent())
                 val (solo, stacked) = teammate.clearedRooms
                 val deaths = teammate.deaths
 

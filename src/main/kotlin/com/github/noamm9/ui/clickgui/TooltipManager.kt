@@ -4,6 +4,7 @@ import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.ui.clickgui.components.settings.Style
 import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.utils.render.Render2D.drawRect
+import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.RenderHelper.width
 import com.github.noamm9.utils.render.RenderHelper.wrap
 import net.minecraft.client.gui.GuiGraphicsExtractor
@@ -50,7 +51,7 @@ object TooltipManager {
 
         var currentY = ty + padding
         lines.forEach { line ->
-            context.text(mc.font, line, (tx + padding).toInt(), currentY.toInt(), - 1, true)
+            context.drawString(line, (tx + padding).toInt(), currentY.toInt())
             currentY += mc.font.lineHeight + 2
         }
 

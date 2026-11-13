@@ -2,7 +2,6 @@ package com.github.noamm9.utils.render.world
 
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.compat.rotateCompat
-import com.github.noamm9.utils.ChatUtils.addColor
 import com.github.noamm9.utils.NumbersUtils.times
 import com.github.noamm9.utils.render.Render2D.visualOrder
 import com.github.noamm9.utils.render.RenderHelper.width
@@ -270,7 +269,7 @@ object Render3D {
         matrixStack.rotateCompat(camera.orientation)
         matrixStack.scale(toScale, - toScale, toScale)
 
-        for ((i, line) in text.addColor().lineSequence().withIndex()) collector.submitText(
+        for ((i, line) in text.lineSequence().withIndex()) collector.submitText(
             matrixStack, - line.width() / 2f, i * 9f, line.visualOrder(), true,
             if (phase) Font.DisplayMode.SEE_THROUGH else Font.DisplayMode.NORMAL,
             LightCoordsUtil.FULL_BRIGHT, color.rgb, 0, 0

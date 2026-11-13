@@ -7,6 +7,7 @@ import com.github.noamm9.event.impl.TickEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.utils.containsOneOf
 import com.github.noamm9.utils.dungeons.DungeonListener
+import com.github.noamm9.utils.dungeons.enums.DungeonClass
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.RenderHelper.width
@@ -57,8 +58,8 @@ object MelodyDisplay: Feature("Displays the current progress someone for melody 
             if (LocationUtils.F7Phase != 3) return@register
             val (name, progress) = parseMelodyMessage(event.unformattedText) ?: return@register
             val clazz = DungeonListener.dungeonTeammates.find { it.name == name }?.clazz
-            val color = clazz?.code ?: "&7"
-            val clazzName = clazz?.name?.let { "$color$it&r" } ?: "&7Unknown&r"
+            val color = clazz?.code ?: DungeonClass.Empty.code
+            val clazzName = clazz?.name?.let { "$color$it&r" } ?: "${DungeonClass.Empty.code}Unknown&r"
 
             currentState = MelodyState("$color$name&r", clazzName, progress, System.currentTimeMillis())
             if (soundEnabled.value) sound.invoke()
@@ -70,8 +71,7 @@ object MelodyDisplay: Feature("Displays the current progress someone for melody 
         if (! message.startsWith("Party > ")) return null
         val name = melodyRegex.find(message)?.groupValues?.get(1)?.takeUnless { it == mc.user.name } ?: return null
         val progress = (3 downTo 0).find { i ->
-            ! message.endsWith(")") &&
-            message.containsOneOf(
+            ! message.endsWith(")") && message.containsOneOf(
                 "$i/4", "${i * 25}%",
                 "$i/3", "${ceil(i * 33.33).roundToInt()}%", "${i * 33}%"
             )

@@ -41,13 +41,13 @@ object TeammateESP: Feature(
             if (! LocationUtils.inDungeon) return@register
             for (teammate in DungeonListener.dungeonTeammatesNoSelf) {
                 val entity = teammate.entity ?: continue
-                val color = teammate.clazz.code
+                val classColor = teammate.clazz.code
                 val renderVec = entity.renderVec
                 val distance = renderVec.distanceTo(player.renderVec)
                 val scale = (distance * 0.12f).coerceAtLeast(1.0)
 
                 event.ctx.renderString(
-                    "&e[${teammate.clazz.name[0]}&e] $color${teammate.name}",
+                    "&e[${teammate.clazz.name[0]}&e] $classColor${teammate.name}",
                     renderVec.x,
                     renderVec.y + entity.bbHeight + 0.7 + distance * 0.015f,
                     renderVec.z,
