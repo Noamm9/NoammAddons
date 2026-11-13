@@ -11,6 +11,7 @@ import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.NumbersUtils.romanToDecimal
 import com.github.noamm9.utils.NumbersUtils.toFixed
+import com.github.noamm9.utils.dungeons.DungeonUtils.getClassByName
 import com.github.noamm9.utils.items.ItemRarity
 import com.github.noamm9.utils.items.ItemUtils.lore
 import com.github.noamm9.utils.network.ProfileUtils
@@ -59,7 +60,7 @@ object PartyFinder: Feature(), ICommandProvider {
     private val floorRegex = Regex("Floor:\\s*Floor\\s+(\\w+)")
     private val selectedClassRegex = Regex("Currently Selected: (.+)")
     private val selectDungeonClassRegex = Regex("§7View and select a dungeon class\\.")
-    private val classNames = listOf("&4&lArcher", "&a&lTank", "&6&lBerserk", "&5&lHealer", "&b&lMage")
+    private val classNames = listOf("&lArcher", "&lTank", "&lBerserk", "&lHealer", "&lMage")
     private var selectedClass: String? = null
     private var inPartyFinder = false
 
@@ -97,7 +98,9 @@ object PartyFinder: Feature(), ICommandProvider {
             }
 
             if (showMissingOverlay.value) {
-                val missingClasses = classNames.filter { classes.indexOf(it.removeFormatting()) == - 1 }.map { it.take(5) }
+                val missingClasses = classNames.filter { classes.indexOf(it.removeFormatting()) == - 1 }.map {
+                    "${getClassByName(it.removeFormatting()).code}${it.take(3)}"
+                }
                 val missing = listOf(
                     missingClasses.take(2).joinToString(""),
                     missingClasses.drop(2).take(2).joinToString("")

@@ -3,6 +3,7 @@ package com.github.noamm9.utils.dungeons
 import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.features.impl.dungeon.ScoreCalculator
 import com.github.noamm9.init.NetworkLoop.electionData
+import com.github.noamm9.utils.dungeons.enums.DungeonClass
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.network.data.ElectionData
 import net.minecraft.core.BlockPos
@@ -43,4 +44,13 @@ object DungeonUtils {
         "Treasure Talisman", "Revive Stone", "Architect's First Draft",
         "Secret Dye", "Candycomb"
     )
+
+    fun getClassByName(className: String): DungeonClass = when (className.uppercase()) {
+        "ARCHER" -> DungeonClass.Archer
+        "BERSERK" -> DungeonClass.Berserk
+        "HEALER" -> DungeonClass.Healer
+        "MAGE" -> DungeonClass.Mage
+        "TANK" -> DungeonClass.Tank
+        else -> DungeonClass.Empty
+    }
 }
