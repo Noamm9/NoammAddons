@@ -1,6 +1,8 @@
 package com.github.noamm9.mixin;
 
 import com.github.noamm9.features.impl.misc.NameTagTweaks;
+import com.github.noamm9.features.impl.visual.PlayerOpacity;
+import com.github.noamm9.interfaces.ITranslucentEntity;
 import com.github.noamm9.utils.render.DepthTestGlow;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
@@ -23,6 +25,11 @@ public abstract class MixinEntityRenderer {
         if (state.outlineColor == 0) return;
         if (! DepthTestGlow.shouldDepthTest(entity)) return;
         state.outlineColor = DepthTestGlow.tag(state.outlineColor);
+    }
+
+    @Inject(method = "extractRenderState", at = @At("TAIL"))
+    private void setTranslucentOpacity(Entity entity, EntityRenderState state, float partialTicks, CallbackInfo ci) {
+        ((ITranslucentEntity) state).noammaddons$setOpacity(PlayerOpacity.getOpacity(entity));
     }
 
     @Inject(method = "extractNameTags(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/client/renderer/entity/state/EntityRenderState;FDD)V", at = @At("RETURN"))
