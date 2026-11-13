@@ -68,13 +68,18 @@ class TerminalSimScreen(private val sim: SimTerminal): Screen(Component.literal(
     override fun isPauseScreen() = false
 
     private fun click() {
+        if (isFirstClickDelay()) return
+
         val click = with(TerminalSolver) { terminal.hoveredClick() } ?: return
-        click(click)
+        applyClick(click)
     }
 
     fun click(click: TerminalClick) {
         if (isFirstClickDelay()) return
+        applyClick(click)
+    }
 
+    private fun applyClick(click: TerminalClick) {
         terminal.onSlotClick(click.slotId)
         clickedSlots.add(click)
         TerminalSolver.playClickSound()
