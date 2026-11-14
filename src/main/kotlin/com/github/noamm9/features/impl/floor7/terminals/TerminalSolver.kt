@@ -6,6 +6,7 @@ import com.github.noamm9.commands.NaCommand
 import com.github.noamm9.config.types.*
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
+import com.github.noamm9.features.IFeatureWindow
 import com.github.noamm9.features.impl.floor7.terminals.impl.*
 import com.github.noamm9.features.impl.floor7.terminals.sim.*
 import com.github.noamm9.init.types.ICommandProvider
@@ -28,21 +29,17 @@ import net.minecraft.network.protocol.game.ServerboundContainerClickPacket
 import net.minecraft.sounds.SoundEvents
 import net.minecraft.world.item.ItemStack
 import java.awt.Color
+import kotlin.reflect.KMutableProperty0
 
-object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICustomMenu, ICommandProvider {
+object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICustomMenu, ICommandProvider, IFeatureWindow {
+    override fun Feature.createWindow() = TerminalSolverWindow(this)
+
     private val redGreenTerm by ToggleSetting("Red-Green", true).section("Toggles")
     private val colorsTerm by ToggleSetting("Colors", true)
     private val startsWithTerm by ToggleSetting("Start-With", true)
     private val rubixTerm by ToggleSetting("Rubix", true)
     private val numbersTerm by ToggleSetting("Numbers", true)
     private val melodyTerm by ToggleSetting("Melody", true)
-
-    init {
-        configSettings.add(ButtonSetting("Terminal Simulator") {
-            mc.execute { mc.gui.screen()?.onClose() }
-            GuiUtils.setScreen(TerminalSimSelectorScreen())
-        }.withDescription("Opens the Terminal Simulator. can also be open via /na termsim"))
-    }
 
     val simAutoNext by ToggleSetting("Simulator Auto Next").hidden()
 
@@ -55,7 +52,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
     private val slotStyle by DropdownSetting("Slot Style", 0, listOf("Rect", "Bordered-Rect", "Button"))
     val fcDelay by RangeSliderSetting("First Click delay", 350 to 350, 0, 400, 5, "ms").withDescription("The delay for how long a terminal will block clicks when you open it").jsonName("FCD-Random")
     val breakTimeout by SliderSetting("Break Timeout", 500, 300, 800, 50, "ms").withDescription("How long should the solver wait for a click to be confirmed by hypixel")
-    private val maxCps by SliderSetting("Max CPS", 15, 1, 20, 1, " CPS").withDescription("How many drop button presses should register in a second")
+    val maxCps by SliderSetting("Max CPS", 15, 1, 20, 1, " CPS").withDescription("How many drop button presses should register in a second")
     private val backgroundColor by ColorSetting("Background Color", Color(0, 0, 0, 100))
     private val borderColor by ColorSetting("Border Color", Color(255, 255, 255))
     private val rainbowBorder by ToggleSetting("Rainbow Border").withDescription("Animate a rainbow gradient around the terminal menu. Opacity follows Border Color.")
@@ -144,21 +141,32 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
         val uiScale = 3f * scale.value
         val screenWidth = Resolution.width / uiScale
         val screenHeight = Resolution.height / uiScale
-        val (gridWidth, gridHeight) = handler.gridSize
-        val gap = slotGap.value
-        val pad = padding.value
-        val slotSize = 16f
+        val (width, height) = gridSpan(handler)
 
-        val width = gridWidth * slotSize + (gridWidth - 1) * gap
-        val height = gridHeight * slotSize + (gridHeight - 1) * gap
         val offsetX = screenWidth / 2f - width / 2f
         val offsetY = screenHeight / 2f - height / 2f
         val mx = (Resolution.getMouseX() / uiScale) - offsetX
         val my = (Resolution.getMouseY() / uiScale) - offsetY
 
+        val solutionSlots = handler.solution.map { it.slotId }
+        val minCol = cachedMinCol ?: if (solutionSlots.isEmpty()) 0 else solutionSlots.minOf { it % 9 }.also { cachedMinCol = it }
+        val minRow = cachedMinRow ?: if (solutionSlots.isEmpty()) 0 else solutionSlots.minOf { it / 9 }.also { cachedMinRow = it }
+
         ctx.pose().pushMatrix()
         ctx.pose().scale(uiScale, uiScale)
         ctx.pose().translate(offsetX, offsetY)
+
+        drawTerminal(ctx, handler, items, minCol, minRow, mx, my, ::hoveredSlot)
+
+        ctx.pose().popMatrix()
+        Resolution.pop(ctx)
+    }
+
+    fun drawTerminal(ctx: GuiGraphicsExtractor, handler: Terminal, items: Map<Int, ItemStack>, minCol: Int, minRow: Int, mx: Float, my: Float, hovered: KMutableProperty0<Int?>) {
+        val (width, height) = gridSpan(handler)
+        val gap = slotGap.value
+        val pad = padding.value
+        val slotSize = 16f
 
         if (titleColor.value.isVisable()) ctx.drawCenteredString(handler.displayName, width / 2f, - 15f - pad, color = titleColor.value, scale = 1.2f)
         if (backgroundColor.value.isVisable()) ctx.drawRect(- pad, - pad, width + pad * 2, height + pad * 2, backgroundColor.value)
@@ -166,10 +174,6 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
             if (rainbowBorder.value) ctx.drawRainbowBorder(- pad, - pad, width + pad * 2, height + pad * 2, rainbowBorderSpeed.value, borderColor.value.alpha)
             else ctx.drawBorder(- pad, - pad, width + pad * 2, height + pad * 2, borderColor.value)
         }
-
-        val solutionSlots = handler.solution.map { it.slotId }
-        val minCol = cachedMinCol ?: if (solutionSlots.isEmpty()) 0 else solutionSlots.minOf { it % 9 }.also { cachedMinCol = it }
-        val minRow = cachedMinRow ?: if (solutionSlots.isEmpty()) 0 else solutionSlots.minOf { it / 9 }.also { cachedMinRow = it }
 
         fun slotPos(slot: Int): Pair<Float, Float> {
             val col = slot % 9 - minCol
@@ -179,7 +183,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
             return x to y
         }
 
-        hoveredSlot = run {
+        hovered.set(run {
             if (mx < 0 || my < 0 || mx > width || my > height) return@run null
 
             val cell = slotSize + gap
@@ -187,7 +191,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
             val row = (my / cell).toInt() + minRow
 
             return@run row * 9 + col
-        }
+        })
 
         handler.solution.forEachIndexed { index, click ->
             val slot = click.slotId
@@ -202,12 +206,18 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
             }
         }
 
-        handler.render(ctx, solutionColor.value, ::slotPos, mx, my, ::hoveredSlot)
-
-        ctx.pose().popMatrix()
-        Resolution.pop(ctx)
+        handler.render(ctx, solutionColor.value, ::slotPos, mx, my, hovered)
     }
 
+    fun gridSpan(handler: Terminal) = spanFor(handler.gridSize.first) to spanFor(handler.gridSize.second)
+
+    fun menuMargins(): FloatArray {
+        val pad = padding.value
+        val top = if (titleColor.value.isVisable()) 15f + pad else pad
+        return floatArrayOf(pad, top, pad, pad)
+    }
+
+    fun isSolverEnabled(handler: Terminal) = handler.enabled()
 
     fun spanFor(count: Int) = count * 16f + (count - 1) * slotGap.value
 
