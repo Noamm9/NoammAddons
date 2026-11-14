@@ -6,7 +6,6 @@ import com.github.noamm9.NoammAddons.logger
 import com.github.noamm9.compat.openUri
 import com.github.noamm9.config.types.ButtonSetting
 import com.github.noamm9.config.types.DropdownSetting
-import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.GameStartEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.notification.NotificationManager
@@ -22,7 +21,8 @@ object UpdateChecker: Feature(
     "Checks GitHub for new releases or Action builds of the mod.\n&c&lDOES NOT AUTO UPDATE",
     toggled = true,
 ) {
-    val checkOnStartup by ToggleSetting("Check On Startup", true).withDescription("Automatically checks for updates a few seconds after the game starts.")
+    override fun toggle() = Unit
+
     val source by DropdownSetting("Update Source", 0, listOf("Releases", "Action Builds")).withDescription("Releases checks the latest published GitHub release. Action Builds checks the latest successful CI build.")
     val check by ButtonSetting("Check For Updates") { ThreadUtils.async { runCheck(true) } }.withDescription("Manually checks using the source selected above.")
     val openPage by ButtonSetting("Open Latest Build/Release") { openPage() }.withDescription("Opens the latest release or Actions run page in your browser.")
@@ -34,17 +34,9 @@ object UpdateChecker: Feature(
 
     override fun init() {
         register<GameStartEvent> {
-            if (enabled && checkOnStartup.value) ThreadUtils.setTimeout(5000) { runCheck() }
-        }
-
-        var firstRun = true
-        ThreadUtils.loop(TimeUnit.HOURS.toMillis(1)) {
-            if (firstRun) {
-                firstRun = false
-                return@loop
+            ThreadUtils.setTimeout(5000) {
+                ThreadUtils.loop(TimeUnit.HOURS.toMillis(1), block = ::runCheck)
             }
-
-            runCheck()
         }
     }
 
