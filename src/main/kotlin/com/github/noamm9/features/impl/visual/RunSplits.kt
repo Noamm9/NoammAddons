@@ -203,11 +203,11 @@ object RunSplits: Feature("A Splits HUD for Dungeons.") {
 
     private data class Split(var start: DualTime? = null, var end: DualTime? = null)
     private data class DialogueEntry(val name: String, val start: String? = null, val end: String? = null) {
-        @Transient private val startRegex = start?.toRegex()
-        @Transient private val endRegex = end?.toRegex()
+        @Transient private var startRegex: Regex? = null
+        @Transient private var endRegex: Regex? = null
 
-        fun startMatches(msg: String) = start == msg || startRegex?.matches(msg) == true
-        fun endMatches(msg: String) = end == msg || endRegex?.matches(msg) == true
+        fun startMatches(msg: String) = start == msg || (startRegex ?: start?.toRegex()?.also { startRegex = it })?.matches(msg) == true
+        fun endMatches(msg: String) = end == msg || (endRegex ?: end?.toRegex()?.also { endRegex = it })?.matches(msg) == true
     }
 
     private fun dual(diff: DualTime, fmt: (Long) -> String) = "${fmt(diff.real / 50)} §7(§b${fmt(diff.ticks)}§7)"
