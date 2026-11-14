@@ -71,7 +71,7 @@ class CategoryPanel(val category: CategoryType, var x: Int, var y: Int, private 
 
             var currentY = y + HEADER_HEIGHT - scrollOffset.toInt()
 
-            context.scissor(x, y + HEADER_HEIGHT, WIDTH, currentScissorHeight)
+            context.scissor(x - 4, y + HEADER_HEIGHT, WIDTH + 8, currentScissorHeight)
 
             filteredFeatures.forEach { feature ->
                 if (currentY + BUTTON_HEIGHT > y + HEADER_HEIGHT && currentY < y + HEADER_HEIGHT + visibleHeight) {
