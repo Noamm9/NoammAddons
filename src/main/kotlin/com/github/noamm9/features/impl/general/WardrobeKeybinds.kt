@@ -2,6 +2,7 @@ package com.github.noamm9.features.impl.general
 
 //#if CHEAT
 //#endif
+import com.github.noamm9.compat.KEYBOARD_TYPE
 import com.github.noamm9.config.types.KeybindSetting
 import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.*
@@ -37,9 +38,8 @@ object WardrobeKeybinds: Feature("Make it possible to bind armor slots to your k
     //#endif
     private val keyMap = listOf(36, 37, 38, 39, 40, 41, 42, 43, 44)
 
-    private val hotbarKeyMap by lazy {
-        mc.options.keyHotbarSlots.withIndex().associate { (i, key) -> (key as IKeyMapping).key.value to i }
-    }
+    private val hotbarKeyMap get() =
+        mc.options.keyHotbarSlots.withIndex().associate { (i, key) -> (key as IKeyMapping).key to i }
 
     override fun init() {
         register<MainThreadPacketReceivedEvent.Pre> {
@@ -75,7 +75,7 @@ object WardrobeKeybinds: Feature("Make it possible to bind armor slots to your k
             if (! inWardrobeMenu) return@register
             if (System.currentTimeMillis() - lastClick < 300) return@register
             if (event.key.equalsOneOf(InputConstants.KEY_ESCAPE, KeyMappingHelper.getBoundKeyOf(mc.options.keyInventory).value)) return@register
-            val index = if (useHotbarBinds.value) hotbarKeyMap[event.key] ?: return@register
+            val index = if (useHotbarBinds.value) hotbarKeyMap[KEYBOARD_TYPE.getOrCreate(event.key)] ?: return@register
             else keybinds.withIndex().find { (_, key) -> key.isDown() }?.index ?: return@register
             val slot = keyMap.getOrNull(index)?.takeUnless { player.containerMenu.getSlot(it).item == ItemStack.EMPTY } ?: return@register
             event.isCanceled = true
@@ -94,7 +94,7 @@ object WardrobeKeybinds: Feature("Make it possible to bind armor slots to your k
             if (! inWardrobeMenu) return@register
             if (System.currentTimeMillis() - lastClick < 300) return@register
             if (event.button.equalsOneOf(InputConstants.MOUSE_BUTTON_LEFT, InputConstants.MOUSE_BUTTON_RIGHT, InputConstants.MOUSE_BUTTON_MIDDLE)) return@register
-            val index = if (useHotbarBinds.value) hotbarKeyMap[event.button] ?: return@register
+            val index = if (useHotbarBinds.value) hotbarKeyMap[InputConstants.Type.MOUSE.getOrCreate(event.button)] ?: return@register
             else keybinds.withIndex().find { (_, key) -> key.isDown() }?.index ?: return@register
             val slot = keyMap.getOrNull(index)?.takeUnless { player.containerMenu.getSlot(it).item == ItemStack.EMPTY } ?: return@register
             event.isCanceled = true

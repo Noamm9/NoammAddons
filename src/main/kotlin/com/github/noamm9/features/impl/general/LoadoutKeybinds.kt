@@ -1,5 +1,6 @@
 package com.github.noamm9.features.impl.general
 
+import com.github.noamm9.compat.KEYBOARD_TYPE
 import com.github.noamm9.config.types.*
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
@@ -47,9 +48,8 @@ object LoadoutKeybinds: Feature("Allows you to bind loadout slots to your keyboa
         41, 42, 43
     )
 
-    private val hotbarKeyMap by lazy {
-        mc.options.keyHotbarSlots.withIndex().associate { (i, key) -> (key as IKeyMapping).key.value to i }
-    }
+    private val hotbarKeyMap get() =
+        mc.options.keyHotbarSlots.withIndex().associate { (i, key) -> (key as IKeyMapping).key to i }
 
     override fun init() {
         register<MainThreadPacketReceivedEvent.Pre> {
@@ -81,7 +81,7 @@ object LoadoutKeybinds: Feature("Allows you to bind loadout slots to your keyboa
             if (! inLoadoutMenu) return@register
             if (System.currentTimeMillis() - lastClick < 300) return@register
             if (event.key.equalsOneOf(InputConstants.KEY_ESCAPE, KeyMappingHelper.getBoundKeyOf(mc.options.keyInventory).value)) return@register
-            val index = if (useHotbarBinds.value) hotbarKeyMap[event.key] ?: return@register
+            val index = if (useHotbarBinds.value) hotbarKeyMap[KEYBOARD_TYPE.getOrCreate(event.key)] ?: return@register
             else keybinds.indexOfFirst(KeybindSetting::isDown).takeUnless { it == - 1 } ?: return@register
             event.isCanceled = true
             click(index)
@@ -91,7 +91,7 @@ object LoadoutKeybinds: Feature("Allows you to bind loadout slots to your keyboa
             if (! inLoadoutMenu) return@register
             if (System.currentTimeMillis() - lastClick < 300) return@register
             if (event.button.equalsOneOf(InputConstants.MOUSE_BUTTON_LEFT, InputConstants.MOUSE_BUTTON_RIGHT)) return@register
-            val index = if (useHotbarBinds.value) hotbarKeyMap[event.button] ?: return@register
+            val index = if (useHotbarBinds.value) hotbarKeyMap[InputConstants.Type.MOUSE.getOrCreate(event.button)] ?: return@register
             else keybinds.indexOfFirst { it.matches(event.button, mouse = true) }.takeUnless { it == - 1 } ?: return@register
             event.isCanceled = true
             click(index)
