@@ -16,39 +16,54 @@ object ServerTickFixer {
     private const val BURST_WINDOW = 38_000_000L
     private const val TICK_NANOS = 50_000_000L
     private const val MAX_CORRECTION = 100L
+    private const val PINGLESS_BURSTS = 20
+    private const val MAX_PINGLESS_GAP = 250_000_000L
+    private const val FREEZE_NANOS = 2_000_000_000L
 
     private var lastBurst = 0L
-    private var lastPing = 0L
+    private var pinglessBursts = 0
     private var anchorGameTime = - 1L
     private var postedTicks = 0L
     private var pendingSkips = 0L
     private var usingPings = true
+    private var worldHasPings = false
 
     @JvmStatic
     fun onPacket(packet: Packet<*>) {
         val now = System.nanoTime()
 
         when (packet) {
-            is ClientboundLoginPacket, is ClientboundRespawnPacket -> return reset()
             is ClientboundKeepAlivePacket, is ClientboundSystemChatPacket, is ClientboundPongResponsePacket -> return
+
+            is ClientboundLoginPacket, is ClientboundRespawnPacket -> {
+                worldHasPings = false
+                return reset()
+            }
+
             is ClientboundPingPacket -> if (packet.id != 0) {
-                lastPing = now
+                pinglessBursts = 0
+                worldHasPings = true
                 anchorGameTime = - 1L
-                if (! usingPings) {
-                    usingPings = true
-                }
+                usingPings = true
                 return postTicks(1)
             }
         }
 
-        if (now - lastPing < 1_000_000_000L) return
         if (usingPings) {
+            if (worldHasPings) return
+            if (now - lastBurst <= BURST_WINDOW) return
+            pinglessBursts = if (now - lastBurst > MAX_PINGLESS_GAP) 1 else pinglessBursts + 1
+            lastBurst = now
+            if (pinglessBursts < PINGLESS_BURSTS) return
+
             usingPings = false
             logger.info("[ServerTickFixer] falling back to packet bursts + SetTime for server ticks")
+            reset()
         }
 
         if (now - lastBurst > BURST_WINDOW) {
-            val ticks = if (lastBurst == 0L) 1L else ((now - lastBurst) / TICK_NANOS.toDouble() + 0.4).toLong().coerceAtLeast(1)
+            val gap = now - lastBurst
+            val ticks = if (lastBurst == 0L || gap > FREEZE_NANOS) 1L else (gap / TICK_NANOS.toDouble() + 0.4).toLong().coerceAtLeast(1)
             lastBurst = now
             val skipped = minOf(ticks, pendingSkips)
             pendingSkips -= skipped
