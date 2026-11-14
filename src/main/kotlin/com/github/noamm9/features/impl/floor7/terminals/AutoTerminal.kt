@@ -93,6 +93,7 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
 
         register<TickEvent.End> {
             if (simScreen == null) return@register
+            if (! offtick.value) autoTick()
             melodyTick()
         }
 
