@@ -138,7 +138,7 @@ class CommandShortcutsScreen: Screen(Component.literal("Command Shortcuts")) {
             return true
         }
 
-        if (event.button() == 0 && scroll.mouseClicked(mx, my)) return true
+        if (event.button() == InputConstants.MOUSE_BUTTON_LEFT && scroll.mouseClicked(mx, my)) return true
 
         val inView = mx >= viewX && mx <= viewX + viewW && my >= viewY && my <= viewY + viewH
 
