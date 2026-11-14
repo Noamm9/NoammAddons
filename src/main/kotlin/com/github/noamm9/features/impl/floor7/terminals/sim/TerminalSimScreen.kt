@@ -20,6 +20,8 @@ import net.minecraft.world.item.ItemStack
 class TerminalSimScreen(private val sim: SimTerminal): Screen(Component.literal("Terminal Simulator")) {
     private val clickedSlots = mutableListOf<TerminalClick>()
     private var openTime = 0L
+    private var fcDelay = 0
+
     val terminal = sim.terminal
 
     override fun added() {
@@ -29,6 +31,7 @@ class TerminalSimScreen(private val sim: SimTerminal): Screen(Component.literal(
         sim.generate()
         clickedSlots.clear()
         openTime = System.currentTimeMillis()
+        fcDelay = TerminalSolver.fcDelay.random()
 
         if (terminal is MelodyTerminal) sim.items.forEach { (slot, stack) -> terminal.solve(sim.items, sim.title, slot, stack) }
         else terminal.solve(sim.items, sim.title, 0, ItemStack.EMPTY)
@@ -107,5 +110,5 @@ class TerminalSimScreen(private val sim: SimTerminal): Screen(Component.literal(
         )
     }
 
-    fun isFirstClickDelay() = System.currentTimeMillis() - openTime < TerminalSolver.fcDelay.random()
+    fun isFirstClickDelay() = System.currentTimeMillis() - openTime < fcDelay
 }
