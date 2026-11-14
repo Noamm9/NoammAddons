@@ -37,6 +37,9 @@ object PuzzleSolvers: Feature(), IFeatureWindow {
         .showIf { quiz.value }
 
     val tpmaze by ToggleSetting("Enabled    ").section("Teleport Maze")
+    val tpMazeTracer by ToggleSetting("Tracer")
+        .withDescription("Draws a line to the next teleport pad.")
+        .showIf { tpmaze.value }
     val correctTpPadColor by ColorSetting("Correct Pad Color", Color.GREEN).showIf { tpmaze.value }
     val wrongTpPadColor by ColorSetting("Wrong Pad Color", Color.RED).showIf { tpmaze.value }
 

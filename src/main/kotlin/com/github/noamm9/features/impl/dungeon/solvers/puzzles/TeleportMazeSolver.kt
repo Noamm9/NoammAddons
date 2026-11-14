@@ -5,14 +5,18 @@ import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers
 import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers.correctTpPadColor
+import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers.tpMazeTracer
 import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers.wrongTpPadColor
+import com.github.noamm9.utils.MathUtils.center
 import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.render.world.Render3D.renderBlock
+import com.github.noamm9.utils.render.world.Render3D.renderTracer
 import com.github.noamm9.utils.render.world.RenderContext
 import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.game.ClientboundPlayerPositionPacket
 import net.minecraft.world.level.block.Blocks
+import java.awt.Color
 import kotlin.math.*
 
 object TeleportMazeSolver: PuzzleSolver {
@@ -21,7 +25,8 @@ object TeleportMazeSolver: PuzzleSolver {
     private var minX: Int? = null
     private var minZ: Int? = null
     private var cells: List<Cell>? = null
-    private var orderedPads: MutableList<TpPad>? = null
+    private var correctPad: TpPad? = null
+    private var tracerPad: TpPad? = null
     private var inTpMaze = false
 
     override fun onRoomEnter(event: DungeonEvent.RoomEvent.onEnter) {
@@ -35,21 +40,24 @@ object TeleportMazeSolver: PuzzleSolver {
         inTpMaze = true
 
         scan(center)
+        val player = mc.player ?: return
+        updateTracer(player.x, player.z, player.yRot)
     }
 
     override fun onRenderWorld(ctx: RenderContext) {
         if (! inTpMaze) return
         val c = cells ?: return
-        val top = orderedPads?.takeIf { it.size >= 2 }?.take(2)
-
-        if (top != null && top[0].totalAngle != top[1].totalAngle) {
-            ctx.renderBlock(top[0].pos, correctTpPadColor.value, phase = true)
-        }
+        correctPad?.let { ctx.renderBlock(it.pos, correctTpPadColor.value, phase = true) }
 
         for (cell in c) for (pad in cell.pads) {
-            if (! pad.blacklisted) continue
+            if (! pad.blacklisted || isPadInStartOrEndCell(pad)) continue
             ctx.renderBlock(pad.pos, wrongTpPadColor.value)
         }
+
+        if (! tpMazeTracer.value) return
+        val nextPad = tracerPad ?: return
+        val color = if (nextPad == correctPad) correctTpPadColor.value else Color.WHITE
+        ctx.renderTracer(nextPad.pos.center.add(0.0, 5.0 / 16.0, 0.0), color)
     }
 
     override fun onPacket(event: MainThreadPacketReceivedEvent.Pre) {
@@ -59,12 +67,13 @@ object TeleportMazeSolver: PuzzleSolver {
         if (pos.x % 0.5 != 0.0 || pos.y != 69.5 || pos.z % 0.5 != 0.0) return
         val oldPad = getPadNear(mc.player !!.x, mc.player !!.z) ?: return
         val newPad = getPadNear(pos.x, pos.z) ?: return
-        if (isPadInStartOrEndCell(newPad)) return
-
         newPad.blacklisted = true
         oldPad.blacklisted = true
-
-        calcPadAngles(pos.x, pos.z, packet.change().yRot)
+        correctPad = correctPad?.takeUnless { it.blacklisted }
+        if (! isPadInStartOrEndCell(newPad)) {
+            calcPadAngles(pos.x, pos.z, packet.change().yRot)
+        }
+        updateTracer(pos.x, pos.z, packet.change().yRot)
     }
 
     override fun reset() {
@@ -72,7 +81,8 @@ object TeleportMazeSolver: PuzzleSolver {
         minX = null
         minZ = null
         cells = null
-        orderedPads = null
+        correctPad = null
+        tracerPad = null
     }
 
     private fun scan(center: BlockPos) {
@@ -101,6 +111,14 @@ object TeleportMazeSolver: PuzzleSolver {
         }
     }
 
+    private fun updateTracer(px: Double, pz: Double, yaw: Float) {
+        tracerPad = getCellAt(px, pz)?.pads?.filterNot { it.blacklisted }?.minWithOrNull(
+            compareBy<TpPad> { it != correctPad }
+                .thenBy { getAngleDiff(it.pos.x + 0.5 - px, it.pos.z + 0.5 - pz, yaw) }
+                .thenBy { it.pos.center.distanceToSqr(px, 69.5, pz) }
+        )
+    }
+
     private fun calcPadAngles(px: Double, pz: Double, yaw: Float) {
         val currentPads = mutableListOf<TpPad>()
         val c = cells ?: return
@@ -117,7 +135,7 @@ object TeleportMazeSolver: PuzzleSolver {
         }
 
         currentPads.sortBy { it.totalAngle }
-        orderedPads = currentPads
+        correctPad = currentPads.takeIf { it.size >= 2 && it[0].totalAngle != it[1].totalAngle }?.first()
     }
 
     private fun getAngleDiff(dx: Double, dz: Double, yaw: Float): Double {
@@ -139,8 +157,8 @@ object TeleportMazeSolver: PuzzleSolver {
         val mX = minX ?: return null
         val mZ = minZ ?: return null
 
-        val xi = x.toInt()
-        val zi = z.toInt()
+        val xi = floor(x).toInt()
+        val zi = floor(z).toInt()
 
         if (xi < mX || xi > mX + 23 || zi < mZ || zi > mZ + 23) return null
 
