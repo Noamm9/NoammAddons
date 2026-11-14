@@ -41,7 +41,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
         configSettings.add(ButtonSetting("Terminal Simulator") {
             mc.execute { mc.gui.screen()?.onClose() }
             GuiUtils.setScreen(TerminalSimSelectorScreen())
-        }.withDescription("Opens the Terminal Simulator. can also be open via /na termsim"))
+        }.withDescription("Opens the Terminal Simulator. Can also be opened via /na termsim"))
     }
 
     val simAutoNext by ToggleSetting("Simulator Auto Next").hidden()

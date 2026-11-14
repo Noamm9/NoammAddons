@@ -34,7 +34,7 @@ object AutoI4: Feature("Fully Automated I4") {
     private val rodSetting by ToggleSetting("Auto Rod", true).section("Actions")
     private val maskSetting by ToggleSetting("Auto Mask", true)
     private val leapSetting by ToggleSetting("Auto Leap", true)
-    private val leapToMelody by ToggleSetting("Leap To Melody").showIf { leapSetting.value }.withDescription("AutoLeaps to however has melody terminal open. overwrites the 'Leap Priority' option")
+    private val leapToMelody by ToggleSetting("Leap To Melody").showIf { leapSetting.value }.withDescription("AutoLeaps to whoever has the melody terminal open. Overwrites the 'Leap Priority' option")
     private val leapPriorities = listOf(DungeonClass.Tank, DungeonClass.Mage, DungeonClass.Healer, DungeonClass.Archer)
 
     private val swapOrder by DropdownSetting("Swap Order", 0, listOf("Rod First", "Mask First")).showIf { rodSetting.value && maskSetting.value }

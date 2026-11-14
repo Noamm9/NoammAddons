@@ -18,7 +18,7 @@ import java.awt.Color
 object SlotBinding: Feature("Allows you to bind slots to hotbar slots for quick item swaps.") {
     private val bindKey by KeybindSetting("Binding key", InputConstants.KEY_R).section("Keybind").withDescription("Press while hovering a hotbar slot and an inventory slot to link them.")
     private val showBoundSlots by ToggleSetting("Show Bound Slots", true).section("Rendering")
-    private val neuStyle by ToggleSetting("Hover Only", false).withDescription("Only shows bound slots when hovering over a them.").showIf { showBoundSlots.value }
+    private val neuStyle by ToggleSetting("Hover Only", false).withDescription("Only shows bound slots when hovering over them.").showIf { showBoundSlots.value }
     private val drawBorders by ToggleSetting("Draw Border", true).showIf { showBoundSlots.value }
     private val drawLines by ToggleSetting("Draw Line", true).showIf { showBoundSlots.value }
     private val borderColor by ColorSetting("Border Color", Color.PINK, false).showIf { showBoundSlots.value && drawBorders.value }.section("Colors")

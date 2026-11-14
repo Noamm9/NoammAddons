@@ -32,7 +32,7 @@ import java.awt.Color
 
 object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
     private val hud by ToggleSetting("HUD Display", true).section("General")
-    private val rerollValue by SliderSetting("Reroll Value", 5, 0, 100, 1, "M").withDescription("Prevents you from rerolling a chest if its profit is &b&lbigger&r then the &avalue in milions&r.\n\n&eoverride by pressing CTRL&r.\nset to 0 to disable")
+    private val rerollValue by SliderSetting("Reroll Value", 5, 0, 100, 1, "M").withDescription("Prevents you from rerolling a chest if its profit is &b&lbigger&r than the &avalue in millions&r.\n\n&eoverride by pressing CTRL&r.\nset to 0 to disable")
     private val includeEssence by ToggleSetting("Includes Essence", true)
     private val croesusChestsProfit by ToggleSetting("Croesus Chests Profit", true).section("Croesus")
     private val croesusChestHighlight by ToggleSetting("Highlight Croesus Chests", true)
@@ -291,7 +291,7 @@ object ChestProfit: Feature("Dungeon Chest Profit Calculator") {
             if (lastLine == "You already rerolled a chest!") return@register
             if (lastLine != "Click to reroll this chest!") return@register
             event.isCanceled = true
-            NotificationManager.push("Blocked Rerolling Chest", "Its profit dumbass.\nPress CTRL to override")
+            NotificationManager.push("Blocked Rerolling Chest", "It's profit, dumbass.\nPress CTRL to override")
         }
     }
 

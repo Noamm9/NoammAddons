@@ -26,7 +26,7 @@ import net.minecraft.world.phys.AABB
 import java.awt.Color
 import kotlin.math.min
 
-object LeapCounter: Feature("Shows how many players have leaped you") {
+object LeapCounter: Feature("Shows how many players have leaped to you") {
     private val alertComplete by ToggleSetting("Alert Complete", true)
     private val completeText by TextInputSetting("Complete Text", "&aEveryone Leaped!").showIf { alertComplete.value }
     private val completeSound = createSoundSettings("Complete Sound", SoundEvents.EXPERIENCE_ORB_PICKUP) { alertComplete.value }

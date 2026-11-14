@@ -16,7 +16,7 @@ import net.minecraft.network.protocol.game.ClientboundSoundPacket
 import net.minecraft.network.protocol.game.ServerboundUseItemPacket
 import net.minecraft.sounds.SoundEvents
 
-object TacTimer: Feature("Shows a 3 seconds timer when you use the Tactical Insertion ability") {
+object TacTimer: Feature("Shows a 3-second timer when you use the Tactical Insertion ability") {
     private val reverseTimer by ToggleSetting("Reverse Timer").withDescription("Flips the Timer to count up instead of down").section("Timer")
     private val prefix by ToggleSetting("Tac Prefix", true).withDescription("Adds \"Tac:\" prefix to the timer")
     private val suffix by ToggleSetting("Timer Suffix").withDescription("Adds \"s\" suffix to the timer")
