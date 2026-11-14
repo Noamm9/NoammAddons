@@ -13,10 +13,14 @@ interface SettingProvider {
 
     fun createSoundSettings(name: String, sound: SoundEvent, showIf: () -> Boolean = { true }): ButtonSetting {
         val sound = SoundSetting(name, sound).withDescription("The internal Minecraft sound key to play.").showIf(showIf)
-        val volume = SliderSetting("Volume", 0.5f, 0f, 1f, 0.1f).withDescription("The loudness of the sound.").showIf(showIf)
-        val pitch = SliderSetting("Pitch", 1f, 0f, 2f, 0.1f).withDescription("The pitch/frequency of the sound.").showIf(showIf)
+        val volume = RangeSliderSetting("Volume", 0.5f to 0.5f, 0f, 1f, 0.1f).withDescription("A random volume is picked from this range for each sound.").showIf(showIf)
+        val pitch = RangeSliderSetting("Pitch", 1f to 1f, 0f, 2f, 0.1f).withDescription("A random pitch is picked from this range for each sound.").showIf(showIf)
         val play = ButtonSetting("Play Sound", false) {
-            mc.execute { repeat(5) { SoundUtils.playSound(sound.value, volume.value, pitch.value) } }
+            mc.execute {
+                val playbackVolume = volume.randomFloat()
+                val playbackPitch = pitch.randomFloat()
+                repeat(5) { SoundUtils.playSound(sound.value, playbackVolume, playbackPitch) }
+            }
         }.withDescription("Click to test the current sound configuration.").showIf(showIf)
 
         configSettings.add(sound)
