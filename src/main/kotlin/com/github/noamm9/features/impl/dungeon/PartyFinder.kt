@@ -9,9 +9,10 @@ import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ChatUtils.addColor
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.ChatUtils.removeFormatting
+import com.github.noamm9.utils.ChatUtils.toComponent
 import com.github.noamm9.utils.NumbersUtils.romanToDecimal
 import com.github.noamm9.utils.NumbersUtils.toFixed
-import com.github.noamm9.utils.dungeons.DungeonUtils.getClassByName
+import com.github.noamm9.utils.dungeons.enums.DungeonClass
 import com.github.noamm9.utils.items.ItemRarity
 import com.github.noamm9.utils.items.ItemUtils.lore
 import com.github.noamm9.utils.network.ProfileUtils
@@ -60,8 +61,8 @@ object PartyFinder: Feature(), ICommandProvider {
     private val floorRegex = Regex("Floor:\\s*Floor\\s+(\\w+)")
     private val selectedClassRegex = Regex("Currently Selected: (.+)")
     private val selectDungeonClassRegex = Regex("§7View and select a dungeon class\\.")
-    private val classNames = listOf("&lArcher", "&lTank", "&lBerserk", "&lHealer", "&lMage")
-    private var selectedClass: String? = null
+    private val classOrder = listOf(DungeonClass.Archer, DungeonClass.Tank, DungeonClass.Berserk, DungeonClass.Healer, DungeonClass.Mage)
+    private var selectedClass = DungeonClass.Empty
     private var inPartyFinder = false
 
     private val fetchSemaphore = Semaphore(5)
@@ -70,7 +71,8 @@ object PartyFinder: Feature(), ICommandProvider {
     private val headSlots = setOf(
         10, 11, 12, 13, 14, 15, 16,
         19, 20, 21, 22, 23, 24, 25,
-        28, 29, 30, 31, 32, 33, 34, 44
+        28, 29, 30, 31, 32, 33, 34,
+        44
     )
 
     override fun init() {
@@ -98,8 +100,8 @@ object PartyFinder: Feature(), ICommandProvider {
             }
 
             if (showMissingOverlay.value) {
-                val missingClasses = classNames.filter { classes.indexOf(it.removeFormatting()) == - 1 }.map {
-                    "${getClassByName(it.removeFormatting()).code}${it.take(3)}"
+                val missingClasses = classOrder.filter { it.name !in classes }.map {
+                    "${it.code}&l${it.name.take(1)}"
                 }
                 val missing = listOf(
                     missingClasses.take(2).joinToString(""),
@@ -128,7 +130,7 @@ object PartyFinder: Feature(), ICommandProvider {
             var floor = 0
             var type = 'F'
 
-            val remainingClasses = classNames.map { it.removeFormatting() }.toMutableList()
+            val remainingClasses = classOrder.toMutableList()
 
             event.lore.toList().forEachIndexed { index, comp ->
                 val line = comp.formattedText
@@ -140,23 +142,26 @@ object PartyFinder: Feature(), ICommandProvider {
                 }
 
                 partyMembersRegex.matchEntire(cleanLine)?.destructured?.let { (playerName, className, cLvl) ->
+                    val clazz = DungeonClass.fromName(className)
                     val level = cLvl.toInt()
                     val color = getColor(level)
 
                     val stats = if (showTooltipStats.value.values.any { it }) getLoreStats(playerName, floor, type) else ""
 
-                    event.lore[index] = Component.literal(" §b$playerName: §e$className $color$level $stats".addColor())
-                    remainingClasses.remove(className)
+                    event.lore[index] = " §b$playerName: §e$className $color$level $stats".toComponent()
+                    remainingClasses.remove(clazz)
                 }
             }
 
-            if (selectedClass?.removeFormatting() in remainingClasses) {
-                val idx = remainingClasses.indexOf(selectedClass?.removeFormatting())
-                remainingClasses[idx] = "${selectedClass}§7"
-            }
-
             if (showMissingTooltip.value) {
-                event.lore.add(Component.literal("§cMissing: §7" + remainingClasses.joinToString(", ") { it.addColor() }))
+                val comp = Component.literal("§cMissing: §7").apply {
+                    remainingClasses.forEachIndexed { index, clazz ->
+                        if (clazz == selectedClass) append("${clazz.code}§l${clazz.name}".toComponent()) else append("§7" + clazz.name)
+                        if (index != remainingClasses.lastIndex) append("§7, ")
+                    }
+                }
+
+                event.lore.add(comp)
             }
         }
 
@@ -164,7 +169,7 @@ object PartyFinder: Feature(), ICommandProvider {
             if (event.title.string == "Catacombs Gate") {
                 event.items[45]?.lore?.takeIf { it.size > 3 && it[0].matches(selectDungeonClassRegex) }?.run {
                     selectedClassRegex.matchEntire(get(2).removeFormatting())?.destructured?.run {
-                        selectedClass = classNames[classNames.map { it.removeFormatting() }.indexOf(component1())]
+                        selectedClass = DungeonClass.fromName(component1())
                     }
                 }
             }
