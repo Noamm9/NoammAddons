@@ -23,6 +23,7 @@ object TerminalListener: ISelfInit {
     var currentHandler: Terminal? = null
     var initialOpenTick = 0L
     var initialOpenTime = 0L
+    var fcDelay = 0
 
     var currentTitle = ""
     var lastWindowId = - 1
@@ -40,6 +41,7 @@ object TerminalListener: ISelfInit {
             inTerm = true
             initialOpenTick = DungeonListener.currentTime
             initialOpenTime = System.currentTimeMillis()
+            fcDelay = TerminalSolver.fcDelay.random()
             currentTitle = event.title.string
             lastWindowId = event.windowId
             currentItems.clear()
@@ -115,12 +117,7 @@ object TerminalListener: ISelfInit {
         EventBus.register<WorldChangeEvent> { reset() }
     }
 
-    fun checkFcDelay(): Boolean {
-        val delay = TerminalSolver.fcDelay.random()
-
-        return DungeonListener.currentTime - initialOpenTick < (delay / 50) ||
-            System.currentTimeMillis() - initialOpenTime < delay
-    }
+    fun checkFcDelay() = DungeonListener.currentTime - initialOpenTick < (fcDelay / 50) || System.currentTimeMillis() - initialOpenTime < fcDelay
 
     private fun Terminal.sync(container: AbstractContainerMenu, slotId: Int = 0, stack: ItemStack = ItemStack.EMPTY) {
         val items = container.items
@@ -143,6 +140,7 @@ object TerminalListener: ISelfInit {
         lastClick = null
         initialOpenTick = 0
         initialOpenTime = 0
+        fcDelay = 0
 
         Terminal.all.forEach(Terminal::reset)
         EventBus.post(TerminalEvent.Close)

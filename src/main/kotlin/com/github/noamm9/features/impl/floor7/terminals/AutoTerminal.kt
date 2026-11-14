@@ -35,9 +35,10 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
     private val autoRedGreen by ToggleSetting("Red-Green", true)
     private val autoStartWith by ToggleSetting("Start-With", true)
 
+    private var lastClickedSlot: Int? = null
     private var lastClickTime = 0L
     private var lastClickTick = 0L
-    private var lastClickedSlot: Int? = null
+    private var clickDelay = 0
 
     override fun init() {
         hudElement(
@@ -69,30 +70,9 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
             lastClickedSlot = null
         }
 
-        register<RenderWorldEvent> {
-            if (! offtick.value) return@register
-            if (simScreen != null) return@register autoTick()
-            val handler = TerminalListener.currentHandler ?: return@register
-            if (handler is MelodyTerminal) return@register
-            if (! handler.enabled()) return@register
-            if (handler.solution.isEmpty()) return@register
-            if (TerminalListener.checkFcDelay()) return@register
-            if (lastClickTick == DungeonListener.currentTime) return@register
-            if (System.currentTimeMillis() - lastClickTime < getDelay()) return@register
-            lastClickTime = System.currentTimeMillis()
-            lastClickTick = DungeonListener.currentTime
-
-            handler.autoClick()
-        }
+        register<RenderWorldEvent> { if (offtick.value) autoTick() }
 
         register<TickEvent.Server> {
-            if (simScreen != null) return@register
-            if (! offtick.value) autoTick()
-            melodyTick()
-        }
-
-        register<TickEvent.End> {
-            if (simScreen == null) return@register
             if (! offtick.value) autoTick()
             melodyTick()
         }
@@ -120,6 +100,7 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
             lastClickedSlot = null
             lastClickTime = 0L
             lastClickTick = 0L
+            clickDelay = 0
         }
     }
 
@@ -163,8 +144,12 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
         if (! handler.enabled()) return
         if (handler.solution.isEmpty()) return
         if (checkFcDelay()) return
-        if (System.currentTimeMillis() - lastClickTime < getDelay()) return
+        if (offtick.value && simScreen == null && lastClickTick == DungeonListener.currentTime) return
+        if (System.currentTimeMillis() - lastClickTime < clickDelay) return
+
         lastClickTime = System.currentTimeMillis()
+        lastClickTick = DungeonListener.currentTime
+        clickDelay = autoDelay.random()
 
         handler.autoClick()
     }
@@ -195,8 +180,6 @@ object AutoTerminal: Feature("Automatically clicks terminals for you.") {
         is RedGreenTerminal -> autoRedGreen.value
         is StartWithTerminal -> autoStartWith.value
     }
-
-    private fun getDelay() = (if (checkFcDelay()) TerminalSolver.fcDelay else autoDelay).random()
 
     private val simScreen get() = mc.gui.screen() as? TerminalSimScreen
     private val currentHandler get() = simScreen?.terminal ?: TerminalListener.currentHandler
