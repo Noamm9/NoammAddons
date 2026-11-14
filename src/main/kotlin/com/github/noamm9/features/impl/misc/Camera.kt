@@ -48,6 +48,11 @@ object Camera: Feature() {
     @JvmStatic val customFOVSlider by SliderSetting("FOV", 110, 30, 179, 1).hideIf { ! customFOV.value }
     //#endif
 
+    override fun onEnable() {
+        super.onEnable()
+        flashFullFright = true
+    }
+
     override fun init() {
         //#if LEGIT
         register<GameStartEvent> {
