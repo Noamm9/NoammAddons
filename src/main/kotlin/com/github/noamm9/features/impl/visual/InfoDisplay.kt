@@ -19,6 +19,7 @@ object InfoDisplay: Feature("Displays the system time, clicks per second, FPS, a
 
     private val clockDisplay by ToggleSetting("Clock Display").section("Clock")
     private val seconds by ToggleSetting("Show Seconds").showIf { clockDisplay.value }
+    private val twelveHour by ToggleSetting("12 Hour Clock").showIf { clockDisplay.value }
     private val clockColor by ColorSetting("Clock Color", Color(255, 134, 0), false).showIf { clockDisplay.value }
 
     private val tpsDisplay by ToggleSetting("TPS Display").section("TPS")
@@ -37,13 +38,20 @@ object InfoDisplay: Feature("Displays the system time, clicks per second, FPS, a
 
     private val clockFormat = DateTimeFormatter.ofPattern("HH:mm")
     private val clockFormatSeconds = DateTimeFormatter.ofPattern("HH:mm:ss")
+    private val clockFormat12 = DateTimeFormatter.ofPattern("h:mm a")
+    private val clockFormatSeconds12 = DateTimeFormatter.ofPattern("h:mm:ss a")
 
     private val leftClicks = mutableListOf<Long>()
     private val rightClicks = mutableListOf<Long>()
 
     override fun init() {
         hudElement("ClockDisplay", { clockDisplay.value }) { ctx, _ ->
-            val text = LocalTime.now().format(if (seconds.value) clockFormatSeconds else clockFormat)
+            val format = when {
+                twelveHour.value -> if (seconds.value) clockFormatSeconds12 else clockFormat12
+                else -> if (seconds.value) clockFormatSeconds else clockFormat
+            }
+            
+            val text = LocalTime.now().format(format)
             ctx.drawString(text, 0, 0, clockColor.value)
             return@hudElement text.width() to 9
         }
