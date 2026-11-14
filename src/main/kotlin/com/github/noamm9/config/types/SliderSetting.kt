@@ -54,6 +54,8 @@ class SliderSetting<T: Number>(
         return ((current - minD) / (maxD - minD)).toFloat()
     }
 
+    fun fromPercent(percent: Float) = snapToStep(min.toDouble() + (max.toDouble() - min.toDouble()) * percent)
+
     @Suppress("UNCHECKED_CAST")
     private fun Number.convertToType() = when (if (step is Int || step is Long) min else step) {
         is Int -> toInt() as T
