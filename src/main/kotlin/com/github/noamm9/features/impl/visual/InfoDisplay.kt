@@ -46,7 +46,12 @@ object InfoDisplay: Feature("Displays the system time, clicks per second, FPS, a
 
     override fun init() {
         hudElement("ClockDisplay", { clockDisplay.value }) { ctx, _ ->
-            val text = LocalTime.now().format(if (twelveHour.value) (if (seconds.value) clockFormatSeconds12 else clockFormat12) else if (seconds.value) clockFormatSeconds else clockFormat)
+            val format = when {
+                twelveHour.value -> if (seconds.value) clockFormatSeconds12 else clockFormat12
+                else -> if (seconds.value) clockFormatSeconds else clockFormat
+            }
+            
+            val text = LocalTime.now().format(format)
             ctx.drawString(text, 0, 0, clockColor.value)
             return@hudElement text.width() to 9
         }
