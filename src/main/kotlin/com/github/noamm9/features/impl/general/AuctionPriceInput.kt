@@ -4,7 +4,9 @@ import com.github.noamm9.compat.frontLine
 import com.github.noamm9.compat.signUpdatePacket
 import com.github.noamm9.config.ConfigManager
 import com.github.noamm9.config.types.*
+import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.ContainerEvent
+import com.github.noamm9.event.impl.GameStartEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.init.NetworkLoop
 import com.github.noamm9.mixin.IAbstractSignEditScreen
@@ -17,7 +19,6 @@ import com.github.noamm9.utils.Utils.send
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.mojang.blaze3d.platform.InputConstants
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
@@ -67,7 +68,7 @@ object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox
 
     override fun init() {
         // the config is loaded before isLoaded is set, so the toggle's change listener does not run for it
-        ClientLifecycleEvents.CLIENT_STARTED.register { syncRememberInput() }
+        EventBus.register<GameStartEvent> { syncRememberInput() }
 
         ScreenEvents.AFTER_INIT.register { _, screen, width, height ->
             if (! enabled) return@register
