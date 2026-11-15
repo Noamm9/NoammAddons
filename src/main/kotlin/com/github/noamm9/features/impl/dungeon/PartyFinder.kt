@@ -1,6 +1,7 @@
 package com.github.noamm9.features.impl.dungeon
 
 import com.github.noamm9.commands.CommandBuilder
+import com.github.noamm9.config.ConfigManager
 import com.github.noamm9.config.types.*
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
@@ -188,6 +189,7 @@ object PartyFinder: Feature(), ICommandProvider {
 
         register<PartyEvent.FinderGroupSettings> {
             if (event.floor !in 1 .. autoKickFloor.options.size) return@register
+            val previousSettings = Triple(autoKickFloor.value, masterMode.value, maximumSeconds.value)
             autoKickFloor.value = event.floor - 1
             masterMode.value = event.masterMode
 
@@ -196,6 +198,7 @@ object PartyFinder: Feature(), ICommandProvider {
                 if (minutesOnly.isNotEmpty()) return@run minutesOnly.toInt() * 60
                 return@run minutes.toInt() * 60 + tens.toInt() * 10 + (ones.toIntOrNull() ?: 0)
             }?.let(maximumSeconds::value::set)
+            if (previousSettings != Triple(autoKickFloor.value, masterMode.value, maximumSeconds.value)) ConfigManager.save()
 
             if (autoKick.value) ChatUtils.modMessage(
                 "&eUpdated Auto Kick settings. (${
