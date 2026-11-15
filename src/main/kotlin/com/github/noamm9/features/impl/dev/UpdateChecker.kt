@@ -4,11 +4,12 @@ import com.github.noamm9.NoammAddons.MOD_NAME
 import com.github.noamm9.NoammAddons.MOD_VERSION
 import com.github.noamm9.NoammAddons.logger
 import com.github.noamm9.compat.openUri
-import com.github.noamm9.config.types.ButtonSetting
-import com.github.noamm9.config.types.DropdownSetting
+import com.github.noamm9.config.types.*
 import com.github.noamm9.event.impl.GameStartEvent
+import com.github.noamm9.event.impl.NoammDebugFlagEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.notification.NotificationManager
+import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.network.WebUtils
 import kotlinx.serialization.Serializable
@@ -23,6 +24,7 @@ object UpdateChecker: Feature(
 ) {
     override fun toggle() = Unit
 
+    val disabled by ToggleSetting("Disabled").hidden()
     val source by DropdownSetting("Update Source", 0, listOf("Releases", "Action Builds")).withDescription("Releases checks the latest published GitHub release. Action Builds checks the latest successful CI build.")
     val check by ButtonSetting("Check For Updates") { ThreadUtils.async { runCheck(true) } }.withDescription("Manually checks using the source selected above.")
     val openPage by ButtonSetting("Open Latest Build/Release") { openPage() }.withDescription("Opens the latest release or Actions run page in your browser.")
@@ -37,6 +39,13 @@ object UpdateChecker: Feature(
             ThreadUtils.setTimeout(5000) {
                 ThreadUtils.loop(TimeUnit.HOURS.toMillis(1), block = ::runCheck)
             }
+        }
+
+        register<NoammDebugFlagEvent.Add> {
+            if (event.flag != "disableupdatecheker") return@register
+            disabled.value = ! disabled.value
+            event.cancel()
+            ChatUtils.modMessage("$name ${if (disabled.value) "Disabled" else "Enabled"}")
         }
     }
 
@@ -54,6 +63,8 @@ object UpdateChecker: Feature(
         val releaseMillis = Instant.parse(release.created_at).toEpochMilliseconds()
         val remoteVersion = release.tag_name
         page = release.html_url
+
+        if (disabled.value) return
 
         when {
             (BuildInfo.isCiBuild && releaseMillis > BuildInfo.builtAt) || isNewerVersion(remoteVersion, MOD_VERSION) -> {
@@ -73,6 +84,8 @@ object UpdateChecker: Feature(
         val latest = WebUtils.getAs<Action>(ACTION_URL).getOrThrow().workflow_runs.firstOrNull() ?: return
         val latestMillis = Instant.parse(latest.created_at).toEpochMilliseconds()
         page = latest.html_url
+
+        if (disabled.value) return
 
         if (latestMillis > BuildInfo.builtAt) NotificationManager.push(title, "A new Action build (${latest.head_sha.take(7)}).", 6000L)
         else if (manual) NotificationManager.push(title, "You're already running the latest Action build.")
