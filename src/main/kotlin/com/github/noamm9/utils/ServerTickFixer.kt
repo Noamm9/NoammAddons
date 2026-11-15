@@ -59,7 +59,6 @@ object ServerTickFixer: ISelfInit {
 
                 usingPings = false
                 logger.info("[ServerTickFixer] falling back to packet bursts + SetTime for server ticks")
-                ChatUtils.showTitle("BAD BOI!!!!")
                 reset()
             }
 
