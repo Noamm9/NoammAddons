@@ -155,8 +155,8 @@ object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox
             addRenderableWidget(UIButton(centerX - 100, centerY + 35, 200, 20, getModeText()) { button ->
                 mode = if (mode == InputMode.NORMAL) InputMode.UNDERCUT else InputMode.NORMAL
                 button.message = Component.literal(getModeText())
-                if (separateTexts(mode !!) && input == loaded) {
-                    input = savedInputs[mode !!].orEmpty()
+                if (rememberTextPerMode.value && input == loaded) {
+                    input = if (remembersText(mode !!)) savedInputs[mode !!].orEmpty() else ""
                     loaded = input
                     inputField.value = input
                 }
