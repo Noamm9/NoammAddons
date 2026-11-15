@@ -30,7 +30,7 @@ object Abilities: Feature(
     private val ultMessages = listOf(
         UltMessage(
             msg = "⚠ Maxor is enraged! ⚠",
-            classes = listOf(DungeonClass.Healer, DungeonClass.Tank),
+            classes = listOf(DungeonClass.Healer),
             floor = 7
         ),
         UltMessage(
