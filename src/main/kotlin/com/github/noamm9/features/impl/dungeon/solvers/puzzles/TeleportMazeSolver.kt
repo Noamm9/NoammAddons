@@ -5,10 +5,14 @@ import com.github.noamm9.event.impl.DungeonEvent
 import com.github.noamm9.event.impl.MainThreadPacketReceivedEvent
 import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers
 import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers.correctTpPadColor
+import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers.tpMazeTracer
 import com.github.noamm9.features.impl.dungeon.solvers.PuzzleSolvers.wrongTpPadColor
+import com.github.noamm9.utils.MathUtils.add
+import com.github.noamm9.utils.MathUtils.center
 import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.render.world.Render3D.renderBlock
+import com.github.noamm9.utils.render.world.Render3D.renderTracer
 import com.github.noamm9.utils.render.world.RenderContext
 import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.game.ClientboundPlayerPositionPacket
@@ -49,6 +53,10 @@ object TeleportMazeSolver: PuzzleSolver {
         for (cell in c) for (pad in cell.pads) {
             if (! pad.blacklisted) continue
             ctx.renderBlock(pad.pos, wrongTpPadColor.value)
+        }
+
+        if (tpMazeTracer.value) getNextPad()?.let {
+            ctx.renderTracer(it.pos.center.add(y = 0.3125), correctTpPadColor.value)
         }
     }
 
@@ -155,6 +163,16 @@ object TeleportMazeSolver: PuzzleSolver {
         return cell.pads.find {
             (abs(x - (it.pos.x + 0.5)) + abs(z - (it.pos.z + 0.5))) <= 3.0
         }
+    }
+
+    private fun getNextPad(): TpPad? {
+        val player = mc.player ?: return null
+        val cell = getCellAt(player.x, player.z) ?: return null
+        if (cell.xIndex == 1 && cell.zIndex == 1) return null // skip the middle one
+
+        return cell.pads.filterNot { it.blacklisted }.minWithOrNull(
+            compareBy<TpPad> { it.totalAngle }.thenBy { player.distanceToSqr(it.pos.center) }
+        )
     }
 
     private fun isPadInStartOrEndCell(pad: TpPad): Boolean {
