@@ -1,12 +1,7 @@
 package com.github.noamm9.compat
 
-import com.github.noamm9.utils.Utils.send
 import net.minecraft.core.BlockPos
-import net.minecraft.network.protocol.game.ClientboundEntityPositionSyncPacket
-import net.minecraft.network.protocol.game.ClientboundLevelParticlesPacket
-import net.minecraft.network.protocol.game.ClientboundMoveEntityPacket
-import net.minecraft.network.protocol.game.ServerboundAcceptTeleportationPacket
-import net.minecraft.network.protocol.game.ServerboundSignUpdatePacket
+import net.minecraft.network.protocol.game.*
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.level.block.entity.SignBlockEntity
 import net.minecraft.world.phys.Vec3
@@ -31,12 +26,3 @@ fun SignBlockEntity.frontLine(index: Int): String = getText(net.minecraft.world.
 
 //~ if <26.3 '(pos, lines, net.minecraft.world.level.block.entity.SignTextSlot.FRONT)' -> '(pos, true, lines[0], lines[1], lines[2], lines[3])'
 fun signUpdatePacket(pos: BlockPos, lines: List<String>) = ServerboundSignUpdatePacket(pos, lines, net.minecraft.world.level.block.entity.SignTextSlot.FRONT)
-
-fun acceptTeleport(id: Int, x: Double, y: Double, z: Double, yaw: Float, pitch: Float) {
-    //? if <26.3 {
-    /*ServerboundAcceptTeleportationPacket(id).send()
-    net.minecraft.network.protocol.game.ServerboundMovePlayerPacket.PosRot(x, y, z, yaw, pitch, false, false).send()
-    *///? } else {
-    ServerboundAcceptTeleportationPacket(id, x, y, z, yaw, pitch).send()
-    //? }
-}

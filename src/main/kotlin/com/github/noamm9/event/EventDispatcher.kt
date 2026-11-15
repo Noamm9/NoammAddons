@@ -31,6 +31,8 @@ object EventDispatcher: ISelfInit, Shortcuts {
     private var invSlotCount: Int? = 0
     private var invItems: MutableMap<Int, ItemStack>? = null
 
+    private var lastId: Int? = null
+
     override fun init() {
         LevelRenderEvents.COLLECT_SUBMITS.register { context ->
             EventBus.post(RenderWorldEvent(RenderContext(context)))
@@ -61,29 +63,15 @@ object EventDispatcher: ISelfInit, Shortcuts {
                     if (! LocationUtils.inDungeon || LocationUtils.inBoss) return@register
                     if (packet.sound.value() != SoundEvents.BAT_DEATH) return@register
 
-                    EventBus.post(DungeonEvent.SecretEvent(
-                        SecretType.BAT, BlockPos(packet.x.toInt(), packet.y.toInt(), packet.z.toInt())
-                    ))
+                    EventBus.post(
+                        DungeonEvent.SecretEvent(
+                            SecretType.BAT, BlockPos(packet.x.toInt(), packet.y.toInt(), packet.z.toInt())
+                        )
+                    )
                 }
 
-                is ClientboundTakeItemEntityPacket -> {
-                    if (! LocationUtils.inDungeon || LocationUtils.inBoss) return@register
-                    val entity = level.getEntity(packet.itemId) as? ItemEntity ?: return@register
-                    if (entity.item.hoverName.unformattedText !in DungeonUtils.dungeonItemDrops) return@register
-                    if (player.distanceToSqr(entity) > 36) return@register
-
-                    EventBus.post(DungeonEvent.SecretEvent(SecretType.ITEM, entity.blockPosition()))
-                }
-
-                is ClientboundRemoveEntitiesPacket -> {
-                    if (! LocationUtils.inDungeon || LocationUtils.inBoss) return@register
-                    event.packet.entityIds.forEach { id ->
-                        val entity = level.getEntity(id) as? ItemEntity ?: return@forEach
-                        if (entity.item.hoverName.unformattedText !in DungeonUtils.dungeonItemDrops) return@forEach
-                        if (entity.distanceToSqr(player) > 36) return@forEach
-                        EventBus.post(DungeonEvent.SecretEvent(SecretType.ITEM, entity.blockPosition()))
-                    }
-                }
+                is ClientboundTakeItemEntityPacket -> onSecretItem(packet.itemId)
+                is ClientboundRemoveEntitiesPacket -> event.packet.entityIds.forEach(::onSecretItem)
             }
         }
 
@@ -162,6 +150,16 @@ object EventDispatcher: ISelfInit, Shortcuts {
                 }
             }
         }
+    }
+
+    private fun onSecretItem(id: Int) {
+        if (id == lastId) return
+        if (! LocationUtils.inDungeon || LocationUtils.inBoss) return
+        val entity = level.getEntity(id) as? ItemEntity ?: return
+        if (entity.item.hoverName.unformattedText !in DungeonUtils.dungeonItemDrops) return
+        if (entity.distanceToSqr(player) > 36) return
+        lastId = id
+        EventBus.post(DungeonEvent.SecretEvent(SecretType.ITEM, entity.blockPosition()))
     }
 
     private fun resetInventory() {
