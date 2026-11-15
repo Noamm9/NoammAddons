@@ -1,36 +1,36 @@
 @file:Suppress("NOTHING_TO_INLINE")
 
-package com.github.noamm9.ui.gui
+package com.github.noamm9.features.impl.general
 
-import com.github.noamm9.features.impl.general.CommandShortcuts
-import com.github.noamm9.ui.clickgui.ClickGuiScreen
+import com.github.noamm9.features.Feature
+import com.github.noamm9.ui.clickgui.components.FeatureWindow
 import com.github.noamm9.ui.clickgui.components.settings.Style
 import com.github.noamm9.ui.utils.*
-import com.github.noamm9.utils.GuiUtils
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.Render2D.scissor
 import com.mojang.blaze3d.platform.InputConstants
 import net.minecraft.client.gui.GuiGraphicsExtractor
-import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.input.*
-import net.minecraft.network.chat.Component
 import java.awt.Color
 import kotlin.math.*
 
-class CommandShortcutsScreen: Screen(Component.literal("Command Shortcuts")) {
+class CommandShortcutsWindow(feature: Feature): FeatureWindow(feature) {
     private class Row(var command: String, var replacement: String) {
         val commandInput = TextInputHandler({ command }, { command = it })
         val replacementInput = TextInputHandler({ replacement }, { replacement = it })
     }
 
+    override val defaultWidth = 450f
+    override val defaultHeight = 255f
+    override val minWidth = 300f
+    override val minHeight = 150f
+
     private val rows = CommandShortcuts.shortcuts.get().map { (command, replacement) -> Row(command, replacement) }.toMutableList()
 
     private val scroll = ScrollState()
 
-    private val panelW = 450f
-    private val panelH = 250f
     private val entryHeight = 26f
     private val inputHeight = 18f
     private val commandWidth = 100f
@@ -39,34 +39,26 @@ class CommandShortcutsScreen: Screen(Component.literal("Command Shortcuts")) {
     private val addBtnW = 120f
     private val addBtnH = 20f
 
-    private inline val panelX get() = (Resolution.width / 2) - (panelW / 2)
-    private inline val panelY get() = (Resolution.height / 2) - (panelH / 2)
-    private inline val viewX get() = panelX + 10
-    private inline val viewY get() = panelY + 25
-    private inline val viewW get() = panelW - 20
-    private inline val viewH get() = panelH - 65
+    private inline val bodyY get() = y + titleBarHeight
+    private inline val viewX get() = x + 10
+    private inline val viewY get() = bodyY + 6
+    private inline val viewW get() = width - 20
+    private inline val viewH get() = height - titleBarHeight - 46
+    private inline val btnX get() = x + (width / 2) - (addBtnW / 2)
+    private inline val btnY get() = y + height - 30
     private inline fun deleteX(x: Float) = x + viewW - deleteWidth - 2
 
-    override fun extractRenderState(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, a: Float) {
-        Resolution.push(graphics)
-
-        val mX = Resolution.getMouseX(mouseX).toFloat()
-        val mY = Resolution.getMouseY(mouseY).toFloat()
-
-        val x = panelX
-        val y = panelY
-
-        graphics.drawRect(x, y, panelW, panelH, Color(20, 20, 20, 240))
-        graphics.drawRect(x, y, panelW, 2f, Style.accentColor)
-        graphics.drawCenteredString("§lCommand Shortcuts", x + panelW / 2, y + 8)
+    override fun drawContent(context: GuiGraphicsExtractor, mouseX: Int, mouseY: Int) {
+        val mX = mouseX.toFloat()
+        val mY = mouseY.toFloat()
 
         scroll.update(rows.size * entryHeight, viewH)
         scroll.mouseDragged(mY)
         val currentScroll = scroll.value
 
-        graphics.scissor(viewX, viewY, viewW, viewH)
+        context.scissor(viewX, viewY, viewW, viewH)
 
-        if (rows.isEmpty()) graphics.drawCenteredString("§8No command shortcuts yet :(", x + panelW / 2, viewY + viewH / 2 - 4)
+        if (rows.isEmpty()) context.drawCenteredString("§8No command shortcuts yet :(", x + width / 2, viewY + viewH / 2 - 4)
 
         val startIndex = max(0, (currentScroll / entryHeight).toInt())
         val endIndex = min(rows.size, startIndex + ceil(viewH / entryHeight).toInt() + 1)
@@ -75,21 +67,17 @@ class CommandShortcutsScreen: Screen(Component.literal("Command Shortcuts")) {
             val row = rows[index]
             val rowY = viewY - currentScroll + (index * entryHeight)
             positionRow(row, viewX, rowY)
-            drawRow(graphics, row, viewX, rowY, mX, mY)
+            drawRow(context, row, viewX, rowY, mX, mY)
         }
 
-        graphics.disableScissor()
+        context.disableScissor()
 
-        scroll.drawScrollbar(graphics, x + panelW - 4, viewY, 2f, viewH, mX, mY)
+        scroll.drawScrollbar(context, x + width - 4, viewY, 2f, viewH, mX, mY)
 
-        val btnX = x + (panelW / 2) - (addBtnW / 2)
-        val btnY = y + panelH - 30
         val btnHovered = mX >= btnX && mX <= btnX + addBtnW && mY >= btnY && mY <= btnY + addBtnH
-        graphics.drawRect(btnX, btnY, addBtnW, addBtnH, if (btnHovered) Color(35, 35, 35, 240) else Color(15, 15, 15, 200))
-        graphics.drawRect(btnX, btnY + addBtnH - 1, addBtnW, 1f, Style.accentColor)
-        graphics.drawCenteredString("§a+ §rAdd Shortcut", btnX + addBtnW / 2, btnY + 6)
-
-        Resolution.pop(graphics)
+        context.drawRect(btnX, btnY, addBtnW, addBtnH, if (btnHovered) Color(35, 35, 35, 240) else Color(15, 15, 15, 200))
+        context.drawRect(btnX, btnY + addBtnH - 1, addBtnW, 1f, Style.accentColor)
+        context.drawCenteredString("§a+ §rAdd Shortcut", btnX + addBtnW / 2, btnY + 6)
     }
 
     private fun positionRow(row: Row, x: Float, y: Float) {
@@ -125,90 +113,80 @@ class CommandShortcutsScreen: Screen(Component.literal("Command Shortcuts")) {
         else handler.draw(ctx, mx, my)
     }
 
-    override fun mouseClicked(event: MouseButtonEvent, isDoubleClick: Boolean): Boolean {
-        val mx = Resolution.getMouseX(event.x).toFloat()
-        val my = Resolution.getMouseY(event.y).toFloat()
-
-        val btnX = panelX + (panelW / 2) - (addBtnW / 2)
-        val btnY = panelY + panelH - 30
-        if (mx >= btnX && mx <= btnX + addBtnW && my >= btnY && my <= btnY + addBtnH) {
+    override fun onMouseClicked(mouseX: Float, mouseY: Float, button: Int) {
+        if (mouseX >= btnX && mouseX <= btnX + addBtnW && mouseY >= btnY && mouseY <= btnY + addBtnH) {
             rows.add(Row("", ""))
             scroll.scrollTo(rows.size * entryHeight - viewH)
-            Style.playClickSound(1f)
-            return true
+            return Style.playClickSound(1f)
         }
 
-        if (event.button() == InputConstants.MOUSE_BUTTON_LEFT && scroll.mouseClicked(mx, my)) return true
+        if (button == InputConstants.MOUSE_BUTTON_LEFT && scroll.mouseClicked(mouseX, mouseY)) return
 
-        val inView = mx >= viewX && mx <= viewX + viewW && my >= viewY && my <= viewY + viewH
+        val inView = mouseX >= viewX && mouseX <= viewX + viewW && mouseY >= viewY && mouseY <= viewY + viewH
 
         if (inView) rows.forEachIndexed { index, _ ->
             val rowY = viewY - scroll.value + (index * entryHeight)
             val delX = deleteX(viewX)
-            if (mx >= delX && mx <= delX + deleteWidth && my >= rowY && my <= rowY + entryHeight) {
+            if (mouseX >= delX && mouseX <= delX + deleteWidth && mouseY >= rowY && mouseY <= rowY + entryHeight) {
                 rows.removeAt(index)
-                Style.playClickSound(1f)
-                return true
+                return Style.playClickSound(1f)
             }
         }
 
         val firstVisible = max(0, (scroll.value / entryHeight).toInt())
         val lastVisible = min(rows.size, firstVisible + ceil(viewH / entryHeight).toInt() + 1)
-        var consumed = false
 
         rows.forEachIndexed { index, row ->
             val canClick = inView && index in firstVisible until lastVisible
-            val inputX = if (canClick) mx else - 1f
-            val inputY = if (canClick) my else - 1f
-            if (row.commandInput.mouseClicked(inputX, inputY, event)) consumed = true
-            if (row.replacementInput.mouseClicked(inputX, inputY, event)) consumed = true
+            val inputX = if (canClick) mouseX else - 1f
+            val inputY = if (canClick) mouseY else - 1f
+            val event = MouseButtonEvent(inputX.toDouble(), inputY.toDouble(), MouseButtonInfo(button, 0))
+            row.commandInput.mouseClicked(inputX, inputY, event)
+            row.replacementInput.mouseClicked(inputX, inputY, event)
         }
-
-        if (consumed) return true
-
-        return super.mouseClicked(event, isDoubleClick)
     }
 
-    override fun mouseReleased(event: MouseButtonEvent): Boolean {
+    override fun onMouseReleased(button: Int) {
         scroll.mouseReleased()
         rows.forEach {
             it.commandInput.mouseReleased()
             it.replacementInput.mouseReleased()
         }
-        return super.mouseReleased(event)
     }
 
-    override fun mouseScrolled(mx: Double, my: Double, h: Double, v: Double): Boolean {
-        scroll.scroll((v * 44).toFloat())
+    override fun mouseScrolled(mouseX: Int, mouseY: Int, delta: Double): Boolean {
+        if (! contains(mouseX.toFloat(), mouseY.toFloat())) return false
+        scroll.scroll((delta * 44).toFloat())
         return true
     }
 
-    override fun keyPressed(keyEvent: KeyEvent): Boolean {
-        if (keyEvent.key == InputConstants.KEY_SLASH) return true
-        if (keyEvent.key == InputConstants.KEY_BACKSLASH) return true
+    override fun keyPressed(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {
+        if (! isListening) return false
+        if (keyCode == InputConstants.KEY_SLASH || keyCode == InputConstants.KEY_BACKSLASH) return true
 
+        val event = KeyEvent(keyCode, scanCode, modifiers)
         rows.forEach {
-            if (it.commandInput.keyPressed(keyEvent)) return true
-            if (it.replacementInput.keyPressed(keyEvent)) return true
+            if (it.commandInput.keyPressed(event)) return true
+            if (it.replacementInput.keyPressed(event)) return true
         }
-
-        if (keyEvent.key == InputConstants.KEY_ESCAPE) {
-            onClose()
-            return true
-        }
-
-        return super.keyPressed(keyEvent)
+        return false
     }
 
-    override fun charTyped(e: CharacterEvent): Boolean {
-        if (e.codepoint == '/'.code) return true
-        if (e.codepoint == '\\'.code) return true
+    override fun charTyped(codePoint: Char): Boolean {
+        if (! isListening) return false
+        if (codePoint == '/' || codePoint == '\\') return true
 
+        val event = CharacterEvent(codePoint.code)
         rows.forEach {
-            if (it.commandInput.keyTyped(e)) return true
-            if (it.replacementInput.keyTyped(e)) return true
+            if (it.commandInput.keyTyped(event)) return true
+            if (it.replacementInput.keyTyped(event)) return true
         }
-        return super.charTyped(e)
+        return false
+    }
+
+    override fun clearFocus() = rows.forEach {
+        it.commandInput.listening = false
+        it.replacementInput.listening = false
     }
 
     override fun onClose() {
@@ -219,8 +197,9 @@ class CommandShortcutsScreen: Screen(Component.literal("Command Shortcuts")) {
             if (command.isNotEmpty() && replacement.isNotEmpty()) shortcuts[command] = replacement
         }
 
-        GuiUtils.setScreen(ClickGuiScreen())
         CommandShortcuts.shortcuts.set(shortcuts)
         CommandShortcuts.rebuild()
     }
+
+    private val isListening get() = rows.any { it.commandInput.listening || it.replacementInput.listening }
 }

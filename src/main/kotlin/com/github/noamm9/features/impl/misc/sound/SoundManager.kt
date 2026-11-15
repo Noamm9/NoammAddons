@@ -3,8 +3,8 @@ package com.github.noamm9.features.impl.misc.sound
 import com.github.noamm9.config.PogObject
 import com.github.noamm9.event.impl.WorldChangeEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.features.IFeatureScreen
-import com.github.noamm9.ui.gui.SoundManagerScreen
+import com.github.noamm9.features.IFeatureWindow
+import com.github.noamm9.ui.clickgui.ClickGuiScreen
 import com.github.noamm9.utils.SoundUtils
 import net.minecraft.client.resources.sounds.SoundInstance
 import net.minecraft.resources.Identifier
@@ -12,12 +12,12 @@ import net.minecraft.sounds.SoundEvent
 import java.util.*
 import kotlin.math.roundToInt
 
-object SoundManager: Feature("Adjust volumes for every sound in the game"), IFeatureScreen {
+object SoundManager: Feature("Adjust volumes for every sound in the game"), IFeatureWindow {
     private val volumes = PogObject("noammaddons_sounds", mutableMapOf<String, Float>())
     private val recentSounds = Collections.synchronizedSet<Identifier>(mutableSetOf())
     @Volatile var recentSoundsVersion = 0L
 
-    override fun createScreen() = SoundManagerScreen()
+    override fun Feature.createWindow() = SoundManagerWindow(this)
 
     override fun init() {
         volumes.get().replaceAll { _, multiplier -> normalizePercent((multiplier * 100f).roundToInt()) / 100f }
@@ -30,7 +30,7 @@ object SoundManager: Feature("Adjust volumes for every sound in the game"), IFea
 
     @JvmStatic
     fun recordPlayedSound(sound: SoundInstance) {
-        if (mc.gui.screen() is SoundManagerScreen) return
+        if ((mc.gui.screen() as? ClickGuiScreen)?.isWindowOpen(this) == true) return
         recentSounds.add(sound.identifier)
 
         if (recentSounds.size > 100) recentSounds.remove(recentSounds.first())

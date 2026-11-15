@@ -2,18 +2,15 @@ package com.github.noamm9.ui.clickgui.components
 
 import com.mojang.blaze3d.platform.InputConstants
 
-import com.github.noamm9.NoammAddons.MOD_NAME
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.FeatureManager
-import com.github.noamm9.features.IFeatureScreen
+import com.github.noamm9.features.IFeatureWindow
 import com.github.noamm9.features.impl.dev.ClickGui
 import com.github.noamm9.ui.clickgui.*
 import com.github.noamm9.ui.clickgui.components.settings.Style
 import com.github.noamm9.ui.clickgui.enums.CategoryType
-import com.github.noamm9.ui.notification.NotificationManager
 import com.github.noamm9.ui.utils.Animation
 import com.github.noamm9.utils.ColorUtils.withAlpha
-import com.github.noamm9.utils.GuiUtils
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.scissor
@@ -192,10 +189,6 @@ class CategoryPanel(val category: CategoryType, var x: Int, var y: Int, private 
     }
 
     fun openFeature(feature: Feature) {
-        if (feature is IFeatureScreen) {
-            if (feature.enabled) GuiUtils.setScreen(feature.createScreen())
-            else NotificationManager.push("$MOD_NAME - ClickGui", "&fEnable &b${feature.name} &ffirst to open the settings!")
-        }
-        else if (feature.configSettings.isNotEmpty()) screen.openFeatureWindow(feature)
+        if (feature is IFeatureWindow || feature.configSettings.isNotEmpty()) screen.openFeatureWindow(feature)
     }
 }

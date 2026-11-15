@@ -7,6 +7,7 @@ import com.github.noamm9.features.Feature
 import com.github.noamm9.features.IFeatureWindow
 import com.github.noamm9.ui.clickgui.components.CategoryPanel
 import com.github.noamm9.ui.clickgui.components.FeatureConfigWindow
+import com.github.noamm9.ui.clickgui.components.FeatureWindow
 import com.github.noamm9.ui.clickgui.components.settings.Style
 import com.github.noamm9.ui.clickgui.enums.CategoryType
 import com.github.noamm9.ui.clickgui.enums.WindowClickAction
@@ -36,7 +37,7 @@ class ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
 
     private val discordTexture = Identifier.fromNamespaceAndPath(MOD_ID, "textures/gui/discord.png")
     private val categoryPanels = mutableListOf<CategoryPanel>()
-    private val configWindows = mutableListOf<FeatureConfigWindow>()
+    private val configWindows = mutableListOf<FeatureWindow>()
     var searchQuery = ""
 
     private val searchHandler = TextInputHandler(
@@ -161,6 +162,7 @@ class ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
             when (window.mouseClicked(mx, my, button)) {
                 WindowClickAction.CLOSE -> {
                     window.clearFocus()
+                    window.onClose()
                     configWindows.remove(window)
                 }
 
@@ -241,6 +243,7 @@ class ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
             if (window.keyPressed(keyEvent.key, keyEvent.scanCodeCompat, keyEvent.modifiers)) return true
             if (keyEvent.key == InputConstants.KEY_ESCAPE) {
                 window.clearFocus()
+                window.onClose()
                 configWindows.remove(window)
                 return true
             }
@@ -272,6 +275,8 @@ class ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
         configWindows.add(window.also { it.place(startX, startY) })
     }
 
+    fun isWindowOpen(feature: Feature) = configWindows.any { it.feature == feature }
+
     fun isMouseOverConfigWindow(mouseX: Int, mouseY: Int) = configWindows.asReversed().any { it.contains(mouseX.toFloat(), mouseY.toFloat()) }
 
     private fun isOverHudButton(mX: Float, mY: Float): Boolean {
@@ -286,14 +291,17 @@ class ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
         return mX in x .. (x + searchbarButtonSize) && mY in y .. (y + searchbarButtonSize)
     }
 
-    private fun focusWindow(window: FeatureConfigWindow) {
+    private fun focusWindow(window: FeatureWindow) {
         configWindows.filter { it != window }.forEach { it.clearFocus() }
         configWindows.remove(window)
         configWindows.add(window)
     }
 
     override fun onClose() {
-        configWindows.forEach { it.clearFocus() }
+        configWindows.forEach {
+            it.clearFocus()
+            it.onClose()
+        }
         configWindows.clear()
         searchHandler.listening = false
         MouseHelper.resetCursor()
