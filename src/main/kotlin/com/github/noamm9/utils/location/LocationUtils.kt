@@ -24,6 +24,8 @@ object LocationUtils: ISelfInit, Shortcuts {
     @JvmField var profileId: String? = null
 
     @JvmField var inDungeon = false
+    @Volatile var isSoloDungeon = false
+        private set
     @JvmField var dungeonFloor: String? = null
     @JvmField var dungeonFloorNumber: Int? = null
     @JvmStatic val isMasterMode get() = dungeonFloor?.startsWith("M") == true
@@ -48,6 +50,7 @@ object LocationUtils: ISelfInit, Shortcuts {
                 val prams = event.packet.parameters.getOrNull() ?: return@register
                 val text = (prams.playerPrefix.string + prams.playerSuffix.string).removeFormatting()
                 lobbyRegex.find(text)?.groupValues?.get(1)?.let { serverId = it }
+                if (inDungeon && text.trim() == "Solo") isSoloDungeon = true
 
                 if (! inDungeon && text.contains("The Catacombs (") && ! text.contains("Queue")) {
                     inDungeon = true
@@ -88,6 +91,7 @@ object LocationUtils: ISelfInit, Shortcuts {
     private fun reset() {
         inSkyblock = false
         inDungeon = false
+        isSoloDungeon = false
         dungeonFloor = null
         dungeonFloorNumber = null
         inBoss = false

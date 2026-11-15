@@ -27,7 +27,7 @@ object AutoRequeue: Feature() {
 
     override fun init() {
         register<DungeonEvent.RunEndedEvent>(priority = EventPriority.HIGHEST) {
-            if (checkParty.value) {
+            if (checkParty.value && ! LocationUtils.isSoloDungeon) {
                 if (! PartyUtils.isInParty) return@register feedBackMessage("Not in a party!")
                 if (! PartyUtils.isLeader()) return@register feedBackMessage("You are not leader.")
                 if (PartyUtils.partySize < minPartySize.value) return@register feedBackMessage("Not enough players in party! (${PartyUtils.partySize}/${minPartySize.value})")
@@ -35,7 +35,7 @@ object AutoRequeue: Feature() {
             if (PartyHelper.downtimeList.isNotEmpty()) return@register feedBackMessage("There are players in downtime!")
 
             ThreadUtils.scheduledTask(delay.value * 20) {
-                if (checkParty.value && ! PartyUtils.isLeader()) return@scheduledTask feedBackMessage("You are not the party leader!")
+                if (checkParty.value && ! LocationUtils.isSoloDungeon && ! PartyUtils.isLeader()) return@scheduledTask feedBackMessage("You are not the party leader!")
                 if (requeueCmd.value == 0) ChatUtils.sendMessage("/joininstance ${masterMode}CATACOMBS${if ((LocationUtils.dungeonFloorNumber ?: 0) > 0) "_FLOOR" else ""}_$floor")
                 else ChatUtils.sendMessage("/instancerequeue")
             }
