@@ -17,6 +17,7 @@ import com.github.noamm9.utils.Utils.send
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.mojang.blaze3d.platform.InputConstants
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
@@ -33,21 +34,41 @@ import java.awt.Color
 object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox and undercut mode.") {
     private val defaultMode by DropdownSetting("Default mode", 0, listOf("Normal", "Undercut")).withDescription("The default input mode that will be used when you open the menu")
     private val rememberInput by MultiCheckboxSetting("Remember Input", mutableMapOf("Text" to false, "Mode" to false)).withDescription("Toggles for settings on the input menu that should be restored after reopening it")
-    private val rememberTextPerMode by ToggleSetting("Remember Text Per Mode").withDescription("Remembers the text of Normal and Undercut mode separately instead of sharing one, so a value typed in one mode is not restored in the other. Needs Text in Remember Input").showIf { rememberInput["Text"] }
+    private val rememberTextPerMode by ToggleSetting("Remember Text Per Mode").withDescription("Remembers the text of Normal and Undercut mode separately instead of sharing one").onChange { syncRememberInput() }
     private val savedInputs by MapSetting<InputMode, String>("savedInputs").hidden()
 
     private val guiNames = setOf("Create BIN Auction", "Create Auction")
     private val confirmNames = setOf("Confirm BIN Auction", "Confirm Auction")
 
-    private enum class InputMode { NORMAL, UNDERCUT }
+    private enum class InputMode(val rememberKey: String) { NORMAL("Normal Text"), UNDERCUT("Undercut Text") }
 
     private var item: ItemStack? = null
     private var mode: InputMode? = null
     private var input = ""
 
-    private fun separateTexts() = rememberTextPerMode.value && rememberInput["Text"]
+    private fun isChecked(key: String) = rememberInput.value[key] ?: false
+    private fun remembersText(mode: InputMode) = isChecked(if (rememberTextPerMode.value) mode.rememberKey else "Text")
+    private fun separateTexts(mode: InputMode) = rememberTextPerMode.value && remembersText(mode)
+
+    // swaps Text for Normal Text and Undercut Text (and back) in place, so the open dropdown stays open
+    private fun syncRememberInput() {
+        val map = rememberInput.value
+        val old = map.toMap()
+        val mode = old["Mode"] ?: false
+
+        map.clear()
+        if (rememberTextPerMode.value) {
+            map["Normal Text"] = old["Normal Text"] ?: old["Text"] ?: false
+            map["Undercut Text"] = old["Undercut Text"] ?: old["Text"] ?: false
+        }
+        else map["Text"] = old["Text"] ?: ((old["Normal Text"] ?: false) || (old["Undercut Text"] ?: false))
+        map["Mode"] = mode
+    }
 
     override fun init() {
+        // the config is loaded before isLoaded is set, so the toggle's change listener does not run for it
+        ClientLifecycleEvents.CLIENT_STARTED.register { syncRememberInput() }
+
         ScreenEvents.AFTER_INIT.register { _, screen, width, height ->
             if (! enabled) return@register
             if (screen !is AbstractSignEditScreen) return@register
@@ -100,12 +121,11 @@ object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox
         override fun init() {
             super.init()
 
-            if (! rememberInput["Text"]) input = ""
+            syncRememberInput()
             mode = if (rememberInput["Mode"] && mode != null) mode else InputMode.entries[defaultMode.value]
-            if (separateTexts()) {
-                input = savedInputs[mode !!].orEmpty()
-                loaded = input
-            }
+            if (! remembersText(mode !!)) input = ""
+            else if (rememberTextPerMode.value) input = savedInputs[mode !!].orEmpty()
+            loaded = input
 
             lowestBin = NetworkLoop.getLowestBin(stack.skyblockId) ?: 0L
 
@@ -121,7 +141,7 @@ object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox
 
             inputField.setResponder {
                 input = it
-                if (separateTexts()) savedInputs[mode !!] = it
+                if (separateTexts(mode !!)) savedInputs[mode !!] = it
                 recalculateValue()
             }
 
@@ -135,7 +155,7 @@ object AuctionPriceInput: Feature("Replaces the sign input with a proper textbox
             addRenderableWidget(UIButton(centerX - 100, centerY + 35, 200, 20, getModeText()) { button ->
                 mode = if (mode == InputMode.NORMAL) InputMode.UNDERCUT else InputMode.NORMAL
                 button.message = Component.literal(getModeText())
-                if (separateTexts() && input == loaded) {
+                if (separateTexts(mode !!) && input == loaded) {
                     input = savedInputs[mode !!].orEmpty()
                     loaded = input
                     inputField.value = input
