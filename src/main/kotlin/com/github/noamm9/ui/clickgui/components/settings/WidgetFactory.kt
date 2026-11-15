@@ -5,8 +5,14 @@ import com.github.noamm9.config.types.*
 import com.github.noamm9.ui.clickgui.components.settings.impl.*
 
 object WidgetFactory {
+    fun fromSetting(configHolder: ConfigHolder<*>): Widget<*>? {
+        val widget = createWidget(configHolder) ?: return null
+        if (configHolder.children.isEmpty()) return widget
+        return GroupWidget(widget, configHolder.children.mapNotNull(::fromSetting))
+    }
+
     @Suppress("UNCHECKED_CAST")
-    fun fromSetting(configHolder: ConfigHolder<*>) = when (configHolder) {
+    private fun createWidget(configHolder: ConfigHolder<*>) = when (configHolder) {
         is ToggleSetting -> ToggleWidget(configHolder)
         is DropdownSetting -> DropdownWidget(configHolder)
         is MultiCheckboxSetting -> MultiCheckboxWidget(configHolder)

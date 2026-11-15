@@ -21,6 +21,8 @@ abstract class Widget<T>(val config: ConfigHolder<T>) {
     abstract fun draw(ctx: GuiGraphicsExtractor, mouseX: Int, mouseY: Int)
     abstract fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean
 
+    open fun description(mouseX: Int, mouseY: Int): String? = config.description
+
     open fun clearFocus() {}
 
     open fun mouseReleased(button: Int) {}

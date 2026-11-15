@@ -53,7 +53,7 @@ class RangeSliderWidget<T: Number>(config: RangeSliderSetting<T>): Widget<Pair<T
         Style.drawHoverBar(ctx, x, y, 20f, hoverAnim.value)
         Style.drawNudgedText(ctx, name, x + 8f, y + 2f, hoverAnim.value)
 
-        val valStr = "${cfg.stringfy(value.first)} - ${cfg.stringfy(value.second)}${cfg.suffix}"
+        val valStr = "${cfg.stringfy(cfg.fromPercent(startAnim.value))} - ${cfg.stringfy(cfg.fromPercent(endAnim.value))}${cfg.suffix}"
         ctx.drawString(valStr, x + width - valStr.width() - 8f, y + 2f, Color(180, 180, 180))
 
         Style.drawRangeSlider(ctx, x + 8f, y + 14f, width - 16f, startAnim.value, endAnim.value, Style.accentColor)

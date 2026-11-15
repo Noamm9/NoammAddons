@@ -37,4 +37,5 @@ interface SettingProvider {
     fun <T: ConfigHolder<*>> T.hideIf(condition: () -> Boolean): T = apply { visibility = { ! condition() } }
     fun <T: ConfigHolder<*>> T.hidden() = apply { visibility = { false } }
     fun <T: ConfigHolder<*>> T.jsonName(str: String): T = apply { jsonName = str }
+    fun <T: ConfigHolder<*>> T.childOf(parent: ConfigHolder<*>): T = apply { parent.addChild(this) }
 }

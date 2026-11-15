@@ -9,6 +9,11 @@ abstract class ConfigHolder<T>(val name: String, val defaultValue: T) {
     var visibility: () -> Boolean = { true }
     var changeListener: ((T) -> Unit)? = null
 
+    var parent: ConfigHolder<*>? = null
+        private set
+
+    val children = mutableListOf<ConfigHolder<*>>()
+
     var value: T = defaultValue
         set(value) {
             field = value
@@ -18,4 +23,9 @@ abstract class ConfigHolder<T>(val name: String, val defaultValue: T) {
         }
 
     open fun reset() = ::value.set(defaultValue)
+
+    fun addChild(child: ConfigHolder<*>) {
+        child.parent = this
+        children.add(child)
+    }
 }
