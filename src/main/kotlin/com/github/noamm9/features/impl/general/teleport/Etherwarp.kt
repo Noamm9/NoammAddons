@@ -3,6 +3,7 @@ package com.github.noamm9.features.impl.general.teleport
 import com.github.noamm9.config.types.*
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
+import com.github.noamm9.features.IFeatureWindow
 import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.PlayerUtils.serverPitch
@@ -12,14 +13,14 @@ import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.items.TeleportUtils
 import com.github.noamm9.utils.render.world.Render3D.renderBlock
 import com.github.noamm9.utils.render.world.Render3D.renderBox
+import com.mojang.blaze3d.platform.InputConstants
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import net.minecraft.network.protocol.game.*
 import net.minecraft.sounds.SoundEvents
-import com.mojang.blaze3d.platform.InputConstants
 import java.awt.Color
 
-object Etherwarp: Feature("Etherwarp overlay and sound.") {
+object Etherwarp: Feature("Etherwarp overlay and sound."), IFeatureWindow {
     private val overlay by ToggleSetting("Etherwarp Overlay").section("Overlay")
     private val mode by DropdownSetting("Mode", 0, listOf("Outline", "Fill", "Filled Outline")).showIf { overlay.value }
     private val phase by ToggleSetting("Phase").showIf { overlay.value }
@@ -54,7 +55,8 @@ object Etherwarp: Feature("Etherwarp overlay and sound.") {
             if (! valid && ! showFail.value) return@register
             pos ?: return@register
 
-            if (fullBlock.value) event.ctx.renderBox(pos.x + 0.5,
+            if (fullBlock.value) event.ctx.renderBox(
+                pos.x + 0.5,
                 pos.y, pos.z + 0.5, 1.0001, 1.0001, if (valid) outlineColor.value else invalidOutlineColor.value,
                 if (valid) fillColor.value else invalidFillColor.value,
                 mode.value.equalsOneOf(0, 2),
@@ -62,7 +64,8 @@ object Etherwarp: Feature("Etherwarp overlay and sound.") {
                 phase.value,
                 lineWidth.value
             )
-            else event.ctx.renderBlock(pos, if (valid) outlineColor.value else invalidOutlineColor.value,
+            else event.ctx.renderBlock(
+                pos, if (valid) outlineColor.value else invalidOutlineColor.value,
                 if (valid) fillColor.value else invalidFillColor.value,
                 mode.value.equalsOneOf(0, 2),
                 mode.value.equalsOneOf(1, 2),
