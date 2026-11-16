@@ -5,6 +5,7 @@ import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.CheckEntityRenderEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.utils.location.LocationUtils
+import com.github.noamm9.utils.PartyUtils
 import net.minecraft.client.player.AbstractClientPlayer
 import net.minecraft.world.entity.Entity
 
@@ -17,6 +18,7 @@ import net.minecraft.world.entity.Entity
  */
 object PlayerOpacity: Feature("Makes nearby players transparent so they don't block your view.") {
     private val dungeonOnly by ToggleSetting("Dungeons only").withDescription("Only enables this feature inside dungeons.")
+    private val excludeParty by ToggleSetting("Exclude party").withDescription("Excludes party members from being hidden.")
     private val distance by SliderSetting("Distance", 3, 1, 32, 1).withDescription("How close a player has to be to become transparent.")
     private val opacity by SliderSetting("Opacity", 30, 0, 100, 1, "%").withDescription("0% hides them completely.")
 
@@ -49,6 +51,7 @@ object PlayerOpacity: Feature("Makes nearby players transparent so they don't bl
         if (entity !is AbstractClientPlayer) return false
         if (entity == player) return false
         if (entity.uuid.version() != 4) return false
+        if (excludeParty.value && PartyUtils.isMember(entity.gameProfile.name)) return false
         if (entity.distanceToSqr(player) > distance.value * distance.value) return false
         return true
     }
