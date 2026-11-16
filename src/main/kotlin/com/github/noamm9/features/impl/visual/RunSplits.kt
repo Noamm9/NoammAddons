@@ -1,22 +1,17 @@
 package com.github.noamm9.features.impl.visual
 
 import com.github.noamm9.config.types.ToggleSetting
-import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.features.Feature
-import com.github.noamm9.init.DataDownloader
 import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.NumbersUtils.toFixed
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.DungeonListener.DualTime
 import com.github.noamm9.utils.dungeons.DungeonListener.DualTime.Companion.minus
-//#if CHEAT
-//!import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner
-//#endif
+import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D.drawString
-import net.minecraft.network.chat.Component
 
 object RunSplits: Feature("A Splits HUD for Dungeons.") {
     private val showWitherDoors by ToggleSetting("Show Wither Doors").withDescription("Show The Number of Wither Doors in the run")
@@ -25,14 +20,12 @@ object RunSplits: Feature("A Splits HUD for Dungeons.") {
     private val show300Score by ToggleSetting("Show 300 Score Time").withDescription("Shows when 300 score was reached.")
     private val printSplits by ToggleSetting("Print Splits").withDescription("Prints the splits into chat at the end of the run.")
 
-    private val floorSplits = DataDownloader.loadJson<Map<String, List<DialogueEntry>>>("runSplits.json")
     private val runEndRegex = Regex("^\\s*☠ Defeated (.+) in 0?([\\dhms ]+?)\\s*(\\(NEW RECORD!\\))?$")
-    private val currentFloorSplits = linkedMapOf<String, Split>()
     private const val separator = "-----------------------"
 
-    //#if LEGIT
-    private var witherDoors = 0
-    //#endif
+    private val splitTimes = mutableListOf<DualTime>()
+
+    //#if LEGIT private var witherDoors = 0
 
     private var score300Timer: DualTime? = null
 
@@ -57,7 +50,7 @@ object RunSplits: Feature("A Splits HUD for Dungeons.") {
             for (i in text.indices) {
                 val line = text[i]
                 ctx.drawString(line, 0, currentY)
-                width = maxOf(width, line.length * 6)
+                width = maxOf(width, line.length * 4)
                 currentY += 9
             }
 
@@ -65,12 +58,10 @@ object RunSplits: Feature("A Splits HUD for Dungeons.") {
         }
 
         register<WorldChangeEvent> {
-            currentFloorSplits.clear()
+            splitTimes.clear()
             score300Timer = null
             currentText = emptyList()
-            //#if LEGIT
-            witherDoors = 0
-            //#endif
+            //#if LEGIT witherDoors = 0
         }
 
         register<TickEvent.Start> {
@@ -87,7 +78,9 @@ object RunSplits: Feature("A Splits HUD for Dungeons.") {
         }
 
         register<DungeonEvent.NecronDeathEvent> {
-            EventBus.post(ChatMessageEvent(Component.literal("STUPID HOTFIX XD XD 67 (:")))
+            val splits = currentSplits() ?: return@register
+            if (splitTimes.size !in 1 until splits.splits.size) return@register
+            splitTimes.add(DualTime(DungeonListener.currentTime))
         }
 
         register<DungeonEvent.RunEndedEvent> {
@@ -101,27 +94,17 @@ object RunSplits: Feature("A Splits HUD for Dungeons.") {
 
         register<ChatMessageEvent> {
             if (! LocationUtils.inDungeon) return@register
-
             val msg = event.unformattedText.trim()
-            val floor = LocationUtils.dungeonFloor ?: return@register
-            val currentSplits = floorSplits[floor] ?: floorSplits[floor.replace("M", "F")] ?: return@register
-            //#if LEGIT
-            if (msg.matches(DungeonListener.witherDoorOpenedRegex)) witherDoors ++
-            //#endif
-
-            currentSplits.forEachIndexed { i, entry ->
-                val split = currentFloorSplits.getOrPut(entry.name) { Split() }
-
-                if (entry.startMatches(msg) || (i > 0 && currentSplits[i - 1].endMatches(msg))) {
-                    split.start = DualTime(DungeonListener.currentTime)
-                }
-
-                if (entry.endMatches(msg) || (entry.end == null && runEndRegex.matches(msg))) {
-                    split.end = DualTime(DungeonListener.currentTime)
-                }
-
-                if (split.start != null || split.end != null) currentFloorSplits[entry.name] = split
+            //#if LEGIT if (msg.matches(DungeonListener.witherDoorOpenedRegex)) witherDoors ++
+            val splits = currentSplits() ?: return@register
+            val reached = when {
+                splitTimes.isEmpty() -> msg == splits.start
+                splitTimes.size > splits.splits.size -> false
+                msg.matches(runEndRegex) -> true
+                else -> splitTimes.size < splits.splits.size && splits.splits[splitTimes.size - 1].ends(msg)
             }
+
+            if (reached) splitTimes.add(DualTime(DungeonListener.currentTime))
         }
     }
 
@@ -159,23 +142,21 @@ object RunSplits: Feature("A Splits HUD for Dungeons.") {
 
         val bossEntry = if (DungeonListener.dungeonStarted) dual((boss ?: now) - start, ::formatTime) else "?"
 
-        val splitLines = currentFloorSplits.mapNotNull { (name, split) ->
-            val s = split.start ?: return@mapNotNull null
-            val e = split.end ?: DualTime(DungeonListener.currentTime)
-            val diff = e - s
-            val t = (diff.ticks / 20.0).toFixed(2)
-            val r = (diff.real / 1000.0).toFixed(2)
-            "$name: $r §7(§b$t§7)§r"
-        }.toMutableList().apply {
-            indexOfFirst { it.startsWith("&aBoss") }.takeUnless { it == - 1 }?.let { add(removeAt(it)) }
-        }
+        val splitLines = currentSplits()?.takeIf { splitTimes.isNotEmpty() }?.let { splits ->
+            val live = DualTime(DungeonListener.currentTime)
+            val lines = splits.splits.take(splitTimes.size).mapIndexed { i, split ->
+                splitLine(split.name, splitTimes[i], splitTimes.getOrElse(i + 1) { live })
+            }
+            val bossEnd = if (splitTimes.size > splits.splits.size) splitTimes.last() else live
+            lines + splitLine("&aBoss", splitTimes.first(), bossEnd)
+        }.orEmpty()
 
         val clearInfo = mutableListOf<String>()
         if (showWitherDoors.value) {
             //#if LEGIT
-            clearInfo.add("§8Wither Doors: §7$witherDoors")
+            //!clearInfo.add("§8Wither Doors: §7$witherDoors")
             //#else
-            //!clearInfo.add("§8Wither Doors: §7${DungeonScanner.witherDoors}")
+            clearInfo.add("§8Wither Doors: §7${DungeonScanner.witherDoors}")
             //#endif
         }
         clearInfo.add("§4Blood Open: $bloodOpen")
@@ -201,17 +182,76 @@ object RunSplits: Feature("A Splits HUD for Dungeons.") {
         currentText = clearInfo
     }
 
-    private data class Split(var start: DualTime? = null, var end: DualTime? = null)
-    private data class DialogueEntry(val name: String, val start: String? = null, val end: String? = null) {
-        @Transient private val startRegex = start?.toRegex()
-        @Transient private val endRegex = end?.toRegex()
+    private fun currentSplits(): BossSplits? {
+        val floor = LocationUtils.dungeonFloor ?: return null
+        return floorSplits[floor] ?: floorSplits[floor.replace("M", "F")]
+    }
 
-        fun startMatches(msg: String) = start == msg || startRegex?.matches(msg) == true
-        fun endMatches(msg: String) = end == msg || endRegex?.matches(msg) == true
+    private fun splitLine(name: String, start: DualTime, end: DualTime): String {
+        val diff = end - start
+        return "$name: ${(diff.real / 1000.0).toFixed(2)} §7(§b${(diff.ticks / 20.0).toFixed(2)}§7)§r"
+    }
+
+    private class Split(val name: String, val ends: (String) -> Boolean) {
+        constructor(name: String, end: String? = null): this(name, { it == end })
+    }
+
+    private class BossSplits(val start: String, val splits: List<Split>) {
+        constructor(start: String, vararg splits: Split): this(start, splits.toList())
     }
 
     private fun dual(diff: DualTime, fmt: (Long) -> String) = "${fmt(diff.real / 50)} §7(§b${fmt(diff.ticks)}§7)"
     private fun formatTime(ticks: Long) = "${ticks / 20 / 60}:${(ticks / 20 % 60).toString().padStart(2, '0')}"
     private fun formatSecs(ticks: Long) = "${ticks / 20}"
     private fun formatDec(ticks: Long) = if (ticks / 20 >= 60) formatTime(ticks) else (ticks / 20.0).toFixed(1)
+
+    //@formatter:off
+    private val floorSplits = buildMap {
+        put("F1", BossSplits(
+            "[BOSS] Bonzo: Gratz for making it this far, but I'm basically unbeatable.",
+            Split("&cFirst Kill", "[BOSS] Bonzo: Oh noes, you got me.. what ever will I do?!"),
+            Split("&cSecond Kill", "[BOSS] Bonzo: Alright, maybe I'm just weak after all.."),
+            Split("&eEnd Dialogue")
+        ))
+        put("F2", BossSplits(
+            "[BOSS] Scarf: This is where the journey ends for you, Adventurers.",
+            Split("&cUndeads", "[BOSS] Scarf: Those toys are not strong enough I see."),
+            Split("&bScarf")
+        ))
+        put("F3", BossSplits(
+            "[BOSS] The Professor: I was burdened with terrible news recently...",
+            Split("&9Guardians", "[BOSS] The Professor: Oh? You found my Guardians' one weakness?"),
+            Split("&eThe Professor", "[BOSS] The Professor: I see. You have forced me to use my ultimate technique."),
+            Split("&bGuardifessor")
+        ))
+        put("F4", BossSplits(
+            "[BOSS] Thorn: Welcome Adventurers! I am Thorn, the Spirit! And host of the Vegan Trials!",
+            Split("&eDialogue", "[BOSS] Thorn: Dance! Dance with my Spirit animals! And may you perish in a delightful way!"),
+            Split("&bThorn Kill")
+        ))
+        put("F5", BossSplits(
+            "[BOSS] Livid: Welcome, you've arrived right on time. I am Livid, the Master of Shadows.",
+            Split("&eStart Dialogue", "[BOSS] Livid: I respect you for making it to here, but I'll be your undoing."),
+            Split("&cLivid Kill", Regex("\\[BOSS] \\w+ Livid: Impossible! How did you figure out which one I was\\?!")::matches),
+            Split("&eEnd Dialogue")
+        ))
+        put("F6", BossSplits(
+            "[BOSS] Sadan: So you made it all the way here... Now you wish to defy me? Sadan?!",
+            Split("&6Terracottas", "[BOSS] Sadan: ENOUGH!"),
+            Split("&dGiants", "[BOSS] Sadan: You did it. I understand now, you have earned my respect."),
+            Split("&cSadan")
+        ))
+
+        val f7Splits = BossSplits(
+            "[BOSS] Maxor: WELL! WELL! WELL! LOOK WHO'S HERE!",
+            Split("&5Maxor", "[BOSS] Storm: Pathetic Maxor, just like expected."),
+            Split("&bStorm", "[BOSS] Goldor: Who dares trespass into my domain?"),
+            Split("&eTerminals", "The Core entrance is opening!"),
+            Split("&7Goldor", "[BOSS] Necron: You went further than any human before, congratulations."),
+            Split("&cNecron")
+        )
+
+        put("F7", f7Splits)
+        put("M7", BossSplits(f7Splits.start, f7Splits.splits + Split("&4Dragons")))
+    }
 }
