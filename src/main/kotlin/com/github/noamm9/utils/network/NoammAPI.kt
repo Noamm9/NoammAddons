@@ -1,9 +1,8 @@
 package com.github.noamm9.utils.network
 
 import com.github.noamm9.NoammAddons
-import com.github.noamm9.utils.ChatUtils
-import com.github.noamm9.utils.ThreadUtils
-import com.github.noamm9.utils.catch
+import com.github.noamm9.NoammAddons.MOD_VERSION
+import com.github.noamm9.utils.*
 import com.github.noamm9.utils.network.data.*
 import io.ktor.client.call.body
 import io.ktor.client.request.header
@@ -15,6 +14,7 @@ import kotlinx.io.IOException
 object NoammAPI {
     const val URL = "https://api.noamm.org"
     @Volatile private var sessionExpired = false
+    @Volatile private var outdatedWarned = false
     @Volatile private var cooldownUntil = 0L
 
     suspend fun getDungeonStats(uuid: String) = apiRequest<DungeonStats>("/hypixel/dungeonstats/$uuid")
@@ -25,6 +25,18 @@ object NoammAPI {
     private suspend inline fun <reified T> apiRequest(path: String): Result<T> = run {
         if (System.currentTimeMillis() < cooldownUntil) return Result.failure(NoammAPIException.OnCooldown())
         if (ApiAuth.token == null) {
+
+            if (ApiAuth.outdated) {
+                if (! outdatedWarned) {
+                    ThreadUtils.scheduledTask(6000) { outdatedWarned = false }
+                    ThreadUtils.scheduledTask(10) {
+                        ChatUtils.modMessage("§cThis version of NoammAddons ($MOD_VERSION) is outdated and no longer supported. §fUpdate the mod to use API features.")
+                    }
+                    outdatedWarned = true
+                }
+                return Result.failure(NoammAPIException.Outdated())
+            }
+
             if (ApiAuth.keyPairUnavailable && ! sessionExpired) {
                 ThreadUtils.scheduledTask(6000) { sessionExpired = false }
                 ThreadUtils.scheduledTask(10) {
@@ -32,6 +44,8 @@ object NoammAPI {
                 }
                 sessionExpired = true
             }
+
+
             return Result.failure(NoammAPIException.Unauthorized("auth token is null. your session is probably expired. Restart your game to fix it."))
         }
 
@@ -70,6 +84,7 @@ object NoammAPI {
         class ApiUnavailable(message: String = "API is currently unavailable"): NoammAPIException(message)
         class Unauthorized(message: String): NoammAPIException(message)
         class Forbidden(message: String): NoammAPIException(message)
+        class Outdated: NoammAPIException("this mod version is outdated and no longer supported by the API")
     }
 
     private fun setCD(i: Int) {

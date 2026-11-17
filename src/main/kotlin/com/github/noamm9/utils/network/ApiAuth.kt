@@ -34,6 +34,8 @@ object ApiAuth: ISelfInit {
     @Volatile private var tokenInfo: TokenResponse? = null
     @Volatile var keyPairUnavailable = false
         private set
+    @Volatile var outdated = false
+        private set
 
     internal val token get() = tokenInfo?.token
 
@@ -72,6 +74,11 @@ object ApiAuth: ISelfInit {
             setBody(encode(request))
         }
 
+        if (response.status == HttpStatusCode.UpgradeRequired) return run {
+            logger.error("[ApiAuth] Mod version $MOD_VERSION is no longer supported by the API, not retrying")
+            outdated = true
+        }
+
         if (! response.status.isSuccess()) return run {
             val error = response.bodyAsText()
             logger.error("[ApiAuth] Auth failed (${response.status}): $error, retrying in 15 minutes")
@@ -83,8 +90,7 @@ object ApiAuth: ISelfInit {
 
         logger.info("[ApiAuth] Successfully authenticated, refreshing in ${refreshAtMillis / 1000}s")
         setTimeout(refreshAtMillis, ::updateToken)
-    }
-    catch (e: Exception) {
+    } catch (e: Exception) {
         logger.error("[ApiAuth] Unexpected error during auth, retrying in 15 minutes", e)
         setTimeout(15 * 60 * 1000L, ::updateToken)
     }
@@ -117,8 +123,7 @@ object ApiAuth: ISelfInit {
             val signed = sig.sign()
 
             SignedData(Base64.encode(buf.array()), Base64.encode(signed))
-        }
-        catch (e: Exception) {
+        } catch (e: Exception) {
             logger.error("[ApiAuth] Failed to sign random data", e)
             null
         }
