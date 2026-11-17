@@ -5,23 +5,23 @@ import com.github.noamm9.event.EventBus
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.init.RemoteFeatures
 import com.github.noamm9.init.types.ISelfInit
+import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.ChatUtils.unformattedText
-import com.github.noamm9.utils.containsOneOf
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.DungeonUtils
 import com.github.noamm9.utils.dungeons.map.core.RoomState
-import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.location.LocationUtils
+import com.github.noamm9.utils.network.cache.MojangCache
 import com.github.noamm9.websocket.WebSocket
 import com.github.noamm9.websocket.WebSocketPacket
-import com.github.noamm9.websocket.packets.*
+import com.github.noamm9.websocket.packets.S2CPacketDungeonMimic
+import com.github.noamm9.websocket.packets.S2CPacketDungeonPrince
 import net.minecraft.network.protocol.game.*
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket.Action.ADD_PLAYER
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket.Action.UPDATE_DISPLAY_NAME
 import net.minecraft.world.entity.monster.zombie.Zombie
-import java.util.UUID
 import kotlin.jvm.optionals.getOrNull
 import kotlin.math.ceil
 import kotlin.math.floor
@@ -43,7 +43,7 @@ object ScoreTracker: ISelfInit {
     private var clearedPercentage = 0
     private var completedRooms = 0
     private var highestScore = 0
-    private val batKillers = mutableSetOf<UUID>()
+    private val batKillers = mutableSetOf<String>()
     private var secretsScore = 0
 
     var mimicKilled = false
@@ -177,7 +177,7 @@ object ScoreTracker: ISelfInit {
                         }
                     }
 
-                    if (msg == "a bat has been slain. +1 bonus score" && registerBatKill(mc.user.profileId)) {
+                    if (msg == "a bat has been slain. +1 bonus score" && registerBatKill(mc.user.profileId.toString().remove("-"))) {
                         if (DungeonListener.dungeonTeammatesNoSelf.isNotEmpty()) WebSocket.send(mapOf("type" to "dungeonbat"))
                         EventBus.post(DungeonEvent.BatKilled)
                     }
@@ -187,7 +187,7 @@ object ScoreTracker: ISelfInit {
                         val message = match.groups["message"]?.value ?: return@let
                         if (sender.equals(mc.user.name, true)) return@let
                         if (batMessages.none(message::contains)) return@let
-                        val uuid = mc.connection?.onlinePlayers?.firstOrNull { it.profile.name.equals(sender, true) }?.profile?.id ?: return@let
+                        val uuid = MojangCache.getOrNull(sender)?.uuid ?: return@let
                         registerBatKill(uuid)
                     }
                 }
@@ -195,7 +195,7 @@ object ScoreTracker: ISelfInit {
         }
     }
 
-    fun registerBatKill(uuid: UUID) = batKillers.size < maxBats && batKillers.add(uuid)
+    fun registerBatKill(uuid: String) = batKillers.size < maxBats && batKillers.add(uuid)
 
     private fun KMutableProperty0<Boolean>.onKill(packet: WebSocketPacket, event: DungeonEvent) {
         if (get()) return
