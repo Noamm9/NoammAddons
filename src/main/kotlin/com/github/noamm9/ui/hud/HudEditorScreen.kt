@@ -70,7 +70,7 @@ class HudEditorScreen: Screen(Component.literal("HudEditor")) {
         val btnHeight = 20
         val center = width / 2
 
-        addRenderableWidget(UIButton(center - 160, height - 40, 80, btnHeight, "§aSnap: ON") { button ->
+        addRenderableWidget(UIButton(center - 160, height - 40, 80, btnHeight, "§aSnap: OFF") { button ->
             snapEnabled = ! snapEnabled
             button.message = Component.literal(if (snapEnabled) "§aSnap: ON" else "§7Snap: OFF")
         })
