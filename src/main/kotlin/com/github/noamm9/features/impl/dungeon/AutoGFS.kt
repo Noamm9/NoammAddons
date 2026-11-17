@@ -21,7 +21,7 @@ object AutoGFS: Feature("Automatically refills dungeon items from your sacks usi
     private val refillTNT by ToggleSetting("Refill TNT")
     private val refillJerry by ToggleSetting("Refill Jerry")
     private val refillLeaps by ToggleSetting("Refill Leaps")
-    private val refillTwilight by ToggleSetting("Refill Twilight")
+    private val refillTwilight by ToggleSetting("Refill Twilight").withDescription("Refills Twilight during M7 boss phases. Keeps a full stack when playing Mage, including in boss.")
 
     private val pyTwilight by ToggleSetting("Refill after lightning", true).section("Twilight").showIf { refillTwilight.value }
     private val coreTwilight by ToggleSetting("Refill in Core").showIf { refillTwilight.value }
@@ -50,6 +50,7 @@ object AutoGFS: Feature("Automatically refills dungeon items from your sacks usi
             if (! LocationUtils.inBoss) return@register
             if (LocationUtils.dungeonFloor != "M7") return@register
             val clazz = DungeonListener.thePlayer?.clazz ?: return@register
+            if (clazz == DungeonClass.Mage) return@register
             val msg = event.unformattedText
 
             val dps = clazz.equalsOneOf(DungeonClass.Archer, DungeonClass.Berserk)
@@ -78,12 +79,14 @@ object AutoGFS: Feature("Automatically refills dungeon items from your sacks usi
         var jerryCount = 0
         var tntCount = 0
         var leapCount = 0
+        var twilightCount = 0
 
         for (stack in player.inventory.nonEquipmentItems) when (stack.skyblockId) {
             "ENDER_PEARL" -> pearlCount += stack.count
             "INFLATABLE_JERRY" -> jerryCount += stack.count
             "SUPERBOOM_TNT" -> tntCount += stack.count
             "SPIRIT_LEAP" -> leapCount += stack.count
+            "TWILIGHT_ARROW_POISON" -> twilightCount += stack.count
         }
 
         val pending = listOf(
@@ -91,6 +94,7 @@ object AutoGFS: Feature("Automatically refills dungeon items from your sacks usi
             RefillEntry(jerryCount, 64, "inflatable_jerry", refillJerry.value),
             RefillEntry(tntCount, 64, "superboom_tnt", refillTNT.value),
             RefillEntry(leapCount, 16, "spirit_leap", refillLeaps.value),
+            RefillEntry(twilightCount, 64, "twilight_arrow_poison", refillTwilight.value && DungeonListener.thePlayer?.clazz == DungeonClass.Mage),
         ).filter { it.enabled && it.current > 0 && it.max - it.current >= 4 && it.gfsName !in emptySacks }
 
         if (pending.isEmpty()) return
