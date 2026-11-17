@@ -64,26 +64,26 @@ object Scoreboard: Feature("Draws a custom scoreboard instead of the vanilla one
             return cachedW to cachedH
         }
 
-        override fun isHovered(mx: Int, my: Int): Boolean {
-            if (cachedW == 0f) return false
-            val visualWidth = cachedW * scale
-            val visualHeight = cachedH * scale
-            return mx >= x - visualWidth - 5 && mx <= x && my >= y - (visualHeight / 2) && my <= y + (visualHeight / 2)
+        override fun bounds(): Bounds {
+            if (cachedW == 0f) return Bounds(x, y, x, y)
+            val left = x - (cachedW + 5) * scale
+            val top = y - cachedH * scale / 2f
+            return Bounds(left, top, left + cachedW * scale, top + cachedH * scale)
         }
+
+        override fun isHovered(mx: Int, my: Int) = cachedW != 0f && bounds().contains(mx.toFloat(), my.toFloat())
 
         override fun drawBackground(ctx: GuiGraphicsExtractor, mx: Int, my: Int) {
             if (cachedW == 0f) return
-            val scaledW = cachedW * scale
-            val scaledH = cachedH * scale
-            val drawX = x - scaledW - 5
-            val drawY = y - (scaledH / 2)
+            val bounds = bounds()
+            val scaledW = bounds.right - bounds.left
+            val scaledH = bounds.bottom - bounds.top
 
-            val hovered = mx >= drawX && mx <= drawX + scaledW && my >= drawY && my <= drawY + scaledH
-            val borderColor = if (isDragging || hovered) Style.accentColor else Color(255, 255, 255, 40)
+            val borderColor = if (isDragging || isHovered(mx, my)) Style.accentColor else Color(255, 255, 255, 40)
 
-            ctx.drawRect(drawX.toDouble(), drawY.toDouble(), scaledW.toDouble(), scaledH.toDouble(), Color(10, 10, 10, 150))
-            ctx.drawRect(drawX.toDouble(), drawY.toDouble(), scaledW.toDouble(), 1.0, borderColor)
-            ctx.drawRect(drawX.toDouble(), (drawY + scaledH - 1).toDouble(), scaledW.toDouble(), 1.0, borderColor)
+            ctx.drawRect(bounds.left, bounds.top, scaledW, scaledH, Color(10, 10, 10, 150))
+            ctx.drawRect(bounds.left, bounds.top, scaledW, 1f, borderColor)
+            ctx.drawRect(bounds.left, bounds.bottom - 1f, scaledW, 1f, borderColor)
         }
     }
 
