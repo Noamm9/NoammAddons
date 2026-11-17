@@ -6,7 +6,6 @@ import com.github.noamm9.config.ConfigManager
 import com.github.noamm9.features.FeatureManager
 import com.github.noamm9.ui.clickgui.components.settings.Style
 import com.github.noamm9.ui.utils.Resolution
-import com.github.noamm9.ui.utils.TextInputHandler
 import com.github.noamm9.ui.utils.components.UIButton
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.NumbersUtils.toFixed
@@ -17,7 +16,6 @@ import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.RenderHelper.width
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
-import net.minecraft.client.input.CharacterEvent
 import net.minecraft.client.input.KeyEvent
 import net.minecraft.client.input.MouseButtonEvent
 import net.minecraft.network.chat.Component
@@ -38,21 +36,6 @@ class HudEditorScreen: Screen(Component.literal("HudEditor")) {
         val bandColor = Color(80, 140, 255)
     }
 
-    private inner class Field(val label: String, private val getter: (HudElement) -> String, private val setter: (HudElement, Float) -> Unit) {
-        private var str = ""
-        private var editingHandler: TextInputHandler? = null
-        private val editing get() = editingHandler?.listening == true
-
-        val handler = TextInputHandler({ if (editing) str else selected.singleOrNull()?.let(getter).orEmpty() }, { text ->
-            str = text.filter { it.isDigit() || it == '.' || it == '-' }
-            str.toFloatOrNull()?.let { value -> selected.singleOrNull()?.let { setter(it, value) } }
-        }).also { editingHandler = it }
-
-        fun startEditing() {
-            str = selected.singleOrNull()?.let(getter).orEmpty()
-        }
-    }
-
     private val huds = FeatureManager.hudElements.filter(HudElement::toggle)
     private val selected = linkedSetOf<HudElement>()
 
@@ -67,16 +50,16 @@ class HudEditorScreen: Screen(Component.literal("HudEditor")) {
 
     private var resetConfirmed = false
     private var gridEnabled = false
-    private var snapEnabled = true
+    private var snapEnabled = false
     private var gridSize = 10
 
     private var mouseX = 0f
     private var mouseY = 0f
 
     private val fields = listOf(
-        Field("X", { it.x.roundToInt().toString() }) { hud, value -> hud.x = value },
-        Field("Y", { it.y.roundToInt().toString() }) { hud, value -> hud.y = value },
-        Field("Scale", { it.scale.toFixed(1) }) { hud, value -> hud.scale = value.coerceIn(MIN_SCALE, MAX_SCALE) }
+        "X" to { hud: HudElement -> hud.x.roundToInt().toString() },
+        "Y" to { hud: HudElement -> hud.y.roundToInt().toString() },
+        "Scale" to { hud: HudElement -> hud.scale.toFixed(1) }
     )
 
     private lateinit var gridToggleButton: UIButton
@@ -189,7 +172,7 @@ class HudEditorScreen: Screen(Component.literal("HudEditor")) {
     }
 
     private fun drawInfo(ctx: GuiGraphicsExtractor, hud: HudElement) {
-        val labelsWidth = fields.sumOf { it.label.width() + 4 }
+        val labelsWidth = fields.sumOf { it.first.width() + 4 }
         val totalWidth = hud.name.width() + 10f + labelsWidth + fields.size * (FIELD_WIDTH + 8f) + 8f
         var x = (Resolution.width - totalWidth) / 2f
         val y = 8f
@@ -200,18 +183,13 @@ class HudEditorScreen: Screen(Component.literal("HudEditor")) {
         ctx.drawString(hud.name, x, y + 6f, Style.accentColor)
         x += hud.name.width() + 10f
 
-        for (field in fields) {
-            ctx.drawString("§7${field.label}", x, y + 6f)
-            x += field.label.width() + 4f
+        for ((label, getter) in fields) {
+            ctx.drawString("§7$label", x, y + 6f)
+            x += label.width() + 4f
 
-            val handler = field.handler
-            handler.x = x
-            handler.y = y + 3f
-            handler.width = FIELD_WIDTH
-            handler.height = FIELD_HEIGHT
+            val value = getter(hud)
             ctx.drawRect(x, y + 3f, FIELD_WIDTH, FIELD_HEIGHT, Color(30, 30, 30, 200))
-            ctx.drawRect(x, y + 2f + FIELD_HEIGHT, FIELD_WIDTH, 1f, if (handler.listening) Style.accentColor else Color(255, 255, 255, 30))
-            handler.draw(ctx, mouseX, mouseY)
+            ctx.drawString(value, x + (FIELD_WIDTH - value.width()) / 2f, y + 6f)
             x += FIELD_WIDTH + 8f
         }
     }
@@ -267,14 +245,6 @@ class HudEditorScreen: Screen(Component.literal("HudEditor")) {
         val mx = (mouseButtonEvent.x / Resolution.scale).toFloat()
         val my = (mouseButtonEvent.y / Resolution.scale).toFloat()
 
-        if (selected.size == 1) for (field in fields) {
-            val wasEditing = field.handler.listening
-            if (field.handler.mouseClicked(mx, my, mouseButtonEvent)) {
-                if (! wasEditing) field.startEditing()
-                return true
-            }
-        }
-
         if (super.mouseClicked(mouseButtonEvent, bl)) return true
         if (mouseButtonEvent.button() != InputConstants.MOUSE_BUTTON_LEFT) return false
 
@@ -307,8 +277,6 @@ class HudEditorScreen: Screen(Component.literal("HudEditor")) {
     }
 
     override fun mouseReleased(mouseButtonEvent: MouseButtonEvent): Boolean {
-        fields.forEach { it.handler.mouseReleased() }
-
         bandStart?.let { (startX, startY) ->
             val band = HudElement.Bounds(min(startX, mouseX), min(startY, mouseY), max(startX, mouseX), max(startY, mouseY))
             huds.filter { band.intersects(it.bounds()) }.forEach(selected::add)
@@ -350,8 +318,6 @@ class HudEditorScreen: Screen(Component.literal("HudEditor")) {
     }
 
     override fun keyPressed(keyEvent: KeyEvent): Boolean {
-        if (fields.any { it.handler.keyPressed(keyEvent) }) return true
-
         val step = if (keyEvent.hasShiftDown()) 10f else 1f
         val (dx, dy) = when (keyEvent.key) {
             InputConstants.KEY_LEFT -> - step to 0f
@@ -367,11 +333,6 @@ class HudEditorScreen: Screen(Component.literal("HudEditor")) {
             it.y += dy
         }
         return true
-    }
-
-    override fun charTyped(characterEvent: CharacterEvent): Boolean {
-        if (fields.any { it.handler.keyTyped(characterEvent) }) return true
-        return super.charTyped(characterEvent)
     }
 
     override fun onClose() {
