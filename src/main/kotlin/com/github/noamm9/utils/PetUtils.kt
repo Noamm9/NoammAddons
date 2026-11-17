@@ -33,7 +33,7 @@ import java.util.concurrent.*
 import kotlin.jvm.optionals.getOrNull
 
 object PetUtils: ISelfInit {
-    private val summonPattern = Regex("""^§aYou (summoned|despawned) your (.+?)(?: ✦)?§a!$""")
+    private val summonPattern = Regex("""^§aYou (summoned|despawned) your §7\[Lvl (\d+)] (.+?)(?: ✦)?§a!$""")
     private val autopetPattern = Regex("""^§cAutopet §eequipped your §7\[Lvl (\d+)] (.+?)§e! §a§lVIEW RULE$""")
     private val levelUpPattern = Regex("^Your (.+?) leveled up to level (\\d+)!$")
     private val petMenuPattern = Regex("""^(?:\(\d+/\d+\) )?Pets(?: \(\d+/\d+\))?$""")
@@ -68,13 +68,14 @@ object PetUtils: ISelfInit {
         } ?: reset()
 
         EventBus.register<ChatMessageEvent> {
-            summonPattern.matchEntire(event.formattedText)?.destructured?.let { (action, name) ->
+            summonPattern.matchEntire(event.formattedText)?.destructured?.let { (action, levelText, name) ->
                 val pet = if (action == "summoned") {
+                    val level = levelText.toIntOrNull()
                     val rarity = event.component.petRarity(name)
                     clickedPet
                         ?.takeIf { it.matches(name) }
-                        ?.merge(Pet(name.removeFormatting(), rarity = rarity))
-                        ?: resolvePet(name, rarity = rarity)
+                        ?.merge(Pet(name.removeFormatting(), level = level, rarity = rarity))
+                        ?: resolvePet(name, level, rarity)
                 }
                 else null
 
