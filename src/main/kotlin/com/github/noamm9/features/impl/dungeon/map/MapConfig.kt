@@ -34,7 +34,7 @@ object MapConfig: SettingProvider {
     val dungeonMapCheckmarkStyle by DropdownSetting("Checkmark Style", 0, listOf("Checkmarks", "Secrets", "Room Name", "Room Name + Secrets", "Secrets + Puzzle Name")).section("Rooms")
     val centerStyle by ToggleSetting("Center Checkmark/Text", true).jsonName("Center Checkmark")
     val hideBloodroomOvelay by ToggleSetting("Hide text/checkmark of Blood room", false)
-    val hideQuestionCheckmarks by ToggleSetting("Hide Unknown Room Checkmark", false).showIf { dungeonMapCheckmarkStyle.value == 0 }
+    val hideQuestionCheckmarks by ToggleSetting("Hide Unknown Room Checkmark", false)
     val limitRoomNameSize by ToggleSetting("Limit Room Name Size", true).showIf { dungeonMapCheckmarkStyle.value in 2 .. 4 }
     val predictRooms by ToggleSetting("Predict Unopened 1x1s", true).showIf { ! dungeonMapCheater.value }
     val undiscoveredTint by SliderSetting("Undiscovered Room Tint", 50f, 0f, 100f, 1f, "%").showIf { dungeonMapCheater.value }
