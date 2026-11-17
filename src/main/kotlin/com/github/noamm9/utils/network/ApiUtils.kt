@@ -70,11 +70,7 @@ object ApiUtils {
             itemId to (mp + bonus)
         }.groupBy { it.first }.mapValues { entry ->
             entry.value.maxBy { it.second }
-        }.values.fold(0) { acc, pair ->
-            acc + pair.second
-        }.let {
-            if (profileInfo.consumedRiftPrism) it + 11 else it
-        }
+        }.values.sumOf { it.second }
     }
 
     fun decodeBase64ItemList(encoded: String): MutableList<ItemStack> {

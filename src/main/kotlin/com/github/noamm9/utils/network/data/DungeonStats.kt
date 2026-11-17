@@ -9,7 +9,6 @@ data class DungeonStats(
     @SerialName("favorite_arrow") val favoriteArrow: String,
     @SerialName("selected_power") val selectedPower: String,
     @SerialName("abiphone_contacts") val abiphoneContacts: List<String>,
-    @SerialName("consumed_rift_prism") val consumedRiftPrism: Boolean,
     @SerialName("blood_mobs_killed") val bloodMobsKilled: Int,
     val dungeons: DungeonData,
     @SerialName("active_pet") val activePet: PetSummary? = null,
