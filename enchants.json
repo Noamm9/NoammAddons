@@ -126,12 +126,6 @@
       "maxLevel": 3,
       "nbtName": "depth_strider"
     },
-    "divine gift": {
-      "goodLevel": 3,
-      "loreName": "Divine Gift",
-      "maxLevel": 3,
-      "nbtName": "divine_gift"
-    },
     "dragon hunter": {
       "goodLevel": 5,
       "loreName": "Dragon Hunter",
@@ -327,8 +321,8 @@
     "looting": {
       "goodLevel": 3,
       "loreName": "Looting",
-      "maxLevel": 5,
-      "nbtName": "looting"
+      "maxLevel": 7,
+      "nbtName": "looting_new"
     },
     "luck": {
       "goodLevel": 5,
@@ -543,7 +537,7 @@
     "smoldering": {
       "goodLevel": 0,
       "loreName": "Smoldering",
-      "maxLevel": 5,
+      "maxLevel": 6,
       "nbtName": "smoldering"
     },
     "snipe": {
