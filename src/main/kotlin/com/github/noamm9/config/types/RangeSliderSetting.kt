@@ -4,7 +4,7 @@ import com.github.noamm9.config.ConfigHolder
 import com.github.noamm9.config.Savable
 import com.github.noamm9.utils.GsonUtils.gsonArray
 import com.github.noamm9.utils.MathUtils
-import com.google.gson.JsonElement
+import com.google.gson.*
 
 class RangeSliderSetting<T: Number>(
     name: String,
@@ -25,8 +25,17 @@ class RangeSliderSetting<T: Number>(
     }
 
     override fun read(element: JsonElement) {
-        val array = element.asJsonArray
-        value = clampRange(snapToStep(array[0].asDouble), snapToStep(array[1].asDouble))
+        when (element) {
+            is JsonArray -> {
+                val array = element.asJsonArray
+                value = clampRange(snapToStep(array[0].asDouble), snapToStep(array[1].asDouble))
+            }
+
+            is JsonPrimitive -> {
+                val d = element.asDouble
+                value = clampRange(snapToStep(d), snapToStep(d))
+            }
+        }
     }
 
     fun clampRange(start: T, end: T): Pair<T, T> {
