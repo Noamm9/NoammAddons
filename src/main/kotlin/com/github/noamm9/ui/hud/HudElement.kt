@@ -4,7 +4,6 @@ import com.github.noamm9.ui.clickgui.components.settings.Style
 import com.github.noamm9.utils.render.Render2D.drawRect
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import java.awt.Color
-import kotlin.math.roundToInt
 import kotlin.reflect.jvm.jvmName
 
 abstract class HudElement {
@@ -28,10 +27,22 @@ abstract class HudElement {
     }
 
     var isDragging = false
-    private var dragX = 0f
-    private var dragY = 0f
 
     abstract fun draw(ctx: GuiGraphicsExtractor, example: Boolean): Pair<Number, Number>
+
+    data class Bounds(val left: Float, val top: Float, val right: Float, val bottom: Float) {
+        val centerX get() = (left + right) / 2f
+        val centerY get() = (top + bottom) / 2f
+        fun contains(x: Float, y: Float) = x in left .. right && y in top .. bottom
+        fun intersects(other: Bounds) = left < other.right && right > other.left && top < other.bottom && bottom > other.top
+    }
+
+    open fun bounds(): Bounds {
+        val scaledW = width * scale
+        val scaledH = height * scale
+        val left = if (centered()) x - scaledW / 2f else x
+        return Bounds(left, y, left + scaledW, y + scaledH)
+    }
 
     open fun drawBackground(ctx: GuiGraphicsExtractor, mx: Int, my: Int) {
         val scaledW = width * scale
@@ -59,35 +70,11 @@ abstract class HudElement {
         ctx.pose().popMatrix()
     }
 
-    fun drawEditor(ctx: GuiGraphicsExtractor, mx: Int, my: Int, gridSize: Int = 0) {
-        if (! toggle) return
-
-        if (isDragging) {
-            x = mx - dragX
-            y = my - dragY
-            if (gridSize > 0) {
-                x = (x / gridSize).roundToInt() * gridSize.toFloat()
-                y = (y / gridSize).roundToInt() * gridSize.toFloat()
-            }
-        }
-
-        drawBackground(ctx, mx, my)
-        renderElement(ctx, true)
-    }
-
     open fun isHovered(mx: Int, my: Int): Boolean {
         val scaledW = width * scale
         val scaledH = height * scale
         val centeredOffset = (if (centered()) scaledW / 2 else 0).toInt()
         return mx >= x - centeredOffset && mx <= x - centeredOffset + scaledW && my >= y && my <= y + scaledH
-    }
-
-    fun startDragging(mx: Int, my: Int) {
-        if (isHovered(mx, my)) {
-            isDragging = true
-            dragX = mx - x
-            dragY = my - y
-        }
     }
 
     companion object {
