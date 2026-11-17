@@ -19,7 +19,7 @@ object ConfigManager: ISelfInit {
     private val defaultConfigFile = File(configPath.toFile(), "config.json")
     private val selectedConfig = PogObject<String>("currentConfig", "default")
     private var configFile = FileHandler(getConfigs()[selectedConfig.get()] ?: defaultConfigFile)
-    private const val VERSION = 1
+    private const val VERSION = 2
 
     override fun init() {
         ThreadUtils.addShutdownHook(::save)

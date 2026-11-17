@@ -5,6 +5,7 @@ import com.github.noamm9.config.Savable
 import com.github.noamm9.utils.GsonUtils.gsonArray
 import com.github.noamm9.utils.MathUtils
 import com.google.gson.JsonElement
+import kotlin.random.Random
 
 class RangeSliderSetting<T: Number>(
     name: String,
@@ -36,6 +37,7 @@ class RangeSliderSetting<T: Number>(
 
     operator fun contains(number: Number) = number.toDouble() in start.toDouble() .. end.toDouble()
     fun random(): Int = if (start == end) start.toInt() else MathUtils.gaussianRandom(start.toInt(), end.toInt())
+    fun randomFloat(): Float = start.toFloat() + Random.nextFloat() * (end.toFloat() - start.toFloat())
 
     fun snapToStep(rawDouble: Double) = scale.snapToStep(rawDouble)
     fun stringfy(v: T) = scale.stringfy(v)
