@@ -1,11 +1,10 @@
 package com.github.noamm9.ui.clickgui.components.settings.impl
 
-import com.github.noamm9.NoammAddons.mc
-import com.github.noamm9.compat.onFocusChange
 import com.github.noamm9.config.types.ColorSetting
 import com.github.noamm9.ui.clickgui.components.settings.Style
 import com.github.noamm9.ui.clickgui.components.settings.Widget
 import com.github.noamm9.ui.utils.Animation
+import com.github.noamm9.ui.utils.TextInputHandler
 import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.catch
 import com.github.noamm9.utils.render.Render2D.drawHorizontalGradient
@@ -13,8 +12,10 @@ import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.Render2D.drawVerticalGradient
 import com.github.noamm9.utils.render.Render2D.scissor
+import com.github.noamm9.utils.render.RenderHelper.width
 import com.mojang.blaze3d.platform.InputConstants
 import net.minecraft.client.gui.GuiGraphicsExtractor
+import net.minecraft.client.input.*
 import java.awt.Color
 import java.util.*
 
@@ -39,16 +40,21 @@ class ColorWidget(config: ColorSetting): Widget<Color>(config) {
     private var draggingAlpha = false
 
     private val validHexChars = "0123456789ABCDEFabcdef"
-    private var hexFocused = false
-        set(value) {
-            if (field == value) return
-            field = value
-            mc.textInputManager().onFocusChange(this, value)
-        }
     private var hexText = ""
 
     init {
         syncFromValue()
+    }
+
+    private val hexInput = TextInputHandler(
+        textProvider = { hexText },
+        textSetter = {
+            hexText = it
+            tryUpdateFromHex()
+        }
+    ).apply {
+        maxLength = if (cfg.withAlpha) 8 else 6
+        inputFilter = { text -> text.filter { it in validHexChars }.uppercase() }
     }
 
     private fun syncFromValue() {
@@ -105,18 +111,22 @@ class ColorWidget(config: ColorSetting): Widget<Color>(config) {
 
             val hexY = pickerY + pickerSize + 5f
             val hexW = width - 20f
-            ctx.drawRect(x + 10f, hexY, hexW, 12f, Color(10, 10, 10, 200))
-            if (hexFocused) ctx.drawRect(x + 10f, hexY + 11f, hexW, 1f, Style.accentColor)
+            ctx.drawRect(x + 10f, hexY, hexW, 18f, Color(10, 10, 10, 200))
+            if (hexInput.listening) ctx.drawRect(x + 10f, hexY + 17f, hexW, 1f, Style.accentColor)
 
-            val cursor = if (hexFocused && (System.currentTimeMillis() / 500) % 2 == 0L) "|" else ""
-            ctx.drawString("Hex: §7#$hexText$cursor", x + 14f, hexY + 2f)
+            val prefix = "Hex: #"
+            ctx.drawString(prefix, x + 14f, hexY + 4f)
+            hexInput.x = x + 10f + prefix.width()
+            hexInput.y = hexY
+            hexInput.width = hexW - prefix.width()
+            hexInput.draw(ctx, mouseX.toFloat(), mouseY.toFloat())
         }
 
         ctx.disableScissor()
     }
 
     private fun handleInputs(mx: Int, my: Int, py: Float, ps: Float) {
-        if (hexFocused) return
+        if (hexInput.listening) return
         if (! draggingSV && ! draggingHue && ! draggingAlpha) return
 
         var currentX = x + 10f
@@ -134,28 +144,12 @@ class ColorWidget(config: ColorSetting): Widget<Color>(config) {
         updateColorFromHSB()
     }
 
-    override fun charTyped(codePoint: Char): Boolean {
-        if (expanded && hexFocused) {
-            val codePoint = codePoint.lowercase()
-            if (validHexChars.contains(codePoint) && hexText.length < (if (cfg.withAlpha) 8 else 6)) {
-                hexText += codePoint.uppercase()
-                tryUpdateFromHex()
-            }
-            return true
-        }
-        return false
-    }
+    override fun charTyped(codePoint: Char) = expanded && hexInput.keyTyped(CharacterEvent(codePoint.code))
 
     override fun keyPressed(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {
-        if (expanded && hexFocused) {
-            if (keyCode == InputConstants.KEY_BACKSPACE && hexText.isNotEmpty()) {
-                hexText = hexText.dropLast(1)
-                tryUpdateFromHex()
-            }
-            if (keyCode == InputConstants.KEY_RETURN || keyCode == InputConstants.KEY_ESCAPE) hexFocused = false
-            return true
-        }
-        return false
+        if (! expanded || ! hexInput.listening) return false
+        hexInput.keyPressed(KeyEvent(keyCode, scanCode, modifiers))
+        return true
     }
 
     private fun tryUpdateFromHex() {
@@ -228,7 +222,7 @@ class ColorWidget(config: ColorSetting): Widget<Color>(config) {
     }
 
     override fun clearFocus() {
-        hexFocused = false
+        hexInput.resetState()
     }
 
     override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
@@ -254,18 +248,19 @@ class ColorWidget(config: ColorSetting): Widget<Color>(config) {
             draggingHue = mouseX >= hX && mouseX <= hX + 10 && mouseY >= py && mouseY <= py + ps
             draggingSV = mouseX >= svX && mouseX <= svX + svW && mouseY >= py && mouseY <= py + ps
             if (draggingAlpha || draggingHue || draggingSV) {
-                hexFocused = false
+                clearFocus()
                 return true
             }
-            val hexY = y + 25f + 80f + 5f
-            hexFocused = mouseX >= x + 10 && mouseX <= x + width - 10 && mouseY >= hexY && mouseY <= hexY + 12
-            if (hexFocused) return true
+            val event = MouseButtonEvent(mouseX, mouseY, MouseButtonInfo(button, 0))
+            val inputX = if (mouseX >= x + 10 && mouseX < hexInput.x) hexInput.x.toDouble() else mouseX
+            if (hexInput.mouseClicked(inputX.toFloat(), mouseY.toFloat(), event)) return true
         }
         return false
     }
 
     override fun mouseReleased(button: Int) {
         if (button == InputConstants.MOUSE_BUTTON_LEFT) {
+            hexInput.mouseReleased()
             draggingSV = false
             draggingHue = false
             draggingAlpha = false

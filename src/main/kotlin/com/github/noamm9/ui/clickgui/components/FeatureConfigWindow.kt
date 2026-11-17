@@ -171,6 +171,7 @@ open class FeatureConfigWindow(feature: Feature): FeatureWindow(feature) {
                 val catY = categoryY(index)
                 if (mouseY < catY || mouseY > catY + categoryHeight) return@forEachIndexed
                 if (selectedCategory != category) {
+                    clearFocus()
                     selectedCategory = category
                     scroll.reset()
                     Style.playClickSound(1f)
@@ -182,8 +183,11 @@ open class FeatureConfigWindow(feature: Feature): FeatureWindow(feature) {
         if (button == InputConstants.MOUSE_BUTTON_LEFT && scroll.mouseClicked(mouseX, mouseY)) return
 
         if (isInsideContent(mouseX, mouseY)) {
-            visibleWidgets.forEach {
-                if (it.mouseClicked(mouseX.toDouble(), mouseY.toDouble(), button)) return
+            visibleWidgets.forEach { widget ->
+                if (widget.mouseClicked(mouseX.toDouble(), mouseY.toDouble(), button)) {
+                    settings.filter { it !== widget }.forEach { it.clearFocus() }
+                    return
+                }
             }
         }
     }

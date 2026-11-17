@@ -30,6 +30,8 @@ class TextInputHandler(
     var y = 0f
     var width = 0f
     var height = 18f
+    var maxLength = Int.MAX_VALUE
+    var inputFilter: (String) -> String = { it }
 
     private var caret = text.length
         set(value) {
@@ -57,7 +59,7 @@ class TextInputHandler(
 
     private val history = mutableListOf<String>()
     private var historyIndex = - 1
-    private var lastSavedText = ""
+    private var lastSavedText: String? = null
 
     init {
         saveState()
@@ -66,6 +68,7 @@ class TextInputHandler(
     private var previousMousePos = 0f to 0f
 
     fun draw(context: GuiGraphicsExtractor, mouseX: Float, mouseY: Float, suffix: String? = null) {
+        updateCaretPosition()
         if (previousMousePos != mouseX to mouseY) mouseDragged(mouseX)
         previousMousePos = mouseX to mouseY
 
@@ -162,22 +165,15 @@ class TextInputHandler(
                 selection != caret || input.hasControlDown() || caret != text.length
             }
 
-            InputConstants.KEY_RIGHT -> {
-                if (caret != text.length) {
-                    caret = if (input.hasControlDown()) getNextSpace() else caret + 1
-                    if (! input.hasShiftDown()) selection = caret
-                    true
+            InputConstants.KEY_RIGHT, InputConstants.KEY_LEFT -> {
+                val right = input.key == InputConstants.KEY_RIGHT
+                caret = when {
+                    input.hasControlDown() -> if (right) getNextSpace() else getPreviousSpace()
+                    ! input.hasShiftDown() && selection != caret -> if (right) max(caret, selection) else min(caret, selection)
+                    else -> caret + if (right) 1 else - 1
                 }
-                else false
-            }
-
-            InputConstants.KEY_LEFT -> {
-                if (caret != 0) {
-                    caret = if (input.hasControlDown()) getPreviousSpace() else caret - 1
-                    if (! input.hasShiftDown()) selection = caret
-                    true
-                }
-                else false
+                if (! input.hasShiftDown()) selection = caret
+                true
             }
 
             InputConstants.KEY_HOME -> {
@@ -250,6 +246,7 @@ class TextInputHandler(
             }
         }
         updateCaretPosition()
+        saveState()
         return returnValue
     }
 
@@ -260,7 +257,11 @@ class TextInputHandler(
         return true
     }
 
-    private fun insert(string: String) {
+    private fun insert(input: String) {
+        val available = (maxLength - text.length + text.substringSafe(caret, selection).length).coerceAtLeast(0)
+        val string = inputFilter(input).take(available)
+        if (string.isEmpty()) return
+
         if (caret != selection) {
             textSetter(text.removeRangeSafe(caret, selection))
             caret = if (selection > caret) caret else selection
@@ -277,11 +278,12 @@ class TextInputHandler(
         if (caret == selection) return
         textSetter(text.removeRangeSafe(caret, selection))
         caret = if (selection > caret) caret else selection
+        clearSelection()
         saveState()
     }
 
     private fun caretFromMouse(mouseX: Float) {
-        val mx = mouseX - (x + textOffset)
+        val mx = mouseX - x - 4f + textOffset
 
         var currWidth = 0f
         var newCaret = 0
@@ -365,6 +367,7 @@ class TextInputHandler(
 
     fun resetState() {
         listening = false
+        dragging = false
         textOffset = 0f
         clearSelection()
     }
