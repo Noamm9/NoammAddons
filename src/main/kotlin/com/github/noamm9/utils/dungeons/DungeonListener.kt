@@ -8,7 +8,6 @@ import com.github.noamm9.event.EventBus.register
 import com.github.noamm9.event.impl.*
 import com.github.noamm9.event.priority.EventPriority
 import com.github.noamm9.init.types.ISelfInit
-import com.github.noamm9.mixin.IPlayerInfo
 import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.ChatUtils.removeFormatting
@@ -17,12 +16,16 @@ import com.github.noamm9.utils.dungeons.enums.*
 import com.github.noamm9.utils.dungeons.map.core.*
 import com.github.noamm9.utils.dungeons.map.handlers.DungeonScanner
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
+import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.location.LocationUtils.inDungeon
+import com.github.noamm9.utils.location.WorldType
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import net.minecraft.client.multiplayer.PlayerInfo
 import net.minecraft.client.player.AbstractClientPlayer
+import net.minecraft.client.resources.DefaultPlayerSkin
 import net.minecraft.network.protocol.game.*
+import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket.Action.ADD_PLAYER
+import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket.Action.UPDATE_DISPLAY_NAME
 import net.minecraft.world.entity.EntityTypes
 import java.util.concurrent.*
 
@@ -65,13 +68,14 @@ object DungeonListener: ISelfInit {
 
     override fun init() {
         register<MainThreadPacketReceivedEvent.Post>(EventPriority.HIGH) {
-            if (! inDungeon) return@register
+            if (LocationUtils.world != WorldType.Catacombs) return@register
 
             when (val packet = event.packet) {
                 is ClientboundPlayerInfoUpdatePacket -> {
-                    for (entry in TabListUtils.getTabList()) {
-                        val text = entry.first.formattedText
-                        updateDungeonTeammates(text, entry.second)
+                    if (! packet.actions().containsOneOf(UPDATE_DISPLAY_NAME, ADD_PLAYER)) return@register
+                    packet.entries().forEach { entry ->
+                        val text = entry.displayName?.formattedText ?: return@forEach
+                        updateDungeonTeammates(text)
                         updatePuzzleCount(text)
                         updatePuzzles(text)
                     }
@@ -212,7 +216,7 @@ object DungeonListener: ISelfInit {
         }
     }
 
-    private fun updateDungeonTeammates(tabName: String, tabEntry: PlayerInfo) {
+    private fun updateDungeonTeammates(tabName: String) {
         if ("dev" in NoammAddons.debugFlags) listOf(
             DungeonPlayer("Noamm", DungeonClass.Mage, 50),
             DungeonPlayer("Noamm9", DungeonClass.Archer, 50),
@@ -233,24 +237,23 @@ object DungeonListener: ISelfInit {
             return
         }
 
-        val line = (tabEntry as IPlayerInfo).rawTabListDisplayName?.string ?: tabName.removeFormatting()
+        val line = tabName.removeFormatting()
         val (name, clazz, clazzLevel) = tablistRegex.matchEntire(line)?.destructured ?: return
-        val playerInfo = if (name == tabEntry.profile.name) tabEntry
-        else mc.connection?.getPlayerInfo(name) ?: tabEntry
-        val skin = playerInfo.skin.body.texturePath()
+        val skin = (mc.connection?.getPlayerInfo(name)?.skin ?: DefaultPlayerSkin.getDefaultSkin()).body.texturePath()
+        val isDead = clazz == "DEAD"
 
         dungeonTeammates.find { it.name == name }?.let { currentTeammate ->
             currentTeammate.clazz = if (clazz != "DEAD") DungeonClass.fromName(clazz) else currentTeammate.clazz
             currentTeammate.clazzLvl = clazzLevel.romanToDecimal()
             currentTeammate.skin = skin
-            currentTeammate.isDead = clazz == "DEAD"
+            currentTeammate.isDead = isDead
         } ?: dungeonTeammates.add(
             DungeonPlayer(
-                name,
-                DungeonClass.fromName(clazz),
-                clazzLevel.romanToDecimal(),
-                skin,
-                clazz == "DEAD",
+                name = name,
+                clazz = DungeonClass.fromName(clazz),
+                clazzLvl = clazzLevel.romanToDecimal(),
+                skin = skin,
+                isDead = isDead,
             )
         )
 

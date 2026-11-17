@@ -12,18 +12,21 @@ import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ChatUtils.removeFormatting
 import com.github.noamm9.utils.MathUtils.aabb
 import com.github.noamm9.utils.dungeons.DungeonListener
+import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket
+import net.minecraft.network.protocol.common.custom.BrandPayload
 import net.minecraft.network.protocol.game.*
+import net.minecraft.network.protocol.login.ClientboundLoginFinishedPacket
 import kotlin.jvm.optionals.getOrNull
 
 object LocationUtils: ISelfInit, Shortcuts {
-    @JvmStatic val onHypixel get() = mc.player?.connection?.serverBrand()?.lowercase()?.contains("hypixel") == true
+    @JvmField var onHypixel = false
 
     @JvmField var inSkyblock = false
     @JvmField var world: WorldType? = null
     @JvmField var serverId: String? = null
     @JvmField var profileId: String? = null
 
-    @JvmField var inDungeon = false
+    inline val inDungeon get() = world == WorldType.Catacombs
     @JvmField var dungeonFloor: String? = null
     @JvmField var dungeonFloorNumber: Int? = null
     @JvmStatic val isMasterMode get() = dungeonFloor?.startsWith("M") == true
@@ -33,24 +36,28 @@ object LocationUtils: ISelfInit, Shortcuts {
     @JvmField var F7Phase: Int? = null
 
     override fun init() {
+        EventBus.register<PacketEvent.Received>(EventPriority.HIGHEST) {
+            if (event.packet is ClientboundCustomPayloadPacket) {
+                val payload = event.packet.payload() as? BrandPayload ?: return@register
+                onHypixel = payload.brand().lowercase().contains("hypixel")
+            }
+            else if (event.packet is ClientboundLoginFinishedPacket) onHypixel = false
+        }
+
         EventBus.register<MainThreadPacketReceivedEvent.Post>(EventPriority.HIGHEST) {
             if ("dev" in NoammAddons.debugFlags) return@register setDevModeValues()
             if (! onHypixel) return@register
 
-            if (event.packet is ClientboundPlayerInfoUpdatePacket) {
-                val actions = event.packet.actions()
-                if (actions.contains(ClientboundPlayerInfoUpdatePacket.Action.UPDATE_DISPLAY_NAME) || actions.contains(ClientboundPlayerInfoUpdatePacket.Action.ADD_PLAYER)) {
-                    val area = event.packet.entries().find { it.displayName?.string?.startsWithOneOf("Area: ", "Dungeon: ") == true }?.displayName?.string ?: return@register
-                    world = WorldType.entries.firstOrNull { area.remove("Area: ", "Dungeon: ") == it.tabName }
-                }
+            if (event.packet is ClientboundSetDefaultSpawnPositionPacket) {
+                world = WorldType.entries.find { it.spawnPos == event.packet.respawnData().pos() }
+                ChatUtils.debug("spawnpos", "World Spawn: " + event.packet.respawnData().pos())
             }
             else if (event.packet is ClientboundSetPlayerTeamPacket) {
                 val prams = event.packet.parameters.getOrNull() ?: return@register
                 val text = (prams.playerPrefix.string + prams.playerSuffix.string).removeFormatting()
                 lobbyRegex.find(text)?.groupValues?.get(1)?.let { serverId = it }
 
-                if (! inDungeon && text.contains("The Catacombs (") && ! text.contains("Queue")) {
-                    inDungeon = true
+                if (dungeonFloor == null && text.contains("The Catacombs (") && ! text.contains("Queue")) {
                     dungeonFloor = text.substringAfter("(").substringBefore(")")
                     dungeonFloorNumber = dungeonFloor?.lastOrNull()?.digitToIntOrNull() ?: 0
 
@@ -58,7 +65,7 @@ object LocationUtils: ISelfInit, Shortcuts {
                 }
             }
             else if (event.packet is ClientboundSetObjectivePacket) {
-                if (! inSkyblock) inSkyblock = onHypixel && event.packet.objectiveName == "SBScoreboard"
+                if (! inSkyblock) inSkyblock = event.packet.objectiveName == "SBScoreboard"
             }
         }
 
@@ -87,7 +94,6 @@ object LocationUtils: ISelfInit, Shortcuts {
 
     private fun reset() {
         inSkyblock = false
-        inDungeon = false
         dungeonFloor = null
         dungeonFloorNumber = null
         inBoss = false
@@ -99,8 +105,9 @@ object LocationUtils: ISelfInit, Shortcuts {
 
     private fun setDevModeValues() {
         if (mc.level == null || mc.player == null) return
+        onHypixel = true
+        world = WorldType.Catacombs
         inSkyblock = true
-        inDungeon = true
         dungeonFloor = "M7"
         dungeonFloorNumber = 7
         F7Phase = getPhase(player.y)
