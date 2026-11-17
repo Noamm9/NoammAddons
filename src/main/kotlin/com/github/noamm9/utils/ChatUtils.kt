@@ -118,7 +118,7 @@ object ChatUtils: ISelfInit {
         return if (outPos == len) this else String(out, 0, outPos)
     }
 
-    fun modMessage(msg: Any?) = chat(NoammAddons.PREFIX.copy().append(Component.literal(" $msg".addColor())))
+    fun modMessage(msg: Any?) = chat(NoammAddons.PREFIX.copy().append(" $msg".toComponent()))
 
     fun debug(flag: String, msg: Any?) {
         if (NoammAddons.debugFlags.contains(flag)) modMessage(msg)
