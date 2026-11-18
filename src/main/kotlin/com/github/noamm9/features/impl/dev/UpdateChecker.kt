@@ -1,21 +1,28 @@
 package com.github.noamm9.features.impl.dev
 
+import com.github.noamm9.NoammAddons.MOD_ID
 import com.github.noamm9.NoammAddons.MOD_NAME
 import com.github.noamm9.NoammAddons.MOD_VERSION
+import com.github.noamm9.NoammAddons.isCheat
 import com.github.noamm9.NoammAddons.logger
 import com.github.noamm9.compat.openUri
 import com.github.noamm9.config.types.*
 import com.github.noamm9.event.impl.GameStartEvent
-import com.github.noamm9.event.impl.NoammDebugFlagEvent
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.notification.NotificationManager
-import com.github.noamm9.utils.ChatUtils
 import com.github.noamm9.utils.ThreadUtils
 import com.github.noamm9.utils.network.WebUtils
+import io.ktor.client.plugins.timeout
+import io.ktor.client.statement.bodyAsBytes
+import io.ktor.http.isSuccess
 import kotlinx.serialization.Serializable
+import net.fabricmc.loader.api.FabricLoader
 import java.net.URI
+import java.nio.file.*
+import java.security.MessageDigest
 import java.util.*
 import java.util.concurrent.*
+import kotlin.io.path.*
 import kotlin.time.Instant
 
 object UpdateChecker: Feature(
@@ -26,13 +33,16 @@ object UpdateChecker: Feature(
 
     val disabled by ToggleSetting("Disabled").hidden()
     val source by DropdownSetting("Update Source", 0, listOf("Releases", "Action Builds")).withDescription("Releases checks the latest published GitHub release. Action Builds checks the latest successful CI build.")
+    val autoUpdate by ToggleSetting("Auto Update").withDescription("Downloads new releases or Action builds in the background and installs them when you close the game.")
     val check by ButtonSetting("Check For Updates") { ThreadUtils.async { runCheck(true) } }.withDescription("Manually checks using the source selected above.")
     val openPage by ButtonSetting("Open Latest Build/Release") { openPage() }.withDescription("Opens the latest release or Actions run page in your browser.")
 
     private const val RELEASE_URL = "https://api.noamm.org/na/data/release"
     private const val ACTION_URL = "https://api.noamm.org/na/data/action"
+    private const val ARTIFACT_URL = "$ACTION_URL/artifact"
     private val title = "$MOD_NAME $name"
     private var page: String? = null
+    @Volatile private var pendingUpdate: PendingUpdate? = null
 
     override fun init() {
         register<GameStartEvent> {
@@ -85,7 +95,6 @@ object UpdateChecker: Feature(
         val latestMillis = Instant.parse(latest.created_at).toEpochMilliseconds()
         page = latest.html_url
 
-        if (disabled.value) return
 
         if (latestMillis > BuildInfo.builtAt) NotificationManager.push(title, "A new Action build (${latest.head_sha.take(7)}).", 6000L)
         else if (manual) NotificationManager.push(title, "You're already running the latest Action build.")
