@@ -79,7 +79,7 @@ class SoundWidget(config: SoundSetting): Widget<SoundEvent>(config) {
             searchHandler.height = searchH
 
             if (searchQuery.isEmpty()) ctx.drawString("§8Search sound...", x + 12f, searchY + 5f)
-            else searchHandler.draw(ctx, mouseX.toFloat(), mouseY.toFloat())
+            searchHandler.draw(ctx, mouseX.toFloat(), mouseY.toFloat())
 
             val listY = searchY + searchHeight
             val viewableHeight = listMaxHeight - 4f
@@ -119,9 +119,14 @@ class SoundWidget(config: SoundSetting): Widget<SoundEvent>(config) {
         }
     }
 
+    override fun clearFocus() {
+        searchHandler.resetState()
+    }
+
     override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
         if (mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + 20) {
             expanded = ! expanded
+            if (! expanded) clearFocus()
             Style.playClickSound(1f)
             return true
         }

@@ -171,6 +171,8 @@ class ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
             return true
         }
 
+        configWindows.forEach { it.clearFocus() }
+
         categoryPanels.find { it.isMouseOverHeader(mx.toDouble(), my.toDouble()) }?.let { clickedPanel ->
             clickedPanel.mouseClicked(mx.toDouble(), my.toDouble(), button)
             searchHandler.listening = false
