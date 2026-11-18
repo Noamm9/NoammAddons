@@ -199,7 +199,7 @@ object BloodCamp: Feature("Features for Blood Room."), IFeatureWindow {
     private fun getTicksLeft(data: BloodEntity) = (if (data.firstSpawn) 40 else 0) + 38 - (DungeonListener.currentTime - data.started)
     private fun getEndBox(endVector: Vec3) = aabb(1, 1, 1, 0, 0, 0).move(endVector.add(- 0.5, 1.5, - 0.5))
 
-    private val moveTimes = intArrayOf(480, 600, 500, 500, 500, 470, 470, 420)
+    private val moveTimes = intArrayOf(480, 580, 500, 500, 500, 470, 470, 420)
 
     private val watcherSkulls = setOf(
         "ewogICJ0aW1lc3RhbXAiIDogMTY5NzMwOTQxNzI1NiwKICAicHJvZmlsZUlkIiA6ICJjYjYxY2U5ODc4ZWI0NDljODA5MzliNWYxNTkwMzE1MiIsCiAgInByb2ZpbGVOYW1lIiA6ICJWb2lkZWRUcmFzaDUxODUiLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNTY2MmI2ZmI0YjhiNTg2ZGM0Y2RmODAzYjA0NDRkOWI0MWQyNDVjZGY2NjhkYWIzOGZhNmMwNjRhZmU4ZTQ2MSIsCiAgICAgICJtZXRhZGF0YSIgOiB7CiAgICAgICAgIm1vZGVsIiA6ICJzbGltIgogICAgICB9CiAgICB9CiAgfQp9",
