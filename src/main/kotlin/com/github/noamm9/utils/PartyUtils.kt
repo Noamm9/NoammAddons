@@ -14,6 +14,7 @@ import com.github.noamm9.utils.items.ItemUtils.lore
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.location.WorldType
 import net.minecraft.world.item.Items
+import java.util.*
 
 // todo: party mute state.
 // todo: cache player ranks
@@ -58,7 +59,7 @@ object PartyUtils: ISelfInit {
     private val roleChanged = line("$RANK$NAME has (?:promoted|demoted) $RANK$NAME to Party (Leader|Moderator|Member)")
     private val warped = line("Party Leader, $RANK$NAME, summoned you to their server.")
 
-    private val invited = line("$RANK$NAME invited $RANK$NAME to the party! They have \\d+ seconds to accept\\.")
+    private val invited = line("$RANK$NAME invited $RANK$NAME to the party! They have (\\d+) seconds to accept\\.")
     private val inviteExpired = line("The party invite to $RANK$NAME has expired\\.?")
 
     private val memberDisconnected = line("$RANK$NAME has disconnected, they have \\d+ minutes? to rejoin before they are removed from the party\\.")
@@ -81,6 +82,7 @@ object PartyUtils: ISelfInit {
     private var membersKnown = false
     private var listSize: Int? = null
     private var createdGroup = false
+    private val inviteTokens = HashMap<String, UUID>()
 
     @Volatile var partyMembers: List<PartyMember> = emptyList()
         private set(value) {
@@ -170,8 +172,6 @@ object PartyUtils: ISelfInit {
     fun isLeader() = getRole() == PartyRole.LEADER
     fun isMember(name: String) = getMember(name) != null
     fun canInvite() = getRole() in setOf(PartyRole.LEADER, PartyRole.MOD)
-
-    fun sync() = ChatUtils.sendCommand("pl")
 
     private fun handleLine(text: String, formatted: String) {
         val prefixes = rankedNameFormatted.findAll(formatted).associate { it.groupValues[2].lowercase() to it.groupValues[1] }
@@ -275,20 +275,17 @@ object PartyUtils: ISelfInit {
         }
 
         invited.matchEntire(text)?.let {
-            val (inviter, invitee) = it.destructured
+            val (inviter, invitee, seconds) = it.destructured
             if (! isMember(inviter)) membersKnown = false
             if (partyLeader == null) setLeader(inviter) else upsert(inviter, state = OnlineState.ONLINE)
-            if (! pendingInvites.has(invitee)) pendingInvites = pendingInvites + invitee
+            scheduleInviteExpiry(invitee, seconds.toInt())
+            if (pendingInvites.has(invitee)) return@let
+            pendingInvites = pendingInvites + invitee
             EventBus.post(PartyEvent.Invite(inviter, invitee))
             return
         }
 
-        inviteExpired.matchEntire(text)?.let {
-            val invitee = it.groupValues[1]
-            pendingInvites = pendingInvites.without(invitee)
-            EventBus.post(PartyEvent.InviteExpired(invitee))
-            return
-        }
+        inviteExpired.matchEntire(text)?.let { return expireInvite(it.groupValues[1]) }
 
         leaderDisconnected.matchEntire(text)?.let {
             val name = it.groupValues[1]
@@ -384,6 +381,26 @@ object PartyUtils: ISelfInit {
         partyMembers = partyMembers.filterNot { it.name.same(name) }
         EventBus.post(PartyEvent.MemberLeft(name, cause))
         if (membersKnown && partyMembers.all { it.name.same(self) } && pendingInvites.isEmpty()) reset()
+    }
+
+    // Hypixel only tells the inviter that his invite expired. thx hypixel
+    private fun scheduleInviteExpiry(invitee: String, seconds: Int) {
+        val key = invitee.lowercase()
+        val token = UUID.randomUUID()
+        inviteTokens[key] = token
+        ThreadUtils.setTimeout(seconds * 1000) {
+            mc.execute {
+                if (inviteTokens[key] != token) return@execute
+                expireInvite(invitee)
+            }
+        }
+    }
+
+    private fun expireInvite(invitee: String) {
+        inviteTokens.remove(invitee.lowercase())
+        if (! pendingInvites.has(invitee)) return
+        pendingInvites = pendingInvites.without(invitee)
+        EventBus.post(PartyEvent.InviteExpired(invitee))
     }
 
     private fun setLeader(name: String) {
