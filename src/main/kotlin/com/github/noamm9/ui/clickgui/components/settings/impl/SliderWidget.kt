@@ -63,7 +63,7 @@ class SliderWidget<T: Number>(config: SliderSetting<T>): Widget<T>(config) {
 
     override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
         val event = MouseButtonEvent(mouseX, mouseY, MouseButtonInfo(button, 0))
-        if (isTyping && mouseY <= y + 12f && inputHandler?.mouseClicked(mouseX.toFloat(), mouseY.toFloat(), event) == true) return true
+        if (isTyping && inputHandler?.mouseClicked(mouseX.toFloat(), mouseY.toFloat(), event) == true) return true
 
         if (button == InputConstants.MOUSE_BUTTON_LEFT && mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height) {
             val valStrWidth = cfg.stringfy(value).width()

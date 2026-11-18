@@ -72,12 +72,13 @@ class TextInputHandler(
         if (previousMousePos != mouseX to mouseY) mouseDragged(mouseX)
         previousMousePos = mouseX to mouseY
 
+        val textY = y + height / 2f - 5
         context.scissor(x, y, width, height)
         if (selectionWidth != 0f) context.drawRect(
             x + selectionStartX + 4f - textOffset,
-            y + 5f,
+            textY,
             selectionWidth,
-            height - 10,
+            9,
             Style.accentColor
         )
 
@@ -85,14 +86,14 @@ class TextInputHandler(
             val time = System.currentTimeMillis()
             if (time - caretBlinkTime < 500) context.drawRect(
                 x + caretX + 4f - textOffset,
-                y + height / 3.4,
+                textY,
                 1,
                 9,
             )
             else if (time - caretBlinkTime > 1000) caretBlinkTime = time
         }
 
-        context.drawString(text + suffix.orEmpty(), x + 4f - textOffset, y + height / 2f - 5)
+        context.drawString(text + suffix.orEmpty(), x + 4f - textOffset, textY)
 
         context.disableScissor()
     }
@@ -189,7 +190,7 @@ class TextInputHandler(
             }
 
             InputConstants.KEY_ESCAPE, InputConstants.KEY_RETURN -> {
-                listening = false
+                resetState()
                 true
             }
 

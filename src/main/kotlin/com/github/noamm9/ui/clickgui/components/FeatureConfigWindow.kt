@@ -1,12 +1,8 @@
 package com.github.noamm9.ui.clickgui.components
 
-import com.mojang.blaze3d.platform.InputConstants
-
 import com.github.noamm9.features.Feature
 import com.github.noamm9.ui.clickgui.TooltipManager
-import com.github.noamm9.ui.clickgui.components.settings.Style
-import com.github.noamm9.ui.clickgui.components.settings.Widget
-import com.github.noamm9.ui.clickgui.components.settings.WidgetFactory
+import com.github.noamm9.ui.clickgui.components.settings.*
 import com.github.noamm9.ui.clickgui.components.settings.impl.CategoryWidget
 import com.github.noamm9.ui.clickgui.components.settings.impl.SeparatorWidget
 import com.github.noamm9.ui.utils.ScrollState
@@ -14,6 +10,7 @@ import com.github.noamm9.utils.ColorUtils.withAlpha
 import com.github.noamm9.utils.render.Render2D.drawBorder
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.drawString
+import com.mojang.blaze3d.platform.InputConstants
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import java.awt.Color
 
@@ -180,7 +177,7 @@ open class FeatureConfigWindow(feature: Feature): FeatureWindow(feature) {
             }
         }
 
-        if (button == InputConstants.MOUSE_BUTTON_LEFT && scroll.mouseClicked(mouseX, mouseY)) return
+        if (button == InputConstants.MOUSE_BUTTON_LEFT && scroll.mouseClicked(mouseX, mouseY)) return clearFocus()
 
         if (isInsideContent(mouseX, mouseY)) {
             visibleWidgets.forEach { widget ->
