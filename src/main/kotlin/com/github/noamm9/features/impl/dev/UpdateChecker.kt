@@ -26,12 +26,9 @@ import kotlin.io.path.*
 import kotlin.time.Instant
 
 object UpdateChecker: Feature(
-    "Checks GitHub for new releases or Action builds of the mod.\n&c&lDOES NOT AUTO UPDATE",
-    toggled = true,
+    "Checks GitHub for new releases or Action builds of the mod.",
+    toggled = true
 ) {
-    override fun toggle() = Unit
-
-    val disabled by ToggleSetting("Disabled").hidden()
     val source by DropdownSetting("Update Source", 0, listOf("Releases", "Action Builds")).withDescription("Releases checks the latest published GitHub release. Action Builds checks the latest successful CI build.")
     val autoUpdate by ToggleSetting("Auto Update").withDescription("Downloads new releases or Action builds in the background and installs them when you close the game.")
     val check by ButtonSetting("Check For Updates") { ThreadUtils.async { runCheck(true) } }.withDescription("Manually checks using the source selected above.")
@@ -51,12 +48,7 @@ object UpdateChecker: Feature(
             }
         }
 
-        register<NoammDebugFlagEvent.Add> {
-            if (event.flag != "disableupdatecheker") return@register
-            disabled.value = ! disabled.value
-            event.cancel()
-            ChatUtils.modMessage("$name ${if (disabled.value) "Disabled" else "Enabled"}")
-        }
+        ThreadUtils.addShutdownHook(::installUpdate)
     }
 
     suspend fun runCheck(manual: Boolean = false) = runCatching {
@@ -74,10 +66,9 @@ object UpdateChecker: Feature(
         val remoteVersion = release.tag_name
         page = release.html_url
 
-        if (disabled.value) return
-
         when {
             (BuildInfo.isCiBuild && releaseMillis > BuildInfo.builtAt) || isNewerVersion(remoteVersion, MOD_VERSION) -> {
+                if (autoUpdate.value && downloadUpdate(remoteVersion, release.assets)) return
                 val suffix = if (BuildInfo.isCiBuild) " (old action build)" else ""
                 NotificationManager.push(
                     title,
@@ -95,11 +86,69 @@ object UpdateChecker: Feature(
         val latestMillis = Instant.parse(latest.created_at).toEpochMilliseconds()
         page = latest.html_url
 
+        if (latestMillis <= BuildInfo.builtAt) {
+            if (manual) NotificationManager.push(title, "You're already running the latest Action build.")
+            return
+        }
 
-        if (latestMillis > BuildInfo.builtAt) NotificationManager.push(title, "A new Action build (${latest.head_sha.take(7)}).", 6000L)
-        else if (manual) NotificationManager.push(title, "You're already running the latest Action build.")
+        val sha = latest.head_sha.take(7)
+        val assets = latest.artifacts.map { Asset(it.name, "$ARTIFACT_URL/${it.id}", it.digest) }
+        if (autoUpdate.value && downloadUpdate(sha, assets)) return
+
+        NotificationManager.push(title, "A new Action build ($sha).", 6000L)
     }
 
+    private suspend fun downloadUpdate(version: String, assets: List<Asset>): Boolean {
+        if (FabricLoader.getInstance().isDevelopmentEnvironment) return false
+
+        return runCatching {
+            if (pendingUpdate?.version == version) return@runCatching
+            val jar = BuildInfo.currentJar ?: error("Not running from a jar. is this dev env?")
+
+            val assetSuffix = "-@MINECRAFT_VERSION@-${if (isCheat) "cheat" else "legit"}.jar"
+            val asset = assets.find { it.name.endsWith(assetSuffix) } ?: error("No *$assetSuffix asset for $version")
+
+            val response = WebUtils.get(asset.browser_download_url) { timeout { requestTimeoutMillis = 300_000 } }.getOrThrow()
+            if (! response.status.isSuccess()) error("HTTP ${response.status.value}-${response.status.description} downloading ${asset.name}")
+            val bytes = response.bodyAsBytes()
+
+            asset.digest?.removePrefix("sha256:")?.let { expected ->
+                val actual = MessageDigest.getInstance("SHA-256").digest(bytes).toHexString()
+                if (! actual.equals(expected, true)) error("Checksum mismatch for ${asset.name}: expected $expected, got $actual")
+            }
+
+            val download = Files.createTempFile("$MOD_ID-update-", ".jar").apply { writeBytes(bytes) }
+            pendingUpdate?.download?.deleteIfExists()
+            pendingUpdate = PendingUpdate(version, download, jar, jar.resolveSibling(asset.name))
+        }.onFailure {
+            logger.error("UpdateChecker: failed to download $version", it)
+        }.onSuccess {
+            NotificationManager.push(title, "Downloaded NoammAddons $version, it will be installed when you close your game.", 6000L)
+        }.isSuccess
+    }
+
+    fun installUpdate() {
+        val update = pendingUpdate ?: return
+        logger.info("$MOD_NAME-UpdateChecker: installing ${update.version} to ${update.target}")
+
+        // windows keeps the running jar locked until the jvm dies so a process finishes the swap
+        if (System.getProperty("os.name").startsWith("Windows")) {
+            fun quote(path: Path) = "'${path.absolutePathString().replace("'", "''")}'"
+
+            val script = buildList {
+                add("Wait-Process -Id ${ProcessHandle.current().pid()} -ErrorAction SilentlyContinue")
+                add("for (${'$'}i = 0; ${'$'}i -lt 40 -and (Test-Path -LiteralPath ${quote(update.current)}); ${'$'}i++) { Remove-Item -LiteralPath ${quote(update.current)} -Force -ErrorAction SilentlyContinue")
+                add("Start-Sleep -Milliseconds 250 }")
+                add("if (-not (Test-Path -LiteralPath ${quote(update.current)})) { Move-Item -LiteralPath ${quote(update.download)} -Destination ${quote(update.target)} -Force }")
+            }
+
+            ProcessBuilder("powershell", "-NoProfile", "-NonInteractive", "-WindowStyle", "Hidden", "-Command", script.joinToString("; ")).start()
+            return
+        }
+
+        Files.move(update.download, update.target, StandardCopyOption.REPLACE_EXISTING)
+        if (update.current != update.target) update.current.deleteIfExists()
+    }
 
     private fun isNewerVersion(remote: String, local: String): Boolean {
         val r = remote.split(".").map(String::toInt)
@@ -121,11 +170,18 @@ object UpdateChecker: Feature(
         openUri(URI(page ?: (if (source.value == 0) releases else actions)))
     }
 
-    @Serializable private data class Release(val tag_name: String, val html_url: String, val created_at: String)
+    @Serializable private data class Release(val tag_name: String, val html_url: String, val created_at: String, val assets: List<Asset> = emptyList())
+    @Serializable private data class Asset(val name: String, val browser_download_url: String, val digest: String? = null)
     @Serializable private data class Action(val workflow_runs: List<Run>)
-    @Serializable private data class Run(val head_sha: String, val html_url: String, val created_at: String)
+    @Serializable private data class Run(val head_sha: String, val html_url: String, val created_at: String, val artifacts: List<Artifact> = emptyList())
+    @Serializable private data class Artifact(val id: Long, val name: String, val digest: String? = null)
+    private data class PendingUpdate(val version: String, val download: Path, val current: Path, val target: Path)
 
     object BuildInfo {
+        val currentJar: Path?
+            get() = FabricLoader.getInstance().getModContainer(MOD_ID).orElse(null)
+                ?.origin?.paths?.singleOrNull()?.takeIf { it.isRegularFile() && it.extension == "jar" }
+
         val isCiBuild: Boolean
         val builtAt: Long
 
