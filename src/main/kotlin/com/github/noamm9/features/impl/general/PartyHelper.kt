@@ -205,7 +205,7 @@ object PartyHelper: Feature("Party commands and reformatting."), ICommandProvide
 
             commands["!w"] && cmd.equalsOneOf("warp", "w") -> runCommand("p warp", true)
 
-            commands["!ai"] && cmd.equalsOneOf("ai", "allinvite") -> runCommand("p settings allinvite", true)
+            commands["!ai"] && cmd.equalsOneOf("ai", "allinvite", "allinv") -> runCommand("p settings allinvite", true)
 
             commands["!kick"] && cmd.equalsOneOf("kick", "k") -> {
                 if (args.isEmpty()) return
