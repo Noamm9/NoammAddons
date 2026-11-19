@@ -67,10 +67,12 @@ class CategoryPanel(val category: CategoryType, var x: Int, var y: Int, private 
 
             context.scissor(x - 4, y + HEADER_HEIGHT, WIDTH + 8, currentScissorHeight)
 
+            val onConfigWindow = screen.isMouseOverConfigWindow(mouseX, mouseY)
             var hovered: Feature? = null
             filteredFeatures.forEach { feature ->
                 if (currentY + BUTTON_HEIGHT > y + HEADER_HEIGHT && currentY < y + HEADER_HEIGHT + visibleHeight) {
-                    val isHovered = mouseX >= x && mouseX <= x + WIDTH &&
+                    val isHovered = ! onConfigWindow &&
+                        mouseX >= x && mouseX <= x + WIDTH &&
                         mouseY >= currentY && mouseY <= currentY + BUTTON_HEIGHT &&
                         mouseY >= y + HEADER_HEIGHT && mouseY <= y + HEADER_HEIGHT + visibleHeight
 
@@ -83,15 +85,9 @@ class CategoryPanel(val category: CategoryType, var x: Int, var y: Int, private 
                         context.drawRect(x, currentY, 2, BUTTON_HEIGHT, Style.accentColor)
                     }
 
-                    if (hovered == feature) {
-                        context.drawRect(x, currentY, WIDTH, BUTTON_HEIGHT, hoverColor)
-                    }
-
+                    if (hovered == feature) context.drawRect(x, currentY, WIDTH, BUTTON_HEIGHT, hoverColor)
                     context.drawCenteredString(feature.name, x + WIDTH / 2, currentY + 4)
-
-                    if (hovered == feature && ! screen.isMouseOverConfigWindow(mouseX, mouseY)) {
-                        TooltipManager.hover(feature.description, mouseX, mouseY)
-                    }
+                    if (hovered == feature) TooltipManager.hover(feature.description, mouseX, mouseY)
                 }
                 currentY += BUTTON_HEIGHT
             }
