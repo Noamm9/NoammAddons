@@ -53,6 +53,7 @@ object Secrets: Feature(), IFeatureWindow {
     private val secretsTb by ToggleSetting("Secrets Triggerbot").section("Triggerbot")
     private val closeChest by ToggleSetting("Close Chest").withDescription("Automatically closes the secret chest for you.")
     private val clickDelay by SliderSetting("Interact Delay", 200, 0, 700, 1, "ms").showIf { secretsTb.value }
+    private val leverInBoss by ToggleSetting("Lever In Boss").withDescription("Allows the lever triggerbot to work in the boss room.").showIf { secretsTb.value }
     private val shit by MultiCheckboxSetting(
         "TB Options", mutableMapOf(
             "Chest" to false,
@@ -128,19 +129,22 @@ object Secrets: Feature(), IFeatureWindow {
         register<TickEvent.Start> {
             if (! secretsTb.value) return@register
             if (! LocationUtils.inDungeon) return@register
-            if (LocationUtils.inBoss) return@register
+            if (LocationUtils.inBoss && (! leverInBoss.value || ! shit["Lever"])) return@register
             val looking = PlayerUtils.getSelectionBlock() ?: return@register
             val lastClick = lastTbClicks[looking] ?: 0
             val now = System.currentTimeMillis()
             if (now - lastClick < clickDelay.value) return@register
+            val block = WorldUtils.getBlockAt(looking)
 
-            val shouldClick = when (WorldUtils.getBlockAt(looking)) {
+            val shouldClick = when (block) {
                 is SkullBlock if shit["Skull"] -> (level.getBlockEntity(looking) as? SkullBlockEntity)?.ownerProfile?.partialProfile()?.id.toString().equalsOneOf(*WITHER_ESSENCE, *REDSTONE_KEY)
                 Blocks.CHEST if shit["Chest"] -> ScanUtils.currentRoom?.name != "Three Weirdos"
                 Blocks.TRAPPED_CHEST if shit["Mimic"] -> true
                 Blocks.LEVER if shit["Lever"] -> ScanUtils.currentRoom?.name != "Water Board"
                 else -> return@register
             }
+
+            if (LocationUtils.inBoss && block !== Blocks.LEVER) return@register
 
             if (shouldClick) {
                 PlayerUtils.rightClick()
