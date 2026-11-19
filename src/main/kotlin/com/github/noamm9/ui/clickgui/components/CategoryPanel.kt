@@ -1,10 +1,6 @@
 package com.github.noamm9.ui.clickgui.components
 
-import com.mojang.blaze3d.platform.InputConstants
-
-import com.github.noamm9.features.Feature
-import com.github.noamm9.features.FeatureManager
-import com.github.noamm9.features.IFeatureWindow
+import com.github.noamm9.features.*
 import com.github.noamm9.features.impl.dev.ClickGui
 import com.github.noamm9.ui.clickgui.*
 import com.github.noamm9.ui.clickgui.components.settings.Style
@@ -15,6 +11,7 @@ import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.Render2D.drawRect
 import com.github.noamm9.utils.render.Render2D.scissor
 import com.github.noamm9.utils.render.RenderHelper.width
+import com.mojang.blaze3d.platform.InputConstants
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import java.awt.Color
 
@@ -70,11 +67,14 @@ class CategoryPanel(val category: CategoryType, var x: Int, var y: Int, private 
 
             context.scissor(x - 4, y + HEADER_HEIGHT, WIDTH + 8, currentScissorHeight)
 
+            var hovered: Feature? = null
             filteredFeatures.forEach { feature ->
                 if (currentY + BUTTON_HEIGHT > y + HEADER_HEIGHT && currentY < y + HEADER_HEIGHT + visibleHeight) {
                     val isHovered = mouseX >= x && mouseX <= x + WIDTH &&
                         mouseY >= currentY && mouseY <= currentY + BUTTON_HEIGHT &&
                         mouseY >= y + HEADER_HEIGHT && mouseY <= y + HEADER_HEIGHT + visibleHeight
+
+                    if (hovered == null && isHovered) hovered = feature
 
                     context.drawRect(x, currentY, WIDTH, BUTTON_HEIGHT, bodyBg)
 
@@ -83,18 +83,19 @@ class CategoryPanel(val category: CategoryType, var x: Int, var y: Int, private 
                         context.drawRect(x, currentY, 2, BUTTON_HEIGHT, Style.accentColor)
                     }
 
-                    if (isHovered) {
+                    if (hovered == feature) {
                         context.drawRect(x, currentY, WIDTH, BUTTON_HEIGHT, hoverColor)
                     }
 
                     context.drawCenteredString(feature.name, x + WIDTH / 2, currentY + 4)
 
-                    if (isHovered && ! screen.isMouseOverConfigWindow(mouseX, mouseY)) {
+                    if (hovered == feature && ! screen.isMouseOverConfigWindow(mouseX, mouseY)) {
                         TooltipManager.hover(feature.description, mouseX, mouseY)
                     }
                 }
                 currentY += BUTTON_HEIGHT
             }
+
             context.disableScissor()
 
             if (maxScroll > 0 && ! collapsed) {
