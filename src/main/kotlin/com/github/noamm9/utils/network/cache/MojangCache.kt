@@ -12,7 +12,7 @@ import java.util.concurrent.*
 
 object MojangCache: NetworkCache<String, MojangData> {
     private val storage = PogObject("mojang_cache", ConcurrentHashMap<String, CachedEntry<MojangData>>())
-    private val EXPIRE_TIME = TimeUnit.HOURS.toMillis(1)
+    private val EXPIRE_TIME = TimeUnit.HOURS.toMillis(2)
     private val nameRegex = "^\\w{3,16}$".toRegex()
 
     init {
@@ -64,6 +64,10 @@ object MojangCache: NetworkCache<String, MojangData> {
     }
 
     override fun addFailedToCache(key: String) = storage.get().set(key.remove("-").lowercase(), CachedEntry(null))
+    fun addFailedToCache(key: String, expireAfter: Long) = storage.get().set(
+        key.remove("-").lowercase(),
+        CachedEntry(null, System.currentTimeMillis() - EXPIRE_TIME + expireAfter)
+    )
 
     private fun cleanupExpired() {
         val now = System.currentTimeMillis()

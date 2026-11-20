@@ -20,22 +20,38 @@ import kotlinx.serialization.json.add
 import kotlinx.serialization.json.buildJsonArray
 import java.io.IOException
 import java.util.*
+import java.util.concurrent.*
 
 object ProfileUtils {
     private const val mowojang = "https://mowojang.matdoes.dev/"
+    private const val mojang = "https://api.minecraftservices.com/minecraft/profile/lookup/name/"
+    @Volatile private var shit = 0L
 
     suspend fun getUUIDbyName(name: String): Result<MojangData> {
         val key = name.lowercase()
         MojangCache.check(key)?.let { return it }
 
-        val result = WebUtils.get(mowojang + key).mapCatching { response ->
+        val request = if (System.currentTimeMillis() < shit) WebUtils.get(mojang + key)
+        else {
+            val mowojangRequest = WebUtils.get(mowojang + key)
+            if ((mowojangRequest.getOrNull()?.status?.value ?: 500) < 500) mowojangRequest
+            else {
+                shit = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(5)
+                WebUtils.get(mojang + key)
+            }
+        }
+
+        val result = request.mapCatching { response ->
+            if (response.status.value == 429) throw RateLimitedException(name)
             if (! response.status.isSuccess() || response.status.value == 204) throw IOException("$name not found")
             val mojangData = response.body<MojangData>()
             MojangCache.addToCache(mojangData)
             return@mapCatching mojangData
         }
 
-        if (result.isFailure) MojangCache.addFailedToCache(key)
+        if (result.isSuccess) return result
+        if (result.exceptionOrNull() is RateLimitedException) MojangCache.addFailedToCache(key, TimeUnit.MINUTES.toMillis(5))
+        else MojangCache.addFailedToCache(key)
         return result
     }
 
@@ -80,7 +96,7 @@ object ProfileUtils {
         }.apply {
             onSuccess { SecretCache.addToCache(name, it) }
             onFailure { error ->
-                if (error is NoammAPI.NoammAPIException) return@onFailure
+                if (error is NoammAPI.NoammAPIException || error is RateLimitedException) return@onFailure
                 SecretCache.addFailedToCache(name)
             }
         }
@@ -95,7 +111,7 @@ object ProfileUtils {
         }.apply {
             onSuccess { ProfileCache.addToCache(name, it) }
             onFailure { error ->
-                if (error is NoammAPI.NoammAPIException) return@onFailure
+                if (error is NoammAPI.NoammAPIException || error is RateLimitedException) return@onFailure
                 ProfileCache.addFailedToCache(name)
             }
         }
@@ -128,4 +144,6 @@ object ProfileUtils {
         WebSocket.send(mapOf("type" to "secretcount", "secrets" to _totalSecrets))
         ThreadUtils.scheduledTaskServer(5) { listener.unregister() }
     }
+
+    class RateLimitedException(name: String): IOException("Rate limited while looking up $name")
 }
