@@ -9,6 +9,7 @@ import com.github.noamm9.features.Feature
 import com.github.noamm9.init.DataDownloader
 import com.github.noamm9.utils.ChatUtils.formattedText
 import com.github.noamm9.utils.ChatUtils.removeFormatting
+import com.github.noamm9.utils.dungeons.map.core.RoomState
 import com.github.noamm9.utils.dungeons.map.core.UniqueRoom
 import com.github.noamm9.utils.dungeons.map.utils.ScanUtils
 import com.github.noamm9.utils.equalsOneOf
@@ -49,6 +50,9 @@ object StarMobESP: Feature(
 
     private val fakeMiniRooms = setOf("Duncan", "Balcony", "Wizard", "Pit", "Waterfall", "Atlas", "Chambers", "Layers", "Perch", "Golden Oasis") // thanks clear sim
     private val batHealths = setOf(100f, 200f, 400f, 800f)
+
+    private const val DECOY_TEXTURE = "ewogICJ0aW1lc3RhbXAiIDogMTU5NTAxMjc4ODI0MywKICAicHJvZmlsZUlkIiA6ICI4MmM2MDZjNWM2NTI0Yjc5OGI5MWExMmQzYTYxNjk3NyIsCiAgInByb2ZpbGVOYW1lIiA6ICJOb3ROb3RvcmlvdXNOZW1vIiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2RiZmUwOThjNzM2NmZmYWJhYzQ4ZjdkNDY1MDI3MjEyZjZhNzdlZGQ3M2FjYWZjYWQyYzA4NzVmMTFhMDMxYjIiCiAgICB9CiAgfQp9"
+    private const val SKELETOR_PRIME_TEXTURE = "ewogICJ0aW1lc3RhbXAiIDogMTYwMDc3NTY0NTk5OSwKICAicHJvZmlsZUlkIiA6ICJiZWNkZGIyOGEyYzg0OWI0YTliMDkyMmE1ODA1MTQyMCIsCiAgInByb2ZpbGVOYW1lIiA6ICJTdFR2IiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzFiZDNhNGY4ZTIyZGIxNWU0ODZhY2FjNWQ0NTZmZjM1ZjM0ZWQ5YWI1YzY0ZWVjMDU3YWZkMjg2NmQ1NTk0MDEiCiAgICB9CiAgfQp9"
 
     private val starMobs = HashSet<Int>()
     private val checked = HashSet<Int>()
@@ -185,7 +189,9 @@ object StarMobESP: Feature(
         if (entity is Player && entity.uuid.version() != 2) return
         if (entity !is Mob && entity !is Player) return
         if (entity.id in starMobs || entity.id in notStarred) return
+        if (excludeEntity(entity)) return
         val room = ScanUtils.getRoomFromPos(entity.position()) ?: return
+        if (room.mainRoom.state.ordinal <= RoomState.CLEARED.ordinal) return
         val spots = roomSpawns[room] ?: return
 
         val pos = entity.blockPosition()
@@ -195,6 +201,18 @@ object StarMobESP: Feature(
         spot.pack.mobs.add(entity.id)
         starMobs.add(entity.id)
         spotMobs.add(entity.id)
+    }
+
+    fun excludeEntity(entity: Entity): Boolean {
+        if (entity !is Player) return false
+        val name = entity.gameProfile.name
+        val skin = entity.gameProfile.properties["textures"].firstOrNull()?.value
+
+        // not a typo just the name has a space. thx hypixel
+        if (name == "Decoy " && skin == DECOY_TEXTURE) return true
+        if (name == "Skeletor Prime" && skin == SKELETOR_PRIME_TEXTURE) return true
+
+        return false
     }
 
     private fun getMobId(armorStand: Entity, name: String): Int {

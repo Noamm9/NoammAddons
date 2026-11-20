@@ -21,12 +21,14 @@ import com.google.gson.JsonElement
 import com.mojang.serialization.JsonOps
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import net.minecraft.client.player.AbstractClientPlayer
 import net.minecraft.core.component.DataComponentPatch
 import net.minecraft.network.protocol.game.ClientboundSetTimePacket
 import net.minecraft.network.protocol.game.ClientboundSoundPacket
 import net.minecraft.resources.RegistryOps
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.block.entity.SkullBlockEntity
+import net.minecraft.world.phys.EntityHitResult
 import java.awt.Color
 
 object TestGround: ISelfInit, ICommandProvider {
@@ -47,6 +49,14 @@ object TestGround: ISelfInit, ICommandProvider {
             ThreadUtils.scheduledTask(20) {
                 PlayerUtils.swapToSlot(8)
                 PlayerUtils.rightClick()
+            }
+        }
+
+        literal("entity") {
+            runs {
+                val lookingAt = NoammAddons.mc.hitResult as? EntityHitResult ?: return@runs ChatUtils.modMessage("not looking at entity")
+                ChatUtils.modMessage("Entity Name: ${lookingAt.entity.displayName.formattedText}")
+                ChatUtils.modMessage("Entity skin: ${(lookingAt.entity as? AbstractClientPlayer)?.gameProfile?.properties["textures"]?.firstOrNull()?.value}")
             }
         }
     }
