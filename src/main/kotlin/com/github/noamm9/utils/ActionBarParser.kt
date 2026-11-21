@@ -21,6 +21,7 @@ import kotlin.math.roundToInt
 object ActionBarParser: ISelfInit {
     val HP_REGEX = Regex("§[c6]([\\d,]+)/([\\d,]+)[\uE010❤]")
     val DEF_REGEX = Regex("""§a([\d,]+)(§a)?[❈]( Defense)?""") // https://regex101.com/r/QDZtRK/1
+    val TRUE_DEF_REGEX = Regex("§f(\\d+)\uE027")
     val MANA_REGEX = Regex("§b([\\d,]+)/([\\d,]+)[\uE003✎]( Mana)?")
     val OVERFLOW_REGEX = Regex("§3([\\d,]+)[\uE017ʬ]") // §3100ʬ
     val VITALITY_REGEX = Regex("""§4([\d.,]+)/([\d,.]+)[♨]( Vitality)?""") // https://regex101.com/r/tLHZYG/1
@@ -33,6 +34,7 @@ object ActionBarParser: ISelfInit {
     var currentHealth = 0
     var maxHealth = 0
     var currentDefense = 0
+    var currentTrueDefense = 0
     var currentMana = 0
     var maxMana = 0
     var overflowMana = 0
@@ -68,6 +70,10 @@ object ActionBarParser: ISelfInit {
 
         DEF_REGEX.find(input)?.let { match ->
             currentDefense = match.groupValues[1].remove(",").toIntOrNull() ?: currentDefense
+        }
+
+        TRUE_DEF_REGEX.find(input)?.let { match ->
+            currentTrueDefense = match.groupValues[1].remove(",").toIntOrNull() ?: currentTrueDefense
         }
 
         effectiveHP = (currentHealth * (1 + currentDefense / 100f)).toInt()

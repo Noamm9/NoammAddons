@@ -4,34 +4,38 @@ import com.github.noamm9.config.types.MultiCheckboxSetting
 import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.ActionBarMessageEvent
 import com.github.noamm9.features.Feature
-import com.github.noamm9.utils.ActionBarParser
-import com.github.noamm9.utils.NumbersUtils
+import com.github.noamm9.utils.*
 import com.github.noamm9.utils.location.LocationUtils
 import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.RenderHelper.height
 import com.github.noamm9.utils.render.RenderHelper.width
 
 object PlayerHud: Feature(name = "Player HUD", description = "Displays your stats as moveable HUD elements.") {
-    private val elements by MultiCheckboxSetting("Elements", mutableMapOf(
-        "Health" to false,
-        "Defense" to false,
-        "Mana" to false,
-        "Overflow Mana" to false,
-        "Vitality" to false,
-        "Effective HP" to false,
-        "Speed" to false
-    ))
+    private val elements by MultiCheckboxSetting(
+        "Elements", mutableMapOf(
+            "Health" to false,
+            "Defense" to false,
+            "Mana" to false,
+            "Overflow Mana" to false,
+            "Vitality" to false,
+            "Effective HP" to false,
+            "Speed" to false
+        )
+    )
 
-    private val hideFromActionbar by MultiCheckboxSetting("Hide from Actionbar", mutableMapOf(
-        "Health" to false,
-        "Defense" to false,
-        "Mana" to false,
-        "Overflow Mana" to false,
-        "Vitality" to false,
-        "Dungeon Room Secrets" to false,
-        "Armor Stacks" to false,
-        "Terminator Stacks" to false
-    ))
+    private val hideFromActionbar by MultiCheckboxSetting(
+        "Hide from Actionbar", mutableMapOf(
+            "Health" to false,
+            "Defense" to false,
+            "True Defense" to false,
+            "Mana" to false,
+            "Overflow Mana" to false,
+            "Vitality" to false,
+            "Dungeon Room Secrets" to false,
+            "Armor Stacks" to false,
+            "Terminator Stacks" to false
+        )
+    )
 
     @JvmStatic val hideFoodbar by ToggleSetting("Hide Food bar").withDescription("Hides the food bar.").section("Extras")
     @JvmStatic val hideHealthbar by ToggleSetting("Hide Health bar").withDescription("Hides the health bar.")
@@ -112,14 +116,15 @@ object PlayerHud: Feature(name = "Player HUD", description = "Displays your stat
             if (! LocationUtils.inSkyblock) return@register
             var result = event.formattedText
 
-            if (hideFromActionbar["Health"]) result = result.replace(ActionBarParser.HP_REGEX, "")
-            if (hideFromActionbar["Defense"]) result = result.replace(ActionBarParser.DEF_REGEX, "")
-            if (hideFromActionbar["Mana"]) result = result.replace(ActionBarParser.MANA_REGEX, "")
-            if (hideFromActionbar["Overflow Mana"]) result = result.replace(ActionBarParser.OVERFLOW_REGEX, "")
-            if (hideFromActionbar["Vitality"]) result = result.replace(ActionBarParser.VITALITY_REGEX, "")
-            if (hideFromActionbar["Dungeon Room Secrets"]) result = result.replace(ActionBarParser.SECRETS_REGEX, "")
-            if (hideFromActionbar["Armor Stacks"]) result = result.replace(ActionBarParser.STACKS_REGEX, "")
-            if (hideFromActionbar["Terminator Stacks"]) result = result.replace(ActionBarParser.SALVATION_REGEX, "")
+            if (hideFromActionbar["Health"]) result = result.remove(ActionBarParser.HP_REGEX)
+            if (hideFromActionbar["Defense"]) result = result.remove(ActionBarParser.DEF_REGEX)
+            if (hideFromActionbar["True Defense"]) result = result.remove(ActionBarParser.TRUE_DEF_REGEX)
+            if (hideFromActionbar["Mana"]) result = result.remove(ActionBarParser.MANA_REGEX)
+            if (hideFromActionbar["Overflow Mana"]) result = result.remove(ActionBarParser.OVERFLOW_REGEX)
+            if (hideFromActionbar["Vitality"]) result = result.remove(ActionBarParser.VITALITY_REGEX)
+            if (hideFromActionbar["Dungeon Room Secrets"]) result = result.remove(ActionBarParser.SECRETS_REGEX)
+            if (hideFromActionbar["Armor Stacks"]) result = result.remove(ActionBarParser.STACKS_REGEX)
+            if (hideFromActionbar["Terminator Stacks"]) result = result.remove(ActionBarParser.SALVATION_REGEX)
 
             event.message = result
         }
