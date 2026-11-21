@@ -104,9 +104,9 @@ object ItemTooltip: Feature("Adds item information and controls to item tooltips
         val data = event.stack.customData
         val boost = data.getInt("baseStatBoostPercentage").getOrNull()?.takeIf { it > 0 } ?: return
         val req = data.getString("dungeon_skill_req").getOrDefault("")
-        val tier = data.getInt("item_tier").getOrDefault(0)
+        val tier = data.getInt("item_tier").getOrNull()
 
-        val floor = when {
+        val floor = if (tier != null) when {
             req.isEmpty() && tier > 0 -> "§aE"
             req.isEmpty() -> "§bF$tier"
             else -> {
@@ -118,6 +118,7 @@ object ItemTooltip: Feature("Adds item information and controls to item tooltips
                 else "§b$dungeon $tier"
             }
         }
+        else null
 
         val color = when {
             boost <= 17 -> "§c"
@@ -125,7 +126,10 @@ object ItemTooltip: Feature("Adds item information and controls to item tooltips
             boost <= 49 -> "§a"
             else -> "§b"
         }
-        event.lore.add(Component.literal("§6Quality Bonus: $color+$boost% §7($floor§7)"))
+
+        var str = "§6Quality Bonus: $color+$boost%"
+        if (floor != null) str += " §7($floor§7)"
+        event.lore.add(Component.literal(str))
     }
 
     @JvmStatic
