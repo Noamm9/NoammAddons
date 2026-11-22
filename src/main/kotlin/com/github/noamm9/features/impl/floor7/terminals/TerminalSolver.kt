@@ -14,6 +14,8 @@ import com.github.noamm9.ui.utils.Resolution
 import com.github.noamm9.utils.*
 import com.github.noamm9.utils.ColorUtils.isVisable
 import com.github.noamm9.utils.ColorUtils.withAlpha
+import com.github.noamm9.utils.dungeons.DungeonListener
+import com.github.noamm9.utils.dungeons.enums.TerminalSection
 import com.github.noamm9.utils.render.Render2D.drawBorder
 import com.github.noamm9.utils.render.Render2D.drawCenteredString
 import com.github.noamm9.utils.render.Render2D.drawFloatingRect
@@ -48,6 +50,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
 
     private val soundsEnabled by ToggleSetting("Terminal Sounds", true).section("Sounds")
     private val clickSound = createSoundSettings("Click Sound", SoundEvents.NOTE_BLOCK_PLING.value()) { soundsEnabled.value }
+    private val complitionSound = createSoundSettings("Sound", SoundEvents.NOTE_BLOCK_HARP.value()) { soundsEnabled.value }
 
     private val scale by SliderSetting("Custom Menu's Scale", 1f, 0.1f, 2f, 0.01f).section("Settings")
     private val slotGap by SliderSetting("Slot Gap", 0f, 0f, 8f, 0.5f, "px")
@@ -78,13 +81,17 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
 
     private val p3sim get() = mc.connection?.serverData?.ip?.contains("p3sim", ignoreCase = true) == true
     private var lastDropTime = System.currentTimeMillis()
+    private var cancelSound = false
 
     private var cachedMinCol: Int? = null
     private var cachedMinRow: Int? = null
     private var hoveredSlot: Int? = null
 
     override fun init() {
-        register<TerminalEvent.Open> { resetLayout() }
+        register<TerminalEvent.Open> {
+            resetLayout()
+            cancelSound = false
+        }
 
         register<ScreenEvent.PreRender> {
             if (! TerminalListener.inTerm) return@register
@@ -116,7 +123,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
 
         register<MainThreadPacketReceivedEvent.Pre> {
             if (! soundsEnabled.value) return@register
-            if (! TerminalListener.inTerm) return@register
+            if (! TerminalListener.inTerm && ! cancelSound) return@register
             val packet = event.packet as? ClientboundSoundPacket ?: return@register
             if (p3sim) {
                 if (packet.sound.value() != SoundEvents.EXPERIENCE_ORB_PICKUP) return@register
@@ -127,6 +134,7 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
                 if (packet.volume != 8f || packet.pitch != 4.047619f) return@register
             }
 
+            if (cancelSound) cancelSound = false
             event.isCanceled = true
         }
 
@@ -135,6 +143,14 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
             if (! TerminalListener.inTerm) return@register
             if (event.packet !is ServerboundContainerClickPacket) return@register
             playClickSound()
+        }
+
+        register<DungeonEvent.TerminalStageEvent.Task> {
+            if (! soundsEnabled.value) return@register
+            if (event.task != TerminalSection.Task.TERMINAL) return@register
+            if (event.player != DungeonListener.thePlayer) return@register
+            cancelSound = true
+            playCompSound()
         }
     }
 
@@ -237,6 +253,10 @@ object TerminalSolver: Feature("Renders solutions for Floor 7 terminals."), ICus
 
     fun playClickSound() {
         if (soundsEnabled.value) clickSound.invoke()
+    }
+
+    fun playCompSound() {
+        if (soundsEnabled.value) complitionSound.invoke()
     }
 
     fun Terminal.hoveredClick(): TerminalClick? {
