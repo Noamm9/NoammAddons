@@ -5,9 +5,7 @@ import com.github.noamm9.compat.scanCodeCompat
 import com.github.noamm9.config.ConfigManager
 import com.github.noamm9.features.Feature
 import com.github.noamm9.features.IFeatureWindow
-import com.github.noamm9.ui.clickgui.components.CategoryPanel
-import com.github.noamm9.ui.clickgui.components.FeatureConfigWindow
-import com.github.noamm9.ui.clickgui.components.FeatureWindow
+import com.github.noamm9.ui.clickgui.components.*
 import com.github.noamm9.ui.clickgui.components.settings.Style
 import com.github.noamm9.ui.clickgui.enums.CategoryType
 import com.github.noamm9.ui.clickgui.enums.WindowClickAction
@@ -47,7 +45,7 @@ class ClickGuiScreen: Screen(Component.literal("ClickGUI")) {
 
     init {
         CategoryType.entries.forEachIndexed { index, category ->
-            categoryPanels.add(CategoryPanel(category, 20 + (index * 120), 20, this))
+            categoryPanels.add(CategoryPanel(category, 20 + (index * (CategoryPanel.WIDTH + 10)), 20, this))
         }
     }
 

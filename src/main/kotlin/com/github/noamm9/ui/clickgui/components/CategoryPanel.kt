@@ -1,5 +1,6 @@
 package com.github.noamm9.ui.clickgui.components
 
+import com.github.noamm9.NoammAddons.mc
 import com.github.noamm9.features.*
 import com.github.noamm9.features.impl.dev.ClickGui
 import com.github.noamm9.ui.clickgui.*
@@ -16,8 +17,8 @@ import net.minecraft.client.gui.GuiGraphicsExtractor
 import java.awt.Color
 
 class CategoryPanel(val category: CategoryType, var x: Int, var y: Int, private val screen: ClickGuiScreen) {
-    private companion object {
-        const val WIDTH = 110
+    companion object {
+        const val WIDTH = 112
         const val HEADER_HEIGHT = 22
         const val BUTTON_HEIGHT = 16
         const val MAX_DISPLAY_HEIGHT = 350
@@ -86,7 +87,7 @@ class CategoryPanel(val category: CategoryType, var x: Int, var y: Int, private 
                     }
 
                     if (hovered == feature) context.drawRect(x, currentY, WIDTH, BUTTON_HEIGHT, hoverColor)
-                    context.drawCenteredString(feature.name, x + WIDTH / 2, currentY + 4)
+                    context.drawCenteredString(feature.name, x + WIDTH / 2, currentY + BUTTON_HEIGHT / 2 - mc.font.lineHeight / 2)
                     if (hovered == feature) TooltipManager.hover(feature.description, mouseX, mouseY)
                 }
                 currentY += BUTTON_HEIGHT
