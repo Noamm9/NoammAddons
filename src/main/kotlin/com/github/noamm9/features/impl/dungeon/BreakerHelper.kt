@@ -1,22 +1,36 @@
 package com.github.noamm9.features.impl.dungeon
 
-//#if CHEAT
-
+import com.github.noamm9.config.types.SoundSetting
 import com.github.noamm9.config.types.ToggleSetting
 import com.github.noamm9.event.impl.PlayerInteractEvent
+import com.github.noamm9.event.priority.EventPriority
 import com.github.noamm9.features.Feature
+import com.github.noamm9.utils.MathUtils.center
 import com.github.noamm9.utils.WorldUtils
 import com.github.noamm9.utils.dungeons.DungeonListener
 import com.github.noamm9.utils.dungeons.DungeonUtils.REDSTONE_KEY
 import com.github.noamm9.utils.equalsOneOf
 import com.github.noamm9.utils.items.ItemUtils.skyblockId
 import com.github.noamm9.utils.location.LocationUtils
+import net.minecraft.client.resources.sounds.SoundInstance
 import net.minecraft.core.BlockPos
+import net.minecraft.resources.Identifier
+import net.minecraft.sounds.SoundEvents
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.SkullBlock
 import net.minecraft.world.level.block.entity.SkullBlockEntity
+import net.minecraft.world.phys.Vec3
 
+/**
+ * @see com.github.noamm9.mixin.MixinSoundManager
+ * @see com.github.noamm9.mixin.MixinMultiPlayerGameMode
+ */
 object BreakerHelper: Feature("Utilities for Dungeon Breaker") {
+    private val customSound by ToggleSetting("Custom Breaking Sound").withDescription("Replaces the block breaking sound while holding your breaker.")
+    private val soundConfig = createSoundSettings("Sound", SoundEvents.NOTE_BLOCK_HARP.value()) { customSound.value }
+    private var nextSound: Pair<Vec3, Identifier>? = null
+
+    //#if CHEAT
     private val preventMine by ToggleSetting("Prevent Mine").jsonName("Prevent Secret Mine").withDescription("Prevents you from breaking blocks that cant be broken.")
     private val preventMiningWithoutCharges by ToggleSetting("Prevent Mine Without Charges").withDescription("Prevents you from breaking blocks when your breaker is out of charges")
 
@@ -27,8 +41,18 @@ object BreakerHelper: Feature("Utilities for Dungeon Breaker") {
 
     private var charges = maxCharges
     private var lastRegen = System.currentTimeMillis()
+    //#endif
 
     override fun init() {
+        register<PlayerInteractEvent.LEFT_CLICK.BLOCK>(priority = EventPriority.LOW) {
+            if (! customSound.value) return@register
+            if (! LocationUtils.inDungeon) return@register
+            if (event.item?.skyblockId != "DUNGEONBREAKER") return@register
+            val state = WorldUtils.getStateAt(event.pos)
+            nextSound = event.pos.center to state.soundType.breakSound.location
+        }
+
+        //#if CHEAT
         register<PlayerInteractEvent.LEFT_CLICK.BLOCK> {
             if (! preventMine.value) return@register
             if (! LocationUtils.inDungeon) return@register
@@ -48,8 +72,25 @@ object BreakerHelper: Feature("Utilities for Dungeon Breaker") {
             if (getCharges() > 0) return@register
             event.isCanceled = true
         }
+        //#endif
     }
 
+    @JvmStatic
+    fun onSoundPlay(soundInstance: SoundInstance): Boolean {
+        if (! enabled) return false
+        if (! customSound.value) return false
+        val (pos, sound) = nextSound ?: return false
+        val identifier = soundInstance.identifier
+        if (sound != identifier) return false
+        if ((getSettingByName("Sound") as? SoundSetting)?.value?.location == identifier) return false
+        if (pos.x != soundInstance.x || pos.y != soundInstance.y || pos.z != soundInstance.z) return false
+
+        soundConfig.invoke()
+        nextSound = null
+        return true
+    }
+
+    //#if CHEAT
     @JvmStatic
     fun onHitBlock(pos: BlockPos) {
         if (! enabled) return
@@ -77,5 +118,5 @@ object BreakerHelper: Feature("Utilities for Dungeon Breaker") {
         Blocks.SKELETON_SKULL, Blocks.SKELETON_WALL_SKULL, Blocks.WITHER_SKELETON_SKULL, Blocks.WITHER_SKELETON_WALL_SKULL,
         Blocks.DISPENSER, Blocks.HOPPER, Blocks.DROPPER
     )
+    //#endif
 }
-//#endif

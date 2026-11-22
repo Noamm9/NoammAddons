@@ -1,5 +1,6 @@
 package com.github.noamm9.mixin;
 
+import com.github.noamm9.features.impl.dungeon.BreakerHelper;
 import com.github.noamm9.features.impl.misc.sound.ArrowHitSound;
 import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.client.sounds.SoundEngine;
@@ -17,8 +18,9 @@ public class MixinSoundManager {
     private void onPlay(SoundInstance instance, CallbackInfoReturnable<SoundEngine.PlayResult> cir) {
         recordPlayedSound(instance);
 
-        if (ArrowHitSound.onSoundPlay(instance)) {
-            cir.setReturnValue(SoundEngine.PlayResult.NOT_STARTED);
-        }
+        boolean shouldCancel = ArrowHitSound.onSoundPlay(instance);
+        shouldCancel |= BreakerHelper.onSoundPlay(instance);
+
+        if (shouldCancel) cir.setReturnValue(SoundEngine.PlayResult.NOT_STARTED);
     }
 }
