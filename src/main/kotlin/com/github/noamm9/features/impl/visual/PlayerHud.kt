@@ -33,7 +33,9 @@ object PlayerHud: Feature(name = "Player HUD", description = "Displays your stat
             "Vitality" to false,
             "Dungeon Room Secrets" to false,
             "Armor Stacks" to false,
-            "Terminator Stacks" to false
+            "Terminator Stacks" to false,
+            "Skill XP" to false,
+            "Essence Drops" to false
         )
     )
 
@@ -125,6 +127,8 @@ object PlayerHud: Feature(name = "Player HUD", description = "Displays your stat
             if (hideFromActionbar["Dungeon Room Secrets"]) result = result.remove(ActionBarParser.SECRETS_REGEX)
             if (hideFromActionbar["Armor Stacks"]) result = result.remove(ActionBarParser.STACKS_REGEX)
             if (hideFromActionbar["Terminator Stacks"]) result = result.remove(ActionBarParser.SALVATION_REGEX)
+            if (hideFromActionbar["Skill XP"]) result = result.remove(ActionBarParser.SKILL_XP_REGEX)
+            if (hideFromActionbar["Essence Drops"]) result = result.remove(ActionBarParser.ESSENCE_REGEX)
 
             event.message = result
         }
