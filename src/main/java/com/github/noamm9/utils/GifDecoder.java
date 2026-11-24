@@ -20,7 +20,7 @@ import static java.lang.System.arraycopy;
  *
  * @author Dhyan Blum
  * @version 1.09 November 2017
- * Modified version by @ImJoyler
+ * Modified version by @Noamm9 & @ImJoyler
  */
 public final class GifDecoder {
     /**
@@ -176,7 +176,7 @@ public final class GifDecoder {
             throw new IOException("Image is truncated.");
         }
         img.header = new String(in, 0, 6);
-        if (!img.header.equals("GIF87a") && !img.header.equals("GIF89a")) {
+        if (! img.header.equals("GIF87a") && ! img.header.equals("GIF89a")) {
             throw new IOException("Invalid GIF header.");
         }
         return 6;
@@ -249,18 +249,18 @@ public final class GifDecoder {
      * @return Index of the first byte after this block
      */
     static int readImgDescr(final GifFrame fr, final byte[] in, int i) {
-        fr.x = in[++i] & 0xFF | (in[++i] & 0xFF) << 8; // Byte 1-2: left
-        fr.y = in[++i] & 0xFF | (in[++i] & 0xFF) << 8; // Byte 3-4: top
-        fr.w = in[++i] & 0xFF | (in[++i] & 0xFF) << 8; // Byte 5-6: width
-        fr.h = in[++i] & 0xFF | (in[++i] & 0xFF) << 8; // Byte 7-8: height
+        fr.x = in[++ i] & 0xFF | (in[++ i] & 0xFF) << 8; // Byte 1-2: left
+        fr.y = in[++ i] & 0xFF | (in[++ i] & 0xFF) << 8; // Byte 3-4: top
+        fr.w = in[++ i] & 0xFF | (in[++ i] & 0xFF) << 8; // Byte 5-6: width
+        fr.h = in[++ i] & 0xFF | (in[++ i] & 0xFF) << 8; // Byte 7-8: height
         fr.wh = fr.w * fr.h;
-        final byte b = in[++i]; // Byte 9 is a packed byte
+        final byte b = in[++ i]; // Byte 9 is a packed byte
         fr.hasLocColTbl = (b & 0b10000000) >>> 7 == 1; // Bit 7
         fr.interlaceFlag = (b & 0b01000000) >>> 6 == 1; // Bit 6
         fr.sortFlag = (b & 0b00100000) >>> 5 == 1; // Bit 5
         final int colTblSizePower = (b & 7) + 1; // Bits 2-0
         fr.sizeOfLocColTbl = 1 << colTblSizePower; // 2^(N+1), As per the spec
-        return ++i;
+        return ++ i;
     }
 
     /**
@@ -370,13 +370,15 @@ public final class GifDecoder {
             initCodeLimit = (1 << initCodeSize) - 1; // 2^initCodeSize - 1
             initTableSize = fr.endOfInfoCode + 1;
             nextCode = initTableSize;
-            for (int c = numColors - 1; c >= 0; c--) {
-                table[c][0] = activeColTbl[c]; // Translated color
-            } // A gap may follow with no colors assigned if numCols < CLEAR
-            table[fr.clearCode] = new int[]{fr.clearCode}; // CLEAR
-            table[fr.endOfInfoCode] = new int[]{fr.endOfInfoCode}; // EOI
+            // Fresh arrays: a previous frame with a smaller code size may have stored multi-pixel
+            // entries at these indices, writing [0] in place would leave them several pixels long
+            for (int c = fr.clearCode - 1; c >= 0; c--) {
+                table[c] = new int[] { c < numColors ? activeColTbl[c] : 0 }; // Translated color
+            }
+            table[fr.clearCode] = new int[] { fr.clearCode }; // CLEAR
+            table[fr.endOfInfoCode] = new int[] { fr.endOfInfoCode }; // EOI
             // Locate transparent color in code table and set to 0
-            if (fr.transpColFlag && fr.transpColIndex < numColors) {
+            if (fr.transpColFlag && fr.transpColIndex < fr.clearCode) {
                 table[fr.transpColIndex][0] = 0;
             }
         }
@@ -434,7 +436,7 @@ public final class GifDecoder {
             codes.init(fr, activeColTbl, bits);
             bits.init(fr.data); // Incoming codes
             final int clearCode = fr.clearCode, endCode = fr.endOfInfoCode;
-            final int[] out = new int[wh]; // Target image pixel array
+            final int[] out = new int[fr.wh]; // Target image pixel array
             final int[][] tbl = codes.table; // Code table
             int outPos = 0; // Next pixel position in the output image array
             codes.clear(); // Init code table
@@ -454,7 +456,8 @@ public final class GifDecoder {
                         arraycopy(pixels, 0, out, outPos, pixels.length);
                         outPos += pixels.length;
                         continue; // Back to the loop with a valid previous code
-                    } else if (code == endCode) {
+                    }
+                    else if (code == endCode) {
                         break;
                     }
                     final int[] prevVals = tbl[prevCode];
@@ -465,7 +468,8 @@ public final class GifDecoder {
                         arraycopy(pixels, 0, out, outPos, pixels.length);
                         outPos += pixels.length;
                         prevValsAndK[prevVals.length] = tbl[code][0]; // K
-                    } else {
+                    }
+                    else {
                         prevValsAndK[prevVals.length] = prevVals[0]; // K
                         arraycopy(prevValsAndK, 0, out, outPos, prevValsAndK.length);
                         outPos += prevValsAndK.length;
@@ -513,27 +517,28 @@ public final class GifDecoder {
             if (fr.interlaceFlag) {
                 pixels = deinterlace(pixels, fr); // Rearrange pixel lines
             }
+            final int[] canvas = ((DataBufferInt) img.getRaster().getDataBuffer()).getData();
+            // Restore previous means the canvas as it was before this frame was drawn
+            final int[] prevPx = fr.disposalMethod == 3 ? canvas.clone() : null;
+
             // Create image of type 2=ARGB for frame area
             final BufferedImage frame = new BufferedImage(fr.w, fr.h, 2);
             arraycopy(pixels, 0, ((DataBufferInt) frame.getRaster().getDataBuffer()).getData(), 0, fr.wh);
             // Draw frame area on top of working image
             g.drawImage(frame, fr.x, fr.y, null);
 
-            // Keep a copy of the previous frame's pixels in case we need to restore the frame
-            int[] prevPx = new int[wh];
-            arraycopy(((DataBufferInt) img.getRaster().getDataBuffer()).getData(), 0, prevPx, 0, wh);
-
-            // Create another copy for the end user to not expose internal state
+            // Create a copy for the end user to not expose internal state
             fr.img = new BufferedImage(w, h, 2); // 2 = ARGB
-            arraycopy(prevPx, 0, ((DataBufferInt) fr.img.getRaster().getDataBuffer()).getData(), 0, wh);
+            arraycopy(canvas, 0, ((DataBufferInt) fr.img.getRaster().getDataBuffer()).getData(), 0, wh);
 
             // Handle disposal of current frame
             if (fr.disposalMethod == 2) {
                 // Restore to background color (clear frame area only)
                 g.clearRect(fr.x, fr.y, fr.w, fr.h);
-            } else if (fr.disposalMethod == 3) {
+            }
+            else if (fr.disposalMethod == 3) {
                 // Restore previous frame
-                arraycopy(prevPx, 0, ((DataBufferInt) img.getRaster().getDataBuffer()).getData(), 0, wh);
+                arraycopy(prevPx, 0, canvas, 0, wh);
             }
         }
 
@@ -549,7 +554,8 @@ public final class GifDecoder {
             final GifFrame frame = frames.getFirst();
             if (frame.hasLocColTbl) {
                 return frame.localColTbl[bgColIndex];
-            } else if (hasGlobColTbl) {
+            }
+            else if (hasGlobColTbl) {
                 return globalColTbl[bgColIndex];
             }
             return 0;
