@@ -30,7 +30,9 @@ object PlayerHud: Feature(name = "Player HUD", description = "Displays your stat
         "Vitality" to false,
         "Dungeon Room Secrets" to false,
         "Armor Stacks" to false,
-        "Terminator Stacks" to false
+        "Terminator Stacks" to false,
+        "Skill XP" to false,
+        "Essence Drops" to false
     ))
 
     @JvmStatic val hideFoodbar by ToggleSetting("Hide Food bar").withDescription("Hides the food bar.").section("Extras")
@@ -120,6 +122,8 @@ object PlayerHud: Feature(name = "Player HUD", description = "Displays your stat
             if (hideFromActionbar["Dungeon Room Secrets"]) result = result.replace(ActionBarParser.SECRETS_REGEX, "")
             if (hideFromActionbar["Armor Stacks"]) result = result.replace(ActionBarParser.STACKS_REGEX, "")
             if (hideFromActionbar["Terminator Stacks"]) result = result.replace(ActionBarParser.SALVATION_REGEX, "")
+            if (hideFromActionbar["Skill XP"]) result = result.replace(ActionBarParser.SKILL_XP_REGEX, "")
+            if (hideFromActionbar["Essence Drops"]) result = result.replace(ActionBarParser.ESSENCE_REGEX, "")
 
             event.message = result
         }
