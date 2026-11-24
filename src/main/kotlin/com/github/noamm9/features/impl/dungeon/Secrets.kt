@@ -130,7 +130,10 @@ object Secrets: Feature(), IFeatureWindow {
             if (! secretsTb.value) return@register
             if (! LocationUtils.inDungeon) return@register
             val looking = PlayerUtils.getSelectionBlock() ?: return@register
-            if (LocationUtils.inBoss && (! leverInBoss.value || ! shit["Lever"] || looking in leversDeviceLevers)) return@register
+            if (LocationUtils.inBoss && (! leverInBoss.value || ! shit["Lever"])) return@register
+            val state = WorldUtils.getStateAt(looking)
+            val isAlreadyPowered = state.hasProperty(LeverBlock.POWERED) && state.getValue(LeverBlock.POWERED)
+            if (LocationUtils.inBoss && (looking in blackListedLevers || (looking in allowedLevers && isAlreadyPowered))) return@register
             val lastClick = lastTbClicks[looking] ?: 0
             val now = System.currentTimeMillis()
             if (now - lastClick < clickDelay.value) return@register
@@ -189,11 +192,13 @@ object Secrets: Feature(), IFeatureWindow {
         BlockPos(60, 133, 142), BlockPos(59, 133, 142)
     )
 
-    private val leversDeviceLevers = listOf(
-        BlockPos(58, 133, 142), BlockPos(59, 133, 142), BlockPos(60, 133, 142), BlockPos(61, 133, 142), BlockPos(62, 133, 142),
-        BlockPos(58, 134, 142), BlockPos(59, 134, 142), BlockPos(60, 134, 142), BlockPos(61, 134, 142), BlockPos(62, 134, 142),
-        BlockPos(58, 135, 142), BlockPos(59, 135, 142), BlockPos(60, 135, 142), BlockPos(61, 135, 142), BlockPos(62, 135, 142),
-        BlockPos(58, 136, 142), BlockPos(59, 136, 142), BlockPos(60, 136, 142), BlockPos(61, 136, 142), BlockPos(62, 136, 142)
+    val allowedLevers = listOf(
+        BlockPos(58, 133, 142),
+        BlockPos(62, 133, 142),
+        BlockPos(60, 134, 142),
+        BlockPos(60, 135, 142),
+        BlockPos(58, 136, 142),
+        BlockPos(62, 136, 142)
     )
 
     @JvmStatic
