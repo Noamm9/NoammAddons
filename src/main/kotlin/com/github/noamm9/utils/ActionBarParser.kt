@@ -31,6 +31,7 @@ object ActionBarParser: ISelfInit {
     val SECRETS_REGEX = Regex("\\s*§7(\\d+)/(\\d+) Secrets") // §76/10 Secrets§r
     val SKILL_XP_REGEX = Regex("\\s*§3\\+([\\d,.]+) (\\w+) \\(([^)]+)\\)(?:§r)?") // https://regex101.com/r/HafzCm/1
     val ESSENCE_REGEX = Regex("\\s*§\\w\\+([\\d,]+) (\\w+) Essence(?:§r)?") // https://regex101.com/r/4EEdIl/1
+    val NOT_ENOUGH_MANA_REGEX = Regex("\\s*§c§lNOT ENOUGH MANA(?:§r)?") // §c§lNOT ENOUGH MANA
 
     val currentSpeed get() = ((mc.player?.abilities?.walkingSpeed ?: 0.1f) * 1000).roundToInt()
     var currentHealth = 0

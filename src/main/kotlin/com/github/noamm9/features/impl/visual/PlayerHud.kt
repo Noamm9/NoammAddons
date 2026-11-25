@@ -35,7 +35,8 @@ object PlayerHud: Feature(name = "Player HUD", description = "Displays your stat
             "Armor Stacks" to false,
             "Terminator Stacks" to false,
             "Skill XP" to false,
-            "Essence Drops" to false
+            "Essence Drops" to false,
+            "Not Enough Mana" to false
         )
     )
 
@@ -129,6 +130,7 @@ object PlayerHud: Feature(name = "Player HUD", description = "Displays your stat
             if (hideFromActionbar["Terminator Stacks"]) result = result.remove(ActionBarParser.SALVATION_REGEX)
             if (hideFromActionbar["Skill XP"]) result = result.remove(ActionBarParser.SKILL_XP_REGEX)
             if (hideFromActionbar["Essence Drops"]) result = result.remove(ActionBarParser.ESSENCE_REGEX)
+            if (hideFromActionbar["Not Enough Mana"]) result = result.remove(ActionBarParser.NOT_ENOUGH_MANA_REGEX)
 
             if (result != event.formattedText) {
                 result = result
