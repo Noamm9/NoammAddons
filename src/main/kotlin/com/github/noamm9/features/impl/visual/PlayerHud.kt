@@ -125,6 +125,12 @@ object PlayerHud: Feature(name = "Player HUD", description = "Displays your stat
             if (hideFromActionbar["Skill XP"]) result = result.replace(ActionBarParser.SKILL_XP_REGEX, "")
             if (hideFromActionbar["Essence Drops"]) result = result.replace(ActionBarParser.ESSENCE_REGEX, "")
 
+            if (result != event.formattedText) {
+                result = result
+                    .replace(Regex("(?:\\s|§.)+$"), "")
+                    .replace(Regex("^((?:§.)*)\\s+"), "$1")
+            }
+
             event.message = result
         }
     }
