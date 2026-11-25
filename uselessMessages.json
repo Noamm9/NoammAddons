@@ -45,7 +45,7 @@
   "Used Throwing Axe!",
   ".+ is now ready!",
   "Your .+ stats are doubled because you are the only player using this class!",
-  "(Archer|Mage|Berserker|Tank|Healer) Milestone.+",
+  "(Archer|Mage|Berserk|Tank|Healer) Milestone.+",
   "^You earned .+ Event EXP from playing SkyBlock!$",
   "You earned .+ GEXP from playing .+!",
   "BONUS! Temporarily earn [0-9]+% more skill experience!",
