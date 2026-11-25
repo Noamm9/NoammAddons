@@ -29,7 +29,7 @@ object ActionBarParser: ISelfInit {
     val SALVATION_REGEX = Regex("(?:§6|§a§l)?T([12]|3!)(?:§r)?")
     val MANA_USAGE_REGEX = Regex("§b-([\\d,]+) Mana \\(§6.+?§b\\)|§c§lNOT ENOUGH MANA") // §b-50 Mana (§6Speed Boost§b) , §c§lNOT ENOUGH MANA
     val SECRETS_REGEX = Regex("\\s*§7(\\d+)/(\\d+) Secrets") // §76/10 Secrets§r
-    val SKILL_XP_REGEX = Regex("\\s*§3\\+([\\d,.]+) (\\w+) \\(([^)]+)\\)(?:§r)?") // https://regex101.com/r/HafzCm/1
+    val SKILL_XP_REGEX = Regex("\\s*§\\w\\+(?:§\\w)?([\\d,.]+) (?:§\\w)?(\\w+) \\(([^)]+)\\)(?:§r)?") // https://regex101.com/r/HafzCm/2
     val ESSENCE_REGEX = Regex("\\s*§\\w\\+([\\d,]+) (\\w+) Essence(?:§r)?") // https://regex101.com/r/4EEdIl/1
 
     val currentSpeed get() = ((mc.player?.abilities?.walkingSpeed ?: 0.1f) * 1000).roundToInt()
