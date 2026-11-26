@@ -141,6 +141,11 @@ object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
         register<ContainerEvent.MouseClick> {
             if (! event.screen.isLeapMenu()) return@register
 
+            getKeybindIndex(event.button, mouse = true)?.let {
+                event.isCanceled = true
+                return@register triggerLeap(it)
+            }
+
             if (event.button != InputConstants.MOUSE_BUTTON_LEFT && leftClickOnly.value) {
                 event.isCanceled = true
                 return@register
@@ -158,24 +163,27 @@ object LeapMenu: Feature("Custom Leap Menu and leap message"), ICustomMenu {
                 player.closeContainer()
             }
 
-            if (! leapKeybinds.value) return@register
-            val index = when (keybindMode.value) {
-                0 -> keybindKeys.indexOfFirst { it.value == event.key }.let { slot ->
-                    if (renderer == WheelLeapRenderer) WheelLeapRenderer.getKeybindIndex(slot) else slot
-                }
-                1 -> classesKeys.find { it.value == event.key }?.let { key ->
-                    players.indexOfFirst { it?.player?.clazz == DungeonClass.fromName(key.name) }
-                }
-
-                else -> - 1
-            }?.takeIf { it in players.indices } ?: return@register
-
+            val index = getKeybindIndex(event.key, mouse = false) ?: return@register
             event.isCanceled = true
             triggerLeap(index)
         }
 
         register<MainThreadPacketReceivedEvent.Post> { if (event.packet is ClientboundContainerClosePacket) clicked = false }
         register<PacketEvent.Sent> { if (event.packet is ServerboundContainerClosePacket) clicked = false }
+    }
+
+    private fun getKeybindIndex(code: Int, mouse: Boolean): Int? {
+        if (! leapKeybinds.value) return null
+        return when (keybindMode.value) {
+            0 -> keybindKeys.indexOfFirst { it.matches(code, mouse) }.let { slot ->
+                if (renderer == WheelLeapRenderer) WheelLeapRenderer.getKeybindIndex(slot) else slot
+            }
+            1 -> classesKeys.find { it.matches(code, mouse) }?.let { key ->
+                players.indexOfFirst { it?.player?.clazz == DungeonClass.fromName(key.name) }
+            }
+
+            else -> - 1
+        }?.takeIf { it in players.indices }
     }
 
     fun updateLeapMenu() {
