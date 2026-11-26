@@ -9,7 +9,7 @@ import net.minecraft.client.renderer.rendertype.RenderType
 import net.minecraft.world.InteractionHand
 import org.joml.Quaternionfc
 
-//~ if <26.3 '144' -> 'com.github.noamm9.NoammAddons.mc.window.refreshRate'
+//~ if <26.3 '144' -> 'com.github.noamm9.NoammAddons.mc.window.refreshRate.takeIf { it > 0 } ?: 144'
 val refreshRate get() = 144
 
 //~ if <26.3 '= rotate(quaternion)' -> '= mulPose(quaternion)'
