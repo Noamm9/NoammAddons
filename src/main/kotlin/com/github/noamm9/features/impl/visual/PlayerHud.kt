@@ -33,13 +33,18 @@ object PlayerHud: Feature(name = "Player HUD", description = "Displays your stat
             "Vitality" to false,
             "Dungeon Room Secrets" to false,
             "Armor Stacks" to false,
-            "Terminator Stacks" to false
+            "Terminator Stacks" to false,
+            "Skill XP" to false,
+            "Essence Drops" to false
         )
     )
 
     @JvmStatic val hideFoodbar by ToggleSetting("Hide Food bar").withDescription("Hides the food bar.").section("Extras")
     @JvmStatic val hideHealthbar by ToggleSetting("Hide Health bar").withDescription("Hides the health bar.")
     @JvmStatic val hideArmorbar by ToggleSetting("Hide Armor bar").withDescription("Hides the defense bar.").hideIf { hideHealthbar.value }
+
+    private val trailingGapRegex = Regex("(?:\\s|§.)+$")
+    private val leadingGapRegex = Regex("^((?:§.)*)\\s+")
 
     override fun init() {
         hudElement(
@@ -125,6 +130,12 @@ object PlayerHud: Feature(name = "Player HUD", description = "Displays your stat
             if (hideFromActionbar["Dungeon Room Secrets"]) result = result.remove(ActionBarParser.SECRETS_REGEX)
             if (hideFromActionbar["Armor Stacks"]) result = result.remove(ActionBarParser.STACKS_REGEX)
             if (hideFromActionbar["Terminator Stacks"]) result = result.remove(ActionBarParser.SALVATION_REGEX)
+            if (hideFromActionbar["Skill XP"]) result = result.remove(ActionBarParser.SKILL_XP_REGEX)
+            if (hideFromActionbar["Essence Drops"]) result = result.remove(ActionBarParser.ESSENCE_REGEX)
+
+            if (result != event.formattedText) result = result
+                .replace(trailingGapRegex, "")
+                .replace(leadingGapRegex, "$1")
 
             event.message = result
         }
