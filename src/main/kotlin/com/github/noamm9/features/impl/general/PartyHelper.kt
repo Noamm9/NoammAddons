@@ -33,7 +33,6 @@ object PartyHelper: Feature("Party commands and reformatting."), ICommandProvide
             "!inv" to true,
             "!kick" to true,
             "!dt" to true,
-            "!undt" to true,
             "!ping" to true,
             "!tps" to true,
             "!fps" to true,
@@ -204,7 +203,7 @@ object PartyHelper: Feature("Party commands and reformatting."), ICommandProvide
                 downtimeList[sender] = args.joinToString(" ").ifBlank { "No reason" }
             }
 
-            commands["!undt"] && cmd.equalsOneOf("undt", "undowntime") -> {
+            commands["!dt"] && cmd.equalsOneOf("undt", "undowntime") -> {
                 downtimeList.remove(sender)
             }
 
