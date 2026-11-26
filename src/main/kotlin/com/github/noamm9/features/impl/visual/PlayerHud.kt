@@ -43,6 +43,9 @@ object PlayerHud: Feature(name = "Player HUD", description = "Displays your stat
     @JvmStatic val hideHealthbar by ToggleSetting("Hide Health bar").withDescription("Hides the health bar.")
     @JvmStatic val hideArmorbar by ToggleSetting("Hide Armor bar").withDescription("Hides the defense bar.").hideIf { hideHealthbar.value }
 
+    private val trailingGapRegex = Regex("(?:\\s|§.)+$")
+    private val leadingGapRegex = Regex("^((?:§.)*)\\s+")
+
     override fun init() {
         hudElement(
             this.name + " Health",
@@ -130,11 +133,9 @@ object PlayerHud: Feature(name = "Player HUD", description = "Displays your stat
             if (hideFromActionbar["Skill XP"]) result = result.remove(ActionBarParser.SKILL_XP_REGEX)
             if (hideFromActionbar["Essence Drops"]) result = result.remove(ActionBarParser.ESSENCE_REGEX)
 
-            if (result != event.formattedText) {
-                result = result
-                    .replace(Regex("(?:\\s|§.)+$"), "")
-                    .replace(Regex("^((?:§.)*)\\s+"), "$1")
-            }
+            if (result != event.formattedText) result = result
+                .replace(trailingGapRegex, "")
+                .replace(leadingGapRegex, "$1")
 
             event.message = result
         }
