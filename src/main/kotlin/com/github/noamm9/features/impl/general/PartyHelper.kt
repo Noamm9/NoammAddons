@@ -203,6 +203,10 @@ object PartyHelper: Feature("Party commands and reformatting."), ICommandProvide
                 downtimeList[sender] = args.joinToString(" ").ifBlank { "No reason" }
             }
 
+            commands["!dt"] && cmd.equalsOneOf("undt", "undowntime") -> {
+                downtimeList.remove(sender)
+            }
+
             commands["!w"] && cmd.equalsOneOf("warp", "w") -> runCommand("p warp", true)
 
             commands["!ai"] && cmd.equalsOneOf("ai", "allinvite", "allinv") -> runCommand("p settings allinvite", true)
