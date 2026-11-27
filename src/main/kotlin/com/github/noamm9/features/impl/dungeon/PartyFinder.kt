@@ -20,6 +20,7 @@ import com.github.noamm9.utils.network.ProfileUtils
 import com.github.noamm9.utils.network.cache.ProfileCache
 import com.github.noamm9.utils.render.Render2D.drawString
 import com.github.noamm9.utils.render.RenderHelper.width
+import com.mojang.brigadier.arguments.IntegerArgumentType
 import com.mojang.brigadier.arguments.StringArgumentType
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
@@ -213,8 +214,8 @@ object PartyFinder: Feature(), ICommandProvider {
             if (name == mc.user.name) return@register
 
             scope.launch {
-                if (autoKick.value && PartyUtils.isLeader()) autoKickPlayer(name)
                 if (showJoinStats.value) printPlayerStats(name)
+                if (autoKick.value && PartyUtils.isLeader()) autoKickPlayer(name)
             }
         }
     }
@@ -229,10 +230,20 @@ object PartyFinder: Feature(), ICommandProvider {
                 val ign = StringArgumentType.getString(it, "name")
                 scope.launch { printPlayerStats(ign) }
             }
+
+            // no you are not getting entrance floor support
+            argument("floor", IntegerArgumentType.integer(1, 7)) {
+                suggests { (1 .. 7).map(Int::toString) }
+                runs {
+                    val ign = StringArgumentType.getString(it, "name")
+                    val floor = IntegerArgumentType.getInteger(it, "floor")
+                    scope.launch { printPlayerStats(ign, floor) }
+                }
+            }
         }
     }
 
-    private suspend fun printPlayerStats(name: String) {
+    private suspend fun printPlayerStats(name: String, selectedFloor: Int? = null) {
         val cleanName = name.removeFormatting()
 
         val data = ProfileUtils.getProfile(cleanName).onFailure {
@@ -271,7 +282,8 @@ object PartyFinder: Feature(), ICommandProvider {
         val completionComponents = listOfNotNull(
             catacombs.tierCompletions.let { completionObj ->
                 val highestFloor = completionObj.keys.mapNotNull(String::toIntOrNull).maxOrNull() ?: return@let null
-                val header = "  &aFloor Completions &7(F$highestFloor): ${catacombs.fastestTimeSPlus["$highestFloor"]?.let(::formatTime) ?: "N/A"}"
+                val shownFloor = selectedFloor ?: highestFloor
+                val header = "  &aFloor Completions &7(F$shownFloor): ${catacombs.fastestTimeSPlus["$shownFloor"]?.let(::formatTime) ?: "N/A"}"
                 val hover = (0 .. highestFloor).joinToString("\n") { floor ->
                     val pb = catacombs.fastestTimeSPlus["$floor"]?.let(::formatTime) ?: "&cNo Comp"
                     val floorName = if (floor == 0) "Entrance" else floor.toString()
@@ -284,7 +296,8 @@ object PartyFinder: Feature(), ICommandProvider {
             },
             masterCatacombs.tierCompletions.let { completionObj ->
                 val highestFloor = completionObj.keys.mapNotNull(String::toIntOrNull).maxOrNull() ?: return@let null
-                val header = "  &l&4Master Completions &7(M$highestFloor): ${masterCatacombs.fastestTimeSPlus["$highestFloor"]?.let(::formatTime) ?: "N/A"}"
+                val shownFloor = selectedFloor ?: highestFloor
+                val header = "  &l&4Master Completions &7(M$shownFloor): ${masterCatacombs.fastestTimeSPlus["$shownFloor"]?.let(::formatTime) ?: "N/A"}"
                 val hover = (1 .. highestFloor).joinToString("\n") { floor ->
                     val pb = masterCatacombs.fastestTimeSPlus["$floor"]?.let(::formatTime) ?: "&cNo Comp"
                     "&c&l*&4 Floor $floor: ${completionObj["$floor"]?.let { "&e$it &7(&6S+ &e$pb&7)" } ?: "&cDNF"}"
