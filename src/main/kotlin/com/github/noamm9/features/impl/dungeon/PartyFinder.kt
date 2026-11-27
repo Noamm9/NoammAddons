@@ -32,7 +32,18 @@ import java.util.*
 
 object PartyFinder: Feature(), ICommandProvider {
     private val showJoinStats by ToggleSetting("Join Stats", true).withDescription("Prints the dungeon stats of a player that joins your party.").section("Join Stats")
-
+    private val joinStats by MultiCheckboxSetting(
+        "Toggle Join Stats", mutableMapOf(
+            "Dungeon Levels" to true,
+            "Magical Power" to true,
+            "Secrets/Blood Mobs" to true,
+            "Pets" to true,
+            "Power Stone/Arrows" to true,
+            "Armor" to true,
+            "Completions" to true,
+            "Kick Component" to true
+        )
+    ).withDescription("Toggle Join Stats elements")
     private val showLevelReq by ToggleSetting("Show Level Req", true).withDescription("Shows the red level requirement number.").section("Menu")
     private val showMissingOverlay by ToggleSetting("Show Missing Classes", true).withDescription("Shows missing classes on the head.")
 
@@ -310,31 +321,44 @@ object PartyFinder: Feature(), ICommandProvider {
         )
 
         ChatUtils.chat("&a&l--- &r&b$cleanName&b's Dungeon Stats &a&l---&r")
-        ChatUtils.chat(
-            "  &4Cata Level: &b${data.cataLevel.toFixed(2)} &f| &dClass Avg: &b${data.classAverage.toFixed(1)} &f| &dMP: ${
-                if (! inventoryApiEnabled) "&cAPI off" else "&e${data.magicalPower}"
-            }"
-        )
-        ChatUtils.chat("  &bSecrets: &d${dungeons.secrets} &b(&d${data.secretAverage.toFixed(2)}&b) &f| &cBlood Mobs: &f${data.bloodMobsKilled}")
-        ChatUtils.chat("  Pets: ${if (pets.isEmpty()) "&cNone" else pets.joinToString("&7,&r ") { it.first + it.second }}")
-        ChatUtils.chat("  &9Power Stone: &e$powerStone &f| &6Arrows: &e$selectedArrow")
-        ChatUtils.chat(" ")
+        val cataComponent = if (joinStats["Dungeon Levels"]) {
+            "&4Cata Level: &b${data.cataLevel.toFixed(2)} &f| &dClass Avg: &b${data.classAverage.toFixed(1)}"
+        } else ""
+        val mpComponent = if (joinStats["Magical Power"]) "§f| &dMP: ${
+            if (! inventoryApiEnabled) "&cAPI off" else "&e${data.magicalPower}"
+        }" else ""
+        if (joinStats["Dungeon Levels"] || joinStats["Magical Power"])
+            ChatUtils.chat("  $cataComponent $mpComponent")
 
-        when {
-            ! inventoryApiEnabled -> ChatUtils.chat("  &cInventory API is Off")
-            armorComponents.isEmpty() -> ChatUtils.chat("  &cArmor data unavailable")
-            else -> armorComponents.forEach(ChatUtils::chat)
+        if (joinStats["Secrets/Blood Mobs"])
+            ChatUtils.chat("  &bSecrets: &d${dungeons.secrets} &b(&d${data.secretAverage.toFixed(2)}&b) &f| &cBlood Mobs: &f${data.bloodMobsKilled}")
+
+        if (joinStats["Pets"])
+            ChatUtils.chat("  Pets: ${if (pets.isEmpty()) "&cNone" else pets.joinToString("&7,&r ") { it.first + it.second }}")
+
+        if (joinStats["Power Stone/Arrows"])
+            ChatUtils.chat("  &9Power Stone: &e$powerStone &f| &6Arrows: &e$selectedArrow")
+
+        if (joinStats["Armor"]) {
+            ChatUtils.chat(" ")
+            when {
+                ! inventoryApiEnabled -> ChatUtils.chat("  &cInventory API is Off")
+                armorComponents.isEmpty() -> ChatUtils.chat("  &cArmor data unavailable")
+                else -> armorComponents.forEach(ChatUtils::chat)
+            }
         }
 
-        if (completionComponents.isNotEmpty()) {
+        if (joinStats["Completions"] && completionComponents.isNotEmpty()) {
             ChatUtils.chat(" ")
             completionComponents.forEach(ChatUtils::chat)
         }
 
-        ChatUtils.chat(" ")
-        ChatUtils.chat(Component.literal("  §cPress to kick $cleanName").withStyle {
-            it.withClickEvent(ClickEvent.RunCommand("/party kick $cleanName"))
-        })
+        if (joinStats["Kick Component"]) {
+            ChatUtils.chat(" ")
+            ChatUtils.chat(Component.literal("  §cPress to kick $cleanName").withStyle {
+                it.withClickEvent(ClickEvent.RunCommand("/party kick $cleanName"))
+            })
+        }
         ChatUtils.chat("&a&l------------------------------------&r")
     }
 
